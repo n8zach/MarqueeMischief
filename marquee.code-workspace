@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../Git/scrabbler"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../Git/next_word_prediction"
+		}
+	],
+	"settings": {}
+}
