@@ -1,7 +1,7 @@
 from flask import Flask,render_template,request
 from marquee_mischief_bing import message_to_messages
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
 @app.route('/data/', methods = ['POST', 'GET'])
 def data():
