@@ -3,12 +3,16 @@ import http.client
 from marquee_helper import message_to_letters, validate_messages
 
 
-def message_to_messages(message):
+def message_to_messages(message, use_proxy=False):
 
     letters = message_to_letters(message)
 
-    conn = http.client.HTTPSConnection("bingchat-chatgpt-4-api.p.rapidapi.com")
-
+    if use_proxy:
+        conn = http.client.HTTPSConnection("proxy.server", 3128)
+        conn.set_tunnel("bingchat-chatgpt-4-api.p.rapidapi.com")
+    else:
+        conn = http.client.HTTPSConnection("bingchat-chatgpt-4-api.p.rapidapi.com")
+        
     payload = "{\r\n \"question\": \"Create 10 funny complete sentences using only the letters in this multiset: "
     payload = payload + letters + ". "
     payload = payload + "Do not use a letter more times than it appears in the multiset. "
