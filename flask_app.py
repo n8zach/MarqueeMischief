@@ -23,5 +23,5 @@ def thinking():
     return render_template('data.html', form_data = data)
 
 
-app.debug = True 
-app.run(host='localhost', port=5000)
+if __name__ == '__main__':
+    app.run()
