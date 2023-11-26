@@ -17,5 +17,6 @@ def image_to_text(filepath):
         "X-RapidAPI-Host": "ocr-100-image-text-extractor.p.rapidapi.com"
     }
 
+    print("Getting message from image...")
     response = requests.post(url, data=payload, headers=headers)
     return(response.content.decode('ascii')).replace('\n', ' ').replace('\\', '')

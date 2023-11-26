@@ -1,0 +1,12 @@
+<html>
+    <body onload="document.createElement('form').submit.call(document.getElementById('myForm'))">
+        <h1>Doing Mischeif!</h1>
+        <br>
+        Making new messages from "{{form_data.getlist('OriginalMessage')[0]}}"...
+        <form id="myForm" name="myForm" action="/thinking" method="POST">
+            <input type=hidden name="OriginalMessage" value="{{form_data.getlist('OriginalMessage')[0]}}">
+            <input type=hidden name="submit" id="submit" value="Continue"/>
+        </form>
+    </body>
+</html>
+

@@ -1,0 +1,10 @@
+<form action="/data" method = "POST">
+    <p>Original Message <input type = "text" name = "OriginalMessage" size="100"/></p>
+</form>
+<br>
+{% autoescape false %}
+{% for key,value in form_data.items() %}
+<h2> {{key}}</h2>
+<p> {{value}}</p>
+{% endfor %}
+{% endautoescape %}
