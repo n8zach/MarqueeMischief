@@ -42,3 +42,5 @@ def validate_messages(messages, letters):
         #print(remove_punctuation(message).strip())
         validated.append(remove_punctuation(message).strip())
     return bad, validated
+
+#validate_messages(["A fat lady farted very loud"], 'feed your faith and your fears will starve to death')

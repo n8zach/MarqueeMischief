@@ -2,22 +2,11 @@ from marquee_helper import message_to_letters, remove_punctuation, extra_letters
 import bing_helper
 from image_to_text2 import image_to_text
 
-def message_to_messages(message):
-    # message = 'Do unto others as you would have them do unto you'
-    # message = 'feed your faith and your fears will starve to death'
-    # message = 'If you are in deep water turn to the one who walked on it'
-    # message = "Have a great summer School starts September 5th"
-    # message = "Faith is an investment that never looses interest"
-    # message = "God made you on purpose for a purpose"
-    # message = "Come in and see our pretty armchairs"
-    # message = "Please wear your socks on the gym floor"
-    # message = "See our big football game today"
-    # message = "new tasty cheese and lentil pot pies"
-
+def message_to_messages(message, use_proxy=False):
     print("[" + message + "]")
     print("Getting new messages...")
-    bad, good = bing_helper.message_to_messages(message)
-
+    bad, good = bing_helper.message_to_messages(message, use_proxy)
+    print(bad)
     if len(good) == 0:
         print("no valid messages found. Here is what we got...")
         print(bad)
