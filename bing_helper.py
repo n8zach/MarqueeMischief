@@ -27,13 +27,13 @@ def message_to_messages(message, use_proxy=False):
 
     letters = message_to_letters(message)
 
-    payload = "{\r\n \"question\": \"Create 10 funny, witty, ironic, complete sentences using only the letters in this multiset: " + letters + ". "
-    payload = payload + "Try to use words that a 10 year old would find funny like fart, farts, toilet, doo doo, boogers, stupid, dumb, poopy, and poop. "
+    payload = "{\r\n \"question\": \"Create 15 funny, witty, ironic, complete sentences using only the letters in this multiset: " + letters + ". "
+    payload = payload + "Try to use words that a 10 year old would find funny like fart, farts, toilet, boogers, stupid, dumb, poopy, pee, and poop. "
     # payload = payload + "For example ""Thats a loud fart"" and ""He made a poop sandwich. "
     payload = payload + "Do this in the style of Dav Pilkey. "
     # payload = payload + "Do not use a letter more times than it appears in the multiset. "
     # payload = payload + "You do not need to use all the letters.\n"
-    count = int(len(message.replace(' ',''))/8)
+    count = max([5, int(len(message.replace(' ',''))/8)])
     payload = payload + f" Keep each sentence to {count} words or less. "
     #payload = payload + "For example: from this multiset *f,e,e,d,y,o,u,r,f,a,i,t,h,a,n,d,y,o,u,r,f,e,a,r,s,w,i,l,l,s,t,a,r,v,e,t,o,d,e,a,t,h* you can create *A fat lady farted very loud*"
     payload = payload + "\",\r\n    \"bing_u_cookie\": \"1LiFx8h_xlL8RNv4Q9Qs68aAKjF_NTMz91VU5pXuUcQxRrmvrLgrQ4pW1oGXLSjkkABZDdSMKSuOPtRqNPLSQdQP_m7k4RyWJGWHPaNh4HNGX-KkYsJc5qL91_nSYxftcbQW3u58lVc53PRZqD9zIJEvRuuP_yWh2DrQeiRhY5MwbHbUF2JuQyXNiBjjTYsN29NcyPa9lZuDP46A3u3afRD\",\r\n    "
@@ -51,7 +51,8 @@ def message_to_messages(message, use_proxy=False):
     #     if(good2 != []):
     #         good.remove(message)
     #         good.append(good2[0])
-    pick_funniest(good, use_proxy)
+    
+    # pick_funniest(good, use_proxy)
 
     return bad, good
 

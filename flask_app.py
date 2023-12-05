@@ -1,6 +1,7 @@
 from flask import Flask,render_template,request
 from marquee_mischief_bing import message_to_messages
 from bing_helper import pick_funniest
+from marquee_helper import remove_punctuation
 
 USE_PROXY = False
 
@@ -19,7 +20,7 @@ def data():
 def thinking(): 
     form_data = request.form
     message = form_data.getlist('OriginalMessage')[0]
-    messages = message_to_messages(message, USE_PROXY)
+    messages = message_to_messages(remove_punctuation(message), USE_PROXY)
     data = {}
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
     data["NewMessages"] = messages.replace('\n','<br>')
