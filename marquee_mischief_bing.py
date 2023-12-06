@@ -10,6 +10,7 @@ def message_to_messages(message, use_proxy=False):
     if len(good) == 0:
         print("no valid messages found. Here is what we got...")
         print(bad)
+        return("Sorry...  I got nothin. :( ")
     else:
         return('\n'.join(good))
 
