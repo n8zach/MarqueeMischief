@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fading Phrases</title>
+  <style>
+    #phrases {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+<div id="phrases"></div>
+
+<script>
+  const phrases = [
+    "Hello, World!",
+    "This is a fading text example.",
+    "You can add more phrases to the array.",
+    "Each phrase will fade in and out."
+  ];
+
+  const phraseContainer = document.getElementById('phrases');
+
+  let currentPhraseIndex = 0;
+
+  function displayNextPhrase() {
+    phraseContainer.textContent = phrases[currentPhraseIndex];
+    fadeIn();
+    setTimeout(fadeOut, 2000); // Adjust the duration as needed
+    currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+  }
+
+  function fadeIn() {
+    phraseContainer.style.opacity = 1;
+  }
+
+  function fadeOut() {
+    phraseContainer.style.opacity = 0;
+    setTimeout(displayNextPhrase, 500); // Adjust the delay between phrases as needed
+  }
+
+  // Start the display
+  displayNextPhrase();
+</script>
+
+</body>
+</html>

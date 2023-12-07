@@ -6,7 +6,7 @@ def message_to_letters(message):
     return ', '.join(sorted(letters))
 
 def remove_punctuation(input):
-    punc = '''!1234567890()-[]{};:'"\,<>./?@#$%^&*_~'''
+    punc = '''!1234567890()-[]{};’:'"\,<>./?@#$%^&*_~'''
     for letter in input:
         if letter in punc:
             input = input.replace(letter, "")
@@ -44,3 +44,6 @@ def validate_messages(messages, letters):
     return bad, validated
 
 #validate_messages(["A fat lady farted very loud"], 'feed your faith and your fears will starve to death')
+#bad, good = validate_messages(["Farts smell bad.","Toilet paper is gross.","Boogers are gross.","Stupid people are dumb.","Poopy pants are smelly.","Pee is gross.","Poop is gross.","Farting is gross.","Farts are gross.","Toilet paper is smelly.","Boogers are smelly.","Stupid people are poopy.","Dumb people are poopy.","Farting is poopy.","Farts are poopy.","Toilet paper is poopy.","Boogers are poopy.","Stupid people are gross.","Dumb people are gross.","Farting is gross."], "a, a, a, a, a, d, d, d, e, e, e, e, e, f, f, f, h, h, i, i, l, l, n, o, o, o, r, r, r, r, s, s, t, t, t, t, u, u, v, w, y, y")
+#print(bad)
+#print(good)

@@ -1,5 +1,6 @@
 from flask import Flask,render_template,request
 from marquee_mischief_bing import message_to_messages
+#from marquee_mischief_openAi import message_to_messages
 from bing_helper import pick_funniest
 from marquee_helper import remove_punctuation
 from json import decoder
@@ -7,6 +8,10 @@ from json import decoder
 USE_PROXY = False
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
+
+@app.route('/test/')
+def test():
+    return render_template('test.html')
 
 @app.route('/home/', methods = ['POST', 'GET'])
 def home():

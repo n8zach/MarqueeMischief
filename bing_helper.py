@@ -6,9 +6,12 @@ import string
 
 def ask_bing(payload, use_proxy=False):
 
-    pre = "1LiFx8h"
-    # pre = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(7))
-    cookie = pre + "_xlL8RNv4Q9Qs68aAKjF_NTMz91VU5pXuUcQxRrmvrLgrQ4pW1oGXLSjkkABZDdSMKSuOPtRqNPLSQdQP_m7k4RyWJGWHPaNh4HNGX-KkYsJc5qL91_nSYxftcbQW3u58lVc53PRZqD9zIJEvRuuP_yWh2DrQeiRhY5MwbHbUF2JuQyXNiBjjTYsN29NcyPa9lZuDP46A3u3afRD"
+    # pre = "1LiFx8h"
+    # change the cookie so each conversation is new (is this the best way?)
+    #pre = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(7))
+    #cookie = pre + "_xlL8RNv4Q9Qs68aAKjF_NTMz91VU5pXuUcQxRrmvrLgrQ4pW1oGXLSjkkABZDdSMKSuOPtRqNPLSQdQP_m7k4RyWJGWHPaNh4HNGX-KkYsJc5qL91_nSYxftcbQW3u58lVc53PRZqD9zIJEvRuuP_yWh2DrQeiRhY5MwbHbUF2JuQyXNiBjjTYsN29NcyPa9lZuDP46A3u3afRD"
+
+    cookie = "1h1cT7kEyvUUkYaaID01spf76-9q-oIW-v5n6CT01MOeJ4rr9J8XdXYM5soWMFO1BACXkVj1W7hyJ_FIjkUECsveSjGVO_H2muQLw2RTsK3cQxSpnMsX6eLrI8TMLVRzgc6hLKUJwMMWOpQPCw7Zw1ijxJpoX9u_bjN13Ke6yTLdniynrJJnZyZo8cPkJjBf2jgIbC50ucYkcYH_g9iWvrQ"
 
     if use_proxy:
         conn = http.client.HTTPSConnection("proxy.server", 3128)
@@ -48,7 +51,7 @@ def message_to_messages(message, use_proxy=False):
     # payload = payload + "Do this in the style of Dav Pilkey. "
     # payload = payload + "Do not use a letter more times than it appears in the multiset. "
     # payload = payload + "You do not need to use all the letters.\n"
-    count = min(6, int(len(fixed)/6 - 1))
+    count = max(4, min(7, int((len(letters)+2)/3/6) - 1))
     payload = payload + f" Keep each sentence to {count} words or less. "
     #payload = payload + "For example: from this multiset *f,e,e,d,y,o,u,r,f,a,i,t,h,a,n,d,y,o,u,r,f,e,a,r,s,w,i,l,l,s,t,a,r,v,e,t,o,d,e,a,t,h* you can create *A fat lady farted very loud*"
     
@@ -66,7 +69,8 @@ def message_to_messages(message, use_proxy=False):
     #         good.append(good2[0])
     
     # pick_funniest(good, use_proxy)
-
+    good.append(payload)
+    good = good + bad
     return bad, good
 
 def add_adjective(message, letters, use_proxy=False):
