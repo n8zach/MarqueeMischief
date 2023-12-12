@@ -4,6 +4,7 @@ from marquee_helper import message_to_letters, validate_messages, remove_punctua
 import random
 import string
 
+
 def ask_bing(payload, use_proxy=False):
 
     # pre = "1LiFx8h"
@@ -11,16 +12,21 @@ def ask_bing(payload, use_proxy=False):
     #pre = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(7))
     #cookie = pre + "_xlL8RNv4Q9Qs68aAKjF_NTMz91VU5pXuUcQxRrmvrLgrQ4pW1oGXLSjkkABZDdSMKSuOPtRqNPLSQdQP_m7k4RyWJGWHPaNh4HNGX-KkYsJc5qL91_nSYxftcbQW3u58lVc53PRZqD9zIJEvRuuP_yWh2DrQeiRhY5MwbHbUF2JuQyXNiBjjTYsN29NcyPa9lZuDP46A3u3afRD"
 
-    cookie = "1h1cT7kEyvUUkYaaID01spf76-9q-oIW-v5n6CT01MOeJ4rr9J8XdXYM5soWMFO1BACXkVj1W7hyJ_FIjkUECsveSjGVO_H2muQLw2RTsK3cQxSpnMsX6eLrI8TMLVRzgc6hLKUJwMMWOpQPCw7Zw1ijxJpoX9u_bjN13Ke6yTLdniynrJJnZyZo8cPkJjBf2jgIbC50ucYkcYH_g9iWvrQ"
-
+    cookie = "1LiFx8h_xlL8RNv4Q9Qs68aAKjF_NTMz91VU5pXuUcQxRrmvrLgrQ4pW1oGXLSjkkABZDdSMKSuOPtRqNPLSQdQP_m7k4RyWJGWHPaNh4HNGX-KkYsJc5qL91_nSYxftcbQW3u58lVc53PRZqD9zIJEvRuuP_yWh2DrQeiRhY5MwbHbUF2JuQyXNiBjjTYsN29NcyPa9lZuDP46A3u3afRD"
+    #cookie = "Please replace this string with a string representing your Bing _U cookie. You can obtain your _U cookie by accessing the Developer Console and searching for the _U cookie name. Please follow this link for guidance: https://i.ibb.co/94YWpQD/1676391128.png"
+    
     if use_proxy:
         conn = http.client.HTTPSConnection("proxy.server", 3128)
         conn.set_tunnel("bingchat-chatgpt-4-api.p.rapidapi.com")
     else:
         conn = http.client.HTTPSConnection("bingchat-chatgpt-4-api.p.rapidapi.com")
     
+    #payload = "{\r\n    \"question\": \"square root of 12"
+    
     payload = payload + "\",\r\n    \"bing_u_cookie\": \"" + cookie + "\",\r\n    "
     payload = payload + "\"conversation_style\": \"precise\"\r\n}"
+
+    
 
     print(payload)
     headers = {
@@ -51,7 +57,7 @@ def message_to_messages(message, use_proxy=False):
     # payload = payload + "Do this in the style of Dav Pilkey. "
     # payload = payload + "Do not use a letter more times than it appears in the multiset. "
     # payload = payload + "You do not need to use all the letters.\n"
-    count = max(4, min(7, int((len(letters)+2)/3/6) - 1))
+    count = max(4, min(7, int((len(letters)+2)/3/6)))
     payload = payload + f" Keep each sentence to {count} words or less. "
     #payload = payload + "For example: from this multiset *f,e,e,d,y,o,u,r,f,a,i,t,h,a,n,d,y,o,u,r,f,e,a,r,s,w,i,l,l,s,t,a,r,v,e,t,o,d,e,a,t,h* you can create *A fat lady farted very loud*"
     

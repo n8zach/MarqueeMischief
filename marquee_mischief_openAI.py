@@ -6,9 +6,13 @@ def message_to_messages(message, use_proxy = False):
 
     letters = message_to_letters(message)
     count = min(max(4, int((len(letters)+2)/3/8)),5)
-    client = openai.OpenAI(api_key = "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")
+    client = openai.OpenAI(api_key = "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")
 
-    prompt = f"Create 15 funny, complete sentences using only the letters in this multiset: {letters}. If possible, use words that a 10 year old would find funny like fart, farts, gross, toilet, boogers, stupid, dumb, poopy, smelly, pee, poop, etc.  Keep each sentence to {count} words or less. Put all the sentences on one line separated by $"
+    prompt = f"Create 15 funny, complete sentences using only the letters in this multiset: {letters}. "
+    prompt = prompt + "If possible, use words that a 10 year old would find funny like fart, farts, gross, toilet, boogers, stupid, dumb, poopy, smelly, pee, poop, etc.  "
+    prompt = prompt + "Keep each sentence to {count} words or less. "
+    #prompt = prompt + "Keep each sentence to 7 words or less. "
+    prompt = prompt + "Put all the sentences on one line separated by $"
 
     response = client.chat.completions.create(
     model="gpt-4",

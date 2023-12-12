@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bold Letters Highlighter</title>
+  <style>
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <script>
+    function makeLettersBold(sentence, lettersToBold) {
+      const boldCounts = {};
+
+      // Replace the matched letters with bold HTML tags
+      const result = sentence.replace(/./g, (match) => {
+        const letter = match.toUpperCase();
+
+        // Check if the letter is in the list
+        if (lettersToBold.includes(letter)) {
+          boldCounts[letter] = (boldCounts[letter] || 0) + 1;
+
+          // Check if the current occurrence of the letter is within the specified count
+          if (boldCounts[letter] <= lettersToBold.filter(l => l === letter).length) {
+            return `<span class="bold">${match}</span>`;
+          }
+        }
+
+        return match;
+      });
+
+      return result;
+    }
+
+    // Example usage
+    const inputSentence = "Hello, World!";
+    const lettersToBold = ['H', 'W', 'L', 'O', 'O', 'L'];
+
+    const outputSentence = makeLettersBold(inputSentence, lettersToBold);
+
+    // Display the result
+    document.body.innerHTML += `<p>${outputSentence}</p>`;
+  </script>
+
+</body>
+</html>

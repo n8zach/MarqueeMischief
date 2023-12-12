@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anagram Animation</title>
+  <style>
+    #anagramContainer {
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .letter {
+      transition: transform 2s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+<div id="anagramContainer"></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const originalString = 'listen';
+    const anagramString = 'silent';
+    const container = document.getElementById('anagramContainer');
+
+    // Display the original string
+    //container.textContent = originalString;
+
+    // Wait for 1 second, then animate to the anagram string
+    setTimeout(() => {
+      for (let i = 0; i < originalString.length; i++) {
+        const letter = document.createElement('span');
+        letter.textContent = originalString[i];
+        letter.classList.add('letter');
+        container.appendChild(letter);
+
+        // Trigger reflow
+        letter.offsetWidth;
+
+        // Apply the transformation to move the letter to its new position
+        letter.style.transform = `translate(${(anagramString.indexOf(originalString[i]) - i) * 20}px, 0)`;
+      }
+    }, 1000);
+  });
+</script>
+
+</body>
+</html>

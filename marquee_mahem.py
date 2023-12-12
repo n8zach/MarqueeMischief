@@ -1,6 +1,6 @@
 import sys
-#from marquee_mischief_bing import message_to_messages, message_to_letters
-from marquee_mischief_openAi import message_to_messages
+from marquee_mischief_bing import message_to_messages
+#from marquee_mischief_openAi import message_to_messages
 
 def main():
     while(True):
