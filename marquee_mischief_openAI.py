@@ -45,5 +45,4 @@ def message_to_messages(message, use_proxy = False):
     bad, good = validate_messages(messages, letters)
     good.append(prompt)
     good = good + bad
-    return bad, good
-
+    return('\n'.join(good))
