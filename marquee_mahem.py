@@ -1,6 +1,10 @@
 import sys
 #from marquee_mischief_bing import message_to_messages
 from marquee_mischief_openAI import message_to_messages
+import os
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 def main():
     while(True):
