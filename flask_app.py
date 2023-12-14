@@ -11,7 +11,7 @@ app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
 @app.route('/test/')
 def test():
-    return render_template('AnagramArcs.html')
+    return render_template('EnterMessage.html')
 
 @app.route('/home/', methods = ['POST', 'GET'])
 def home():

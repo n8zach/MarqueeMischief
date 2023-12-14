@@ -3,7 +3,7 @@ from random import shuffle, choice
 def message_to_letters(message):
     letters = list(message.strip().replace(' ','').lower())
     shuffle(letters)
-    return ', '.join(sorted(letters))
+    return sorted(letters)
 
 def remove_punctuation(input):
     punc = '''!1234567890()-[]{};’:'"\,<>./?@#$%^&*_~'''
@@ -15,7 +15,7 @@ def remove_punctuation(input):
 def extra_letters(a, b):
     la = list(a.lower())
     lb = list(b)
-    extra = []  
+    extra = []
     for letter in la:
         if letter in lb:
             lb.remove(letter)
