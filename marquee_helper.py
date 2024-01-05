@@ -6,22 +6,23 @@ def message_to_letters(message):
     return sorted(letters)
 
 def remove_punctuation(input):
-    punc = '''!1234567890()-[]{};’:'"\,<>./?@#$%^&*_~'''
+    punc = '''!1234567890()-[]{};’:'"\,<>./?@#$%^&*_~''' + '\n'
     for letter in input:
         if letter in punc:
             input = input.replace(letter, "")
     return input.replace('\\\"','\"')
 
-def extra_letters(a, b):
-    la = list(a.lower())
-    lb = list(b)
+
+def letter_use(message, letters):
+    la = list(message.lower())
+    lb = list(letters)
     extra = []
     for letter in la:
         if letter in lb:
             lb.remove(letter)
         else:
             extra.append(letter)
-    return extra
+    return lb, extra
 
 def parse_return(data):
     split = data.split("\n")
@@ -31,17 +32,23 @@ def parse_return(data):
     return messages
 
 def validate_messages(messages, letters):
-    validated = []
-    bad = []
+    validated = {}
+    validated["good"] = []
+    validated["bad"] = []
+
     for message in messages:
         m = remove_punctuation(message).replace(' ','')
-        extra = extra_letters(m, letters)
+        unused, extra  = letter_use(m, letters)
         if(len(extra) > 0):
-            bad.append("[fail: " + message.replace('\\', '') + " " + ','.join(extra) + "]")
+            validated["bad"].append(
+                {"text":remove_punctuation(message).strip(),
+                 "extra":','.join(extra),
+                 "unused":','.join(unused)})
             continue
-        #print(remove_punctuation(message).strip())
-        validated.append(remove_punctuation(message).strip())
-    return bad, validated
+        validated["good"].append(
+            {"text":remove_punctuation(message).strip(),
+             "unused":','.join(unused)})
+    return validated
 
 #validate_messages(["A fat lady farted very loud"], 'feed your faith and your fears will starve to death')
 #bad, good = validate_messages(["Farts smell bad.","Toilet paper is gross.","Boogers are gross.","Stupid people are dumb.","Poopy pants are smelly.","Pee is gross.","Poop is gross.","Farting is gross.","Farts are gross.","Toilet paper is smelly.","Boogers are smelly.","Stupid people are poopy.","Dumb people are poopy.","Farting is poopy.","Farts are poopy.","Toilet paper is poopy.","Boogers are poopy.","Stupid people are gross.","Dumb people are gross.","Farting is gross."], "a, a, a, a, a, d, d, d, e, e, e, e, e, f, f, f, h, h, i, i, l, l, n, o, o, o, r, r, r, r, s, s, t, t, t, t, u, u, v, w, y, y")

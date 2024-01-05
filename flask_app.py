@@ -17,6 +17,7 @@ def test():
 def home():
     if request.method == 'GET':
         form_data = {}
+        form_data["OriginalMessage"] = "Please wait to be seated"
         return render_template('home.html', form_data = form_data)
     if request.method == 'POST':
         form_data = request.form

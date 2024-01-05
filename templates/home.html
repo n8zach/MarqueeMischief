@@ -1,11 +1,45 @@
-<form action="/home" method="POST">
-    <p>Original Message <input type="text" name="OriginalMessage" size="100" autocomplete="on"/></p>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'YourCustomFont', sans-serif;
+        }
 
-<br>
-{% autoescape false %}
-{% for key,value in form_data.items() %}
-<h2> {{key}}</h2>
-<p> {{value}}</p>
-{% endfor %}
-{% endautoescape %}
+        #customForm {
+            text-align: center;
+            margin: 50px;
+        }
+
+        #customText {
+            width: 80%;
+            height: 100px;
+            text-transform: uppercase;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            overflow-wrap: break-word;
+        }
+
+        #submitBtn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <form id="customForm" action="/home" method="POST">
+        <label for="customText">Original Message:</label><br>
+        <textarea  id="customText" name="OriginalMessage" rows="4" cols="15">{{ form_data['OriginalMessage'] }}</textarea><br>
+        <input type="submit" id="submitBtn" value="Submit">
+    </form>
+
+
+    <br>
+    {% autoescape false %}
+    {{ form_data['NewMessages'] }}
+    {% endautoescape %}
+
+</body>
+</html>

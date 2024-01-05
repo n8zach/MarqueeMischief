@@ -10,6 +10,5 @@ def main():
     while(True):
         message = input("Original Message: ")
         print(message_to_messages(message, True))
-
 if __name__ == "__main__":
     main()
