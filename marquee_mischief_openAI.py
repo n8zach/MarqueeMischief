@@ -48,16 +48,5 @@ def message_to_messages(message, use_proxy = False):
     messages = response.choices[0].message.content.split('\n')
 
     validated = validate_messages(messages, letters)
-    out = []
-    out.append("\nGood Messages:")
-    for g in validated["good"]:
-        out.append(f"{g['text']} ({g['unused']})")
-    out.append("\nClose Messages:")
-    for b in validated["bad"]:
-        if len(b["extra"]) == 1:
-            out.append(f"{b['text']} [{b['extra']}] ({b['unused']})")
-
-    out.append("\n\nUsing OpenAI")
-    out.append("\nPrompt:")               
-    out.append(prompt)
-    return '\n'.join(out)
+    
+    return validated

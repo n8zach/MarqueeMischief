@@ -2,7 +2,7 @@ from flask import Flask,render_template,request
 #from marquee_mischief_bing import message_to_messages
 from marquee_mischief_openAI import message_to_messages
 #from bing_helper import pick_funniest
-from marquee_helper import remove_punctuation
+from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 
 USE_PROXY = True
@@ -17,7 +17,7 @@ def test():
 def home():
     if request.method == 'GET':
         form_data = {}
-        form_data["OriginalMessage"] = "Please wait to be seated"
+        form_data["OriginalMessage"] = "PLEASE WAIT\nTO BE\nSEATED"
         return render_template('home.html', form_data = form_data)
     if request.method == 'POST':
         form_data = request.form
@@ -33,10 +33,23 @@ def thinking():
         messages = error.doc
     except Exception as error:
         messages = f"An exception occurred: {error}"
+
     data = {}
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
-    data["NewMessages"] = messages.replace('\n','<br>')
+    
+    out = []
+    out.append("\nGood Messages:\n")
+    for g in messages["good"]:
+        out.append(f"{g['text']} ({g['unused']})")
+    out.append("\nClose Messages:\n")
+    for b in messages["bad"]:
+        if len(b["extra"]) == 1:
+            out.append(f"{format_extra_letters(b['text'], message.upper())} ({b['unused']})")
+
+    data["NewMessages"] = '\n'.join(out).replace('\n','<br>')
+
     #print(pick_funniest(messages))
+
     return render_template('home.html', form_data = data)
 
 

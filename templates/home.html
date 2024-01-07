@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: 'YourCustomFont', sans-serif;
+            font-family: 'Helvetica ', sans-serif;
+            font-size: 30px;
+            text-align: center;
         }
 
         #customForm {
@@ -14,12 +16,15 @@
         }
 
         #customText {
-            width: 80%;
-            height: 100px;
+            width: 30%;
+            height: 120px;
             text-transform: uppercase;
             text-align: center;
+            font-family: 'Helvetica ', sans-serif;
+            font-size: 30px;
             align-items: center;
             justify-content: center;
+            vertical-align: middle;
             overflow-wrap: break-word;
         }
 
@@ -30,7 +35,7 @@
 </head>
 <body>
     <form id="customForm" action="/home" method="POST">
-        <label for="customText">Original Message:</label><br>
+        <label for="customText">Original Message:</label><br><br>
         <textarea  id="customText" name="OriginalMessage" rows="4" cols="15">{{ form_data['OriginalMessage'] }}</textarea><br>
         <input type="submit" id="submitBtn" value="Submit">
     </form>
@@ -42,4 +47,6 @@
     {% endautoescape %}
 
 </body>
+
+
 </html>

@@ -1,12 +1,74 @@
 <html>
     <body onload="document.createElement('form').submit.call(document.getElementById('myForm'))">
-        <h1>Doing Mischief!</h1>
-        <br>
-        Making new messages from "{{form_data.getlist('OriginalMessage')[0]}}"...
-        <form id="myForm" name="myForm" action="/thinking" method="POST">
-            <input type=hidden name="OriginalMessage" value="{{form_data.getlist('OriginalMessage')[0]}}">
-            <input type=hidden name="submit" id="submit" value="Continue"/>
-        </form>
-    </body>
-</html>
+  
 
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+    #header {
+      text-align: center;
+      text-justify: center;
+      font-size: 26px;
+    }
+
+    #phrases {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40vh;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+  </style>
+
+<div id="header">
+  <h1>WARNING: Mischief Is Happening...</h1>
+  <br>
+  Making new messages from "{{form_data.getlist('OriginalMessage')[0]}}"...
+  <form id="myForm" name="myForm" action="/thinking" method="POST">
+    <input type=hidden name="OriginalMessage" value="{{form_data.getlist('OriginalMessage')[0]}}">
+    <input type=hidden name="submit" id="submit" value="Continue"/>
+</form><div>
+
+<div id="phrases"></div>
+
+<script>
+  const phrases = [
+    "This is hard...  gimme a sec!",
+    "Thinking...  Thinking...",
+    "THINKING INTENSIFIES...",
+    "Almost there...",
+    "Hang on..."
+  ];
+
+  const phraseContainer = document.getElementById('phrases');
+
+  let currentPhraseIndex = 0;
+
+  function displayNextPhrase() {
+    phraseContainer.textContent = phrases[currentPhraseIndex];
+    fadeIn();
+    setTimeout(fadeOut, 2500); // Adjust the duration as needed
+    currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+  }
+
+  function fadeIn() {
+    phraseContainer.style.opacity = 1;
+  }
+
+  function fadeOut() {
+    phraseContainer.style.opacity = 0;
+    setTimeout(displayNextPhrase, 500); // Adjust the delay between phrases as needed
+  }
+
+  // Start the display
+  displayNextPhrase();
+</script>
+
+</body>
+</html>

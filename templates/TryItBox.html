@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        [contenteditable="true"] {
+            border: 1px solid #ccc;
+            padding: 5px;
+            min-height: 100px;
+        }
+    </style>
+    <script>
+    
+    function formatText(sentence, letters) {
+    	s= sentence.toUpperCase();
+        l = letters.toUpperCase();
+        
+        let out = "";
+        for(let i = 0; i < s.length; i++)
+        {
+        	if(l.includes(s[i]))
+            {
+        		out = out + s[i];
+                l = l.replace(s[i],'');
+        	}
+            else
+            {
+            	out = out + s[i].toLowerCase();
+            }
+        }
+        
+        return out;
+    }
+    
+    document.addEventListener('keyup', function (e) {
+        if (e.target.isContentEditable) {
+            
+
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+
+            const text = e.target.textContent;
+            const caretOffset = range.startOffset;
+
+            // Replace occurrences of 'x' with bold 'x'
+            //const formattedText = text.replace(/./g, 'X');
+
+            e.target.innerHTML = formatText(text, "bad");
+
+            // Restore caret position
+            const newRange = document.createRange();
+            newRange.setStart(e.target.firstChild, caretOffset);
+            newRange.collapse(true);
+
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        }
+    });
+</script>
+
+</head>
+<body>
+    <div contenteditable="true"></div>
+</body>
+</html>
+
