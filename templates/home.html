@@ -16,8 +16,8 @@
         }
 
         #customText {
-            width: 30%;
-            height: 120px;
+            width: 60%;
+            height: 50px;
             text-transform: uppercase;
             text-align: center;
             font-family: 'Helvetica ', sans-serif;
@@ -37,7 +37,7 @@
             text-align: center;
             align-items: center;
             border:1px solid black;
-            width: 30%
+            width: 60%
         }
 
         .unusedLetters {
@@ -61,12 +61,18 @@
     {{ form_data['NewMessages'] }}
     {% endautoescape %}
 
-
-    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
     <br>
+    <br>
+    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
     <div id="unusedLetters" class = "unusedLetters"></div>
     <script>
-    
+        window.addEventListener("load", myInit, true); 
+  
+        function myInit()
+        {   
+            document.getElementById("unusedLetters").innerHTML = unusedLetters("{{ form_data['Best'] }}", "{{ form_data['OriginalMessage'] }}");
+        }; 
+
         function formatText(sentence, letters) {
             s= sentence.toUpperCase();
             l = letters.toUpperCase();
@@ -118,7 +124,7 @@
                 const text = e.target.textContent;
                 const caretOffset = range.startOffset;
     
-                e.target.innerHTML = formatText(text, "{{ form_data['OriginalMessage'] }}"); 
+                e.target.innerHTML = formatText(text, "{{form_data['OriginalMessage']}}"); 
 
                 // Restore caret position
                 const newRange = document.createRange();
@@ -128,7 +134,7 @@
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             
-                document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{ form_data['OriginalMessage'] }}");
+                document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
             }
         });
     </script>

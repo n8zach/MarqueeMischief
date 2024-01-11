@@ -42,10 +42,10 @@ def thinking():
     data = {}
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
     out = []
-    out.append("\nGood Messages:\n")
+    out.append("<b>Good Messages:</b>")
     for g in messages["good"]:
         out.append(f"{g['text']}")
-    out.append("\nClose Messages:\n")
+    out.append("\n<b>Close Messages:</b>")
     for b in messages["bad"]:
         if len(b["extra"]) == 1:
             out.append(f"{format_extra_letters(b['text'], message.upper())}")
