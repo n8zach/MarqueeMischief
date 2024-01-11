@@ -13,11 +13,16 @@ app = Flask(__name__, template_folder='templates', static_url_path='/static')
 def test():
     return render_template('EnterMessage.html')
 
+@app.route('/')
+def foo():
+    return home()
+
 @app.route('/home/', methods = ['POST', 'GET'])
 def home():
     if request.method == 'GET':
         form_data = {}
-        form_data["OriginalMessage"] = "PLEASE WAIT\nTO BE\nSEATED"
+        form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
+        form_data["Best"] = form_data["OriginalMessage"].replace("\n", "")
         return render_template('home.html', form_data = form_data)
     if request.method == 'POST':
         form_data = request.form
@@ -36,18 +41,17 @@ def thinking():
 
     data = {}
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
-    
     out = []
     out.append("\nGood Messages:\n")
     for g in messages["good"]:
-        out.append(f"{g['text']} ({g['unused']})")
+        out.append(f"{g['text']}")
     out.append("\nClose Messages:\n")
     for b in messages["bad"]:
         if len(b["extra"]) == 1:
-            out.append(f"{format_extra_letters(b['text'], message.upper())} ({b['unused']})")
+            out.append(f"{format_extra_letters(b['text'], message.upper())}")
 
     data["NewMessages"] = '\n'.join(out).replace('\n','<br>')
-
+    data["Best"] = messages["good"][0]["text"]
     #print(pick_funniest(messages))
 
     return render_template('home.html', form_data = data)

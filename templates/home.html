@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: 'Helvetica ', sans-serif;
-            font-size: 30px;
+            font-size: 20px;
             text-align: center;
         }
 
@@ -21,7 +21,7 @@
             text-transform: uppercase;
             text-align: center;
             font-family: 'Helvetica ', sans-serif;
-            font-size: 30px;
+            font-size: .75em;
             align-items: center;
             justify-content: center;
             vertical-align: middle;
@@ -31,6 +31,22 @@
         #submitBtn {
             margin-top: 10px;
         }
+
+        .letterBox {
+            margin: auto;
+            text-align: center;
+            align-items: center;
+            border:1px solid black;
+            width: 30%
+        }
+
+        .unusedLetters {
+            margin: auto;
+            text-align: center;
+            align-items: center;
+            width: 30%
+        }
+
     </style>
 </head>
 <body>
@@ -41,11 +57,81 @@
     </form>
 
 
-    <br>
     {% autoescape false %}
     {{ form_data['NewMessages'] }}
     {% endautoescape %}
 
+
+    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
+    <br>
+    <div id="unusedLetters" class = "unusedLetters"></div>
+    <script>
+    
+        function formatText(sentence, letters) {
+            s= sentence.toUpperCase();
+            l = letters.toUpperCase();
+            
+            let out = "";
+            for(let i = 0; i < s.length; i++)
+            {
+                if(l.includes(s[i]))
+                {
+                    out = out + s[i].toUpperCase();
+                    l = l.replace(s[i],'');
+                }
+                else
+                {
+                    out = out + s[i].toLowerCase();
+                }
+            }
+
+            return out;
+        }
+
+        function unusedLetters(sentence, letters) {
+            s= sentence.toUpperCase().replaceAll(" ", "");
+            l = letters.toUpperCase().replaceAll(" ", "");
+            let out = "";
+            for(let i = 0; i < l.length; i++)
+            {
+                if(!s.includes(l[i]))
+                {
+                    out = out + l[i];
+                }
+                else
+                {
+                    s = s.replace(l[i], "");
+                }
+            }
+
+            return out;
+        }
+        
+        document.addEventListener('keyup', function (e) {
+            e.preventDefault();
+            if (e.target.isContentEditable) {
+                
+    
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+    
+                const text = e.target.textContent;
+                const caretOffset = range.startOffset;
+    
+                e.target.innerHTML = formatText(text, "{{ form_data['OriginalMessage'] }}"); 
+
+                // Restore caret position
+                const newRange = document.createRange();
+                newRange.setStart(e.target.firstChild, caretOffset);
+                newRange.collapse(true);
+    
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            
+                document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{ form_data['OriginalMessage'] }}");
+            }
+        });
+    </script>
 </body>
 
 
