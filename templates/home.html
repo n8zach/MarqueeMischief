@@ -61,6 +61,7 @@
     {{ form_data['NewMessages'] }}
     {% endautoescape %}
 
+
     <br>
     <br>
     <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
@@ -90,7 +91,6 @@
                     out = out + s[i].toLowerCase();
                 }
             }
-
             return out;
         }
 
@@ -109,34 +109,46 @@
                     s = s.replace(l[i], "");
                 }
             }
-
             return out;
         }
         
+        function changeTryItBox(clickedElement) {
+            var newText = clickedElement.textContent;
+            document.getElementById('tryItBox').innerText = newText;
+            updateTryItBox()
+        }
+
         document.addEventListener('keyup', function (e) {
             e.preventDefault();
             if (e.target.isContentEditable) {
                 
-    
-                const selection = window.getSelection();
-                const range = selection.getRangeAt(0);
-    
-                const text = e.target.textContent;
-                const caretOffset = range.startOffset;
-    
-                e.target.innerHTML = formatText(text, "{{form_data['OriginalMessage']}}"); 
-
-                // Restore caret position
-                const newRange = document.createRange();
-                newRange.setStart(e.target.firstChild, caretOffset);
-                newRange.collapse(true);
-    
-                selection.removeAllRanges();
-                selection.addRange(newRange);
-            
-                document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
+                updateTryItBox();
             }
         });
+    
+        function updateTryItBox()
+        {
+            e = document.getElementById('tryItBox');
+
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+
+            const text = e.textContent;
+            const caretOffset = range.startOffset;
+
+            e.innerHTML = formatText(text, "{{form_data['OriginalMessage']}}"); 
+
+            // Restore caret position
+            const newRange = document.createRange();
+            newRange.setStart(e.firstChild, caretOffset);
+            newRange.collapse(true);
+
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+        
+            document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
+        }
+
     </script>
 </body>
 

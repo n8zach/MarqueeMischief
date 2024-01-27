@@ -42,20 +42,31 @@ def thinking():
     data = {}
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
     out = []
-    out.append("<b>Good Messages:</b>")
-    for g in messages["good"]:
-        out.append(f"{g['text']}")
-    out.append("\n<b>Close Messages:</b>")
-    for b in messages["bad"]:
-        if len(b["extra"]) == 1:
-            out.append(f"{format_extra_letters(b['text'], message.upper())}")
+    if(len(messages["good"]) != 0):
+        out.append("<b>These Are Good:</b>")
+        for g in messages["good"]:
+            #out.append(f"<div>{g['text']}</div>")
+            out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
+    else:
+        out.append("I got nothin perfect.")
+    if(len(messages["bad"]) != 0):
+        out.append("<br><b>These Are Missing One Letter:</b>")
+        for b in messages["bad"]:
+            if len(b["extra"]) == 1:
+                #out.append(f"<div>{format_extra_letters(b['text'], message.upper())}</div>")
+                out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
 
-    data["NewMessages"] = '\n'.join(out).replace('\n','<br>')
-    data["Best"] = messages["good"][0]["text"]
-    #print(pick_funniest(messages))
+    else:
+        out.append("I got nothin close.")
 
+    data["NewMessages"] = ''.join(out)
+    
+    if(len(messages["good"]) != 0):
+        data["Best"] = messages["good"][0]["text"]
+    else:
+        data["Best"] = ""
+    
     return render_template('home.html', form_data = data)
-
 
 if __name__ == '__main__':
     app.run()
