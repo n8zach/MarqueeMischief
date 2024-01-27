@@ -4,6 +4,7 @@ from marquee_mischief_openAI import message_to_messages
 #from bing_helper import pick_funniest
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
+from werkzeug.datastructures import MultiDict 
 
 USE_PROXY = True
 
@@ -25,8 +26,8 @@ def home():
         form_data["Best"] = form_data["OriginalMessage"].replace("\n", "")
         return render_template('home.html', form_data = form_data)
     if request.method == 'POST':
-        form_data = request.form
-        return render_template('thinking.html', form_data = form_data)
+        data = MultiDict([("OriginalMessage", request.form["OriginalMessage"].upper())])  
+        return render_template('thinking.html', form_data = data)
 
 @app.route('/thinking/', methods = ['POST'])
 def thinking():
@@ -47,15 +48,15 @@ def thinking():
         for g in messages["good"]:
             out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
     else:
-        out.append("I got nothin perfect.")
-    if(len(messages["bad"]) != 0):
+        out.append("<b>I got nothin perfect.</b><br>")
+    
+    close = [x for x in messages["bad"] if len(x["extra"]) == 1]
+    if(len(close) != 0):
         out.append("<br><b>These are close (Missing One Letter):</b>")
-        for b in messages["bad"]:
-            if len(b["extra"]) == 1:
-                out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
-
+        for b in close:
+            out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
     else:
-        out.append("I got nothin close.")
+        out.append("<b>I got nothin close.</b>")
 
     data["NewMessages"] = ''.join(out)
     
