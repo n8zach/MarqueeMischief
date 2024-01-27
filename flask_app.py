@@ -1,18 +1,24 @@
-from flask import Flask,render_template,request
 #from marquee_mischief_bing import message_to_messages
 from marquee_mischief_openAI import message_to_messages
 #from bing_helper import pick_funniest
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 from werkzeug.datastructures import MultiDict 
+from flask import Flask, redirect, render_template, request, url_for
 
 USE_PROXY = True
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
-@app.route('/test/')
+comments = []
+
+@app.route('/test/', methods = ['POST', 'GET'])
 def test():
-    return render_template('FadeInOut.html')
+
+    if request.method == "GET":
+        return render_template("GameTest.html", comments=comments)
+    comments.append(request.form["contents"])
+    return redirect(url_for('test'))
 
 @app.route('/')
 def foo():
