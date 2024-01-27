@@ -11,7 +11,7 @@ app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
 @app.route('/test/')
 def test():
-    return render_template('EnterMessage.html')
+    return render_template('FadeInOut.html')
 
 @app.route('/')
 def foo():
@@ -43,17 +43,15 @@ def thinking():
     data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
     out = []
     if(len(messages["good"]) != 0):
-        out.append("<b>These Are Good:</b>")
+        out.append("<b>Here are some suggestions:</b>")
         for g in messages["good"]:
-            #out.append(f"<div>{g['text']}</div>")
             out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
     else:
         out.append("I got nothin perfect.")
     if(len(messages["bad"]) != 0):
-        out.append("<br><b>These Are Missing One Letter:</b>")
+        out.append("<br><b>These are close (Missing One Letter):</b>")
         for b in messages["bad"]:
             if len(b["extra"]) == 1:
-                #out.append(f"<div>{format_extra_letters(b['text'], message.upper())}</div>")
                 out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
 
     else:

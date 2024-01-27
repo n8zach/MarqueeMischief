@@ -54,7 +54,7 @@
   function displayNextPhrase() {
     phraseContainer.textContent = phrases[currentPhraseIndex];
     fadeIn();
-    setTimeout(fadeOut, 1500); // Adjust the duration as needed
+    setTimeout(fadeOut, 1000); // Adjust the duration as needed
     currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
   }
 
