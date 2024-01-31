@@ -4,20 +4,32 @@ from marquee_mischief_openAI import message_to_messages
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 from werkzeug.datastructures import MultiDict 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, jsonify
+from scrabble import suggest_words
 
 USE_PROXY = True
 
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
 
-comments = []
+
+
+@app.route('/scrabbler/', methods = ['POST', 'GET'])
+def scrabbler():
+    if request.method == "POST":
+        ret = ""
+        letters = request.form['letters']
+        suggestions = suggest_words(letters)
+        if(len(suggestions) > 0):
+            ret = "Some Suggestions:<br>" + ', '.join(suggestions)
+        return ret
+    else:
+        return redirect(url_for('home'))
 
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
-
     if request.method == "GET":
-        return render_template("GameTest.html", comments=comments)
-    comments.append(request.form["contents"])
+        answers = ["one", "two", "three"]
+        return render_template("GameTest.html", answers=answers)
     return redirect(url_for('test'))
 
 @app.route('/')
@@ -35,8 +47,11 @@ def home():
         data = MultiDict([("OriginalMessage", request.form["OriginalMessage"].upper())])  
         return render_template('thinking.html', form_data = data)
 
-@app.route('/thinking/', methods = ['POST'])
+@app.route('/thinking/', methods = ['POST', 'GET'])
 def thinking():
+    if request.method == 'GET':
+        return redirect(url_for('home'))
+    
     form_data = request.form
     message = form_data.getlist('OriginalMessage')[0]
     try:

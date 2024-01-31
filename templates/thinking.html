@@ -29,7 +29,7 @@
 <div id="header">
   <h1>WARNING: Mischief Is Happening...</h1>
   <br>
-  Making new messages from "{{form_data.getlist('OriginalMessage')[0]}}"...
+  Making new messages from <br>"{{form_data.getlist('OriginalMessage')[0]}}"...
   <form id="myForm" name="myForm" action="/thinking" method="POST">
     <input type=hidden name="OriginalMessage" value="{{form_data.getlist('OriginalMessage')[0]}}">
     <input type=hidden name="Best" value="{{form_data.getlist('Best')[0]}}">

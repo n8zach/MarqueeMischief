@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body {
             font-family: 'Helvetica ', sans-serif;
@@ -12,7 +13,7 @@
 
         #customForm {
             text-align: center;
-            margin: 50px;
+            margin: 20px;
         }
 
         #customText {
@@ -45,11 +46,17 @@
             align-items: center;
         }
 
+        .suggestsions {
+            text-align: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
     <form id="customForm" action="/home" method="POST">
-        <label for="customText">Original Message:</label><br><br>
+        <label for="customText">Original Message:</label><br>
         <textarea  id="customText" name="OriginalMessage" rows="4" cols="15">{{ form_data['OriginalMessage'] }}</textarea><br>
         <input type="submit" id="submitBtn" value="Submit">
     </form>
@@ -61,9 +68,10 @@
 
 
     <br>
-    <br>
     <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
     <div id="unusedLetters" class = "unusedLetters"></div>
+    <br>
+    <div id="suggestions" class = "suggestions"></div>
 
 
     <script>
@@ -94,8 +102,8 @@
             return out;
         }
 
-        function unusedLetters(sentence, letters) {
-            s= sentence.toUpperCase().replaceAll(" ", "");
+        function unusedLetters(text, letters) {
+            s= text.toUpperCase().replaceAll(" ", "");
             l = letters.toUpperCase().replaceAll(" ", "");
             let out = "";
             for(let i = 0; i < l.length; i++)
@@ -116,6 +124,7 @@
             var newText = clickedElement.textContent;
             document.getElementById('tryItBox').innerText = newText;
             updateTryItBox()
+            updateSuggestions()
         }
 
         document.addEventListener('keyup', function (e) {
@@ -123,6 +132,7 @@
             if (e.target.isContentEditable) {
                 
                 updateTryItBox();
+                updateSuggestions();
             }
         });
     
@@ -147,6 +157,22 @@
             selection.addRange(newRange);
         
             document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
+        }
+
+        function updateSuggestions()
+        {
+            text = document.getElementById('tryItBox').textContent;
+
+            $.ajax({
+            data : {
+                letters : unusedLetters(text, "{{form_data['OriginalMessage']}}")
+            },
+            type : 'POST',
+            url : '/scrabbler'
+            })
+            .done(function(data){
+                document.getElementById("suggestions").innerHTML = data;
+            });
         }
 
     </script>
