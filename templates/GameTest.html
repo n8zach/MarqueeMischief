@@ -28,14 +28,15 @@
 
             {% for answer in answers %}
                 <div class="row">
-                    {{ answer }}
+                    ({{answer[2]}}) {{answer[1]}} => {{ answer[0] }}
                 </div>
             {% endfor %}
 
             <div class="row">
                 <form action="." method="POST">
-                    <textarea class="form-control" name="contents" placeholder="Enter a comment"></textarea>
-                    <input type="submit" class="btn btn-success" value="Post comment">
+                  <textarea class="form-control" name="puzzle" placeholder="Enter a puzzle"></textarea>
+                  <textarea class="form-control" name="answer" placeholder="Enter an answer"></textarea>
+                  <input type="submit" class="btn btn-success" value="Post answer">
                 </form>
             </div>
 

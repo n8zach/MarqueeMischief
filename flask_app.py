@@ -1,17 +1,27 @@
-#from marquee_mischief_bing import message_to_messages
 from marquee_mischief_openAI import message_to_messages
-#from bing_helper import pick_funniest
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 from werkzeug.datastructures import MultiDict 
 from flask import Flask, redirect, render_template, request, url_for, jsonify
 from scrabble import suggest_words
-
+from mm_game_db import save_answer_by_puzzle_text, get_answers
+from db import db
 USE_PROXY = True
 
+SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://{username}:{password}@{hostname}/{databasename}".format(
+    username="Gregor",
+    password="gaspit",
+    hostname="localhost",
+    databasename="marquee_mischief",
+)
+
 app = Flask(__name__, template_folder='templates', static_url_path='/static')
+app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-
+with app.app_context():
+    db.init_app(app) # to add the app inside SQLAlchemy()
 
 @app.route('/scrabbler/', methods = ['POST', 'GET'])
 def scrabbler():
@@ -25,16 +35,26 @@ def scrabbler():
     else:
         return redirect(url_for('home'))
 
+answers = []
+
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
     if request.method == "GET":
-        answers = ["one", "two", "three"]
-        return render_template("GameTest.html", answers=answers)
+        result = get_answers()
+        return render_template("GameTest.html", answers=result)
+ 
+    save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"])
     return redirect(url_for('test'))
 
-@app.route('/')
-def foo():
+@app.route('/', methods = ['GET'])
+def default():
     return home()
+
+@app.route('/save/', methods = ['POST'])
+def save():
+    save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"])
+    return ""
+
 
 @app.route('/home/', methods = ['POST', 'GET'])
 def home():

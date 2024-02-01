@@ -68,7 +68,7 @@
 
 
     <br>
-    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div>
+    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div> <button onclick="saveAnswer()">Save</button>
     <div id="unusedLetters" class = "unusedLetters"></div>
     <br>
     <div id="suggestions" class = "suggestions"></div>
@@ -157,6 +157,21 @@
             selection.addRange(newRange);
         
             document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
+        }
+
+        function saveAnswer()
+        {
+            answer = document.getElementById('tryItBox').textContent;
+            puzzle = "{{form_data['OriginalMessage']}}"
+
+            $.ajax({
+            data : {
+                answer : answer,
+                puzzle : puzzle
+            },
+            type : 'POST',
+            url : '/save'
+            });
         }
 
         function updateSuggestions()
