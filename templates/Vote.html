@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<script>
+    window.addEventListener("load", myInit, true); 
+  
+    function myInit()
+    {   
+        document.getElementById('puzzles').value="{{selected}}";
+    };
+</script>
+
+<form action="." method="POST">
+    <label for="puzzles">Choose a puzzle:</label>
+    <select name="puzzles" id="puzzles" onchange="this.form.submit()">
+        {% for puzzle in puzzles %}
+            <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
+        {% endfor %}
+    </select>
+</form>
+<br>
+<br>
+    <form action="." method="POST">
+        {% for answer in answers %}
+            <div class="row">
+            <input type="radio" id="{{answer[1]}}" name="vote" value="{{answer[1]}}">
+            <label for="html">{{answer[3]}} ({{answer[4]}})</label><br>
+            </div>
+        {% endfor %}
+        <input type="hidden" id="selected" name="selected" value="{{selected}}">
+        <br>
+        <input type="submit" value="VOTE">
+    </form>
+</body>

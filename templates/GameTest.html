@@ -25,13 +25,17 @@
         </nav>
 
         <div class="container">
-
-            {% for answer in answers %}
-                <div class="row">
-                    ({{answer[2]}}) {{answer[1]}} => {{ answer[0] }}
-                </div>
-            {% endfor %}
-
+            <div class="row">
+                <form action="." method="POST">
+                  {% for answer in answers %}
+                      <div class="row">
+                        <input type="radio" id="{{answer[0]}}" name="vote" value="{{answer[0]}}">
+                        <label for="html">{{answer[2]}} => {{ answer[1] }}</label><br>
+                      </div>
+                  {% endfor %}
+                  <input type="submit" value="VOTE">
+              </form>
+            </div>
             <div class="row">
                 <form action="." method="POST">
                   <textarea class="form-control" name="puzzle" placeholder="Enter a puzzle"></textarea>
@@ -40,6 +44,21 @@
                 </form>
             </div>
 
+          <div class="container">
+            {% for answer in answers %}
+            <div class="row">
+                ({{answer[2]}}) {{answer[1]}} => {{ answer[0] }}
+            </div>
+            {% endfor %}
+          </div>
+          <br>
+          <div class="container">
+            {% for result in results %}
+            <div class="row">
+                {{result}}
+            </div>
+            {% endfor %}
+          </div>
         </div>
 
     </body>
