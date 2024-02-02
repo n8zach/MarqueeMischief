@@ -40,8 +40,6 @@ def vote_for_answer(userId, answerId):
     #db.session.commit()
     return
 
-
-
 def save_answer_by_puzzle_text(answer_text, puzzle_text):
     #puzzles = Puzzles.query.where(Puzzles.text == puzzle_text).all()
     sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
@@ -90,10 +88,10 @@ def get_answers(puzzleId):
 
 def get_results():
     sql = "select puzzleId, answerId, puzzles.text, answers.text, count(answerId) from votes left join answers on answers.id = votes.answerId left join puzzles on puzzles.id = puzzleId group by answerId;"
-    return db.session.execute(text(sql)).all()
+    return db.session.execute(text(sql)).all()  
 
 def get_results(puzzleId):
-    sql = f"select puzzleId, answerId, puzzles.text, answers.text, count(answerId) from votes left join answers on answers.id = votes.answerId left join puzzles on puzzles.id = puzzleId where puzzleId = {puzzleId} group by answerId;"
+    sql = f"select answers.puzzleId, answers.id, answers.text, count(answerId) from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id"
     return db.session.execute(text(sql)).all()
 
 def get_puzzles_with_answers():

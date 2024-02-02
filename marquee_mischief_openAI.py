@@ -19,8 +19,9 @@ def message_to_messages(message, use_proxy = False):
     client = openai.OpenAI()
 
     str_letters = ', '.join(letters)
+    #prompt = f"Create 15 complete coherant sentences that are ironic, funny, witty, creative, silly, or snarky using only the letters in the provided multiset. "
     prompt = f"Create 15 complete sentences that a 10 year old would find funny using only the letters in the provided multiset. "
-    prompt = prompt + "Use potty humor words if possible. "
+    #prompt = prompt + "Use potty humor words if possible. "
     #prompt = prompt + "Use potty humor words if possible like fart, daiper, gross, toilet, boogers, stupid, dumb, poopy, smelly, pee, poop, etc.  "
     #prompt = prompt + f"Keep each sentence to {count} words or less. "
     #prompt = prompt + "Like in Scrabble, you can only use each letter from the multiset once. "

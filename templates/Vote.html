@@ -23,10 +23,10 @@
 <br>
 <br>
     <form action="." method="POST">
-        {% for answer in answers %}
+        {% for result in results %}
             <div class="row">
-            <input type="radio" id="{{answer[1]}}" name="vote" value="{{answer[1]}}">
-            <label for="html">{{answer[3]}} ({{answer[4]}})</label><br>
+            <input type="radio" id="{{result[1]}}" name="vote" value="{{result[1]}}">
+            <label for="html">{{result[2]}} ({{result[3]}})</label><br>
             </div>
         {% endfor %}
         <input type="hidden" id="selected" name="selected" value="{{selected}}">

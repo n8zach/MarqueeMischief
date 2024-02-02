@@ -49,19 +49,19 @@ def scrabbler():
 def vote():
     if request.method == "GET":
         puzzles = get_puzzles_with_answers()
-        return render_template("Vote.html", puzzles=puzzles, answers=[], selected=0)
+        return render_template("Vote.html", puzzles=puzzles, results=[], selected=0)
     
     # POST
     # vote or choose puzzle?
     if(request.form.get("vote")):
         puzzles = get_puzzles_with_answers()
         vote_for_answer(userId=1, answerId=request.form["vote"])
-        answers = get_results(request.form["selected"])
-        return render_template("Vote.html", puzzles=puzzles, answers=answers, selected=request.form["selected"])
+        results = get_results(request.form["selected"])
+        return render_template("Vote.html", puzzles=puzzles, results=results, selected=request.form["selected"])
     elif(request.form.get("puzzles")):
         puzzles = get_puzzles_with_answers()
-        answers = get_results(request.form["puzzles"])
-        return render_template("Vote.html", puzzles=puzzles, answers=answers, selected=request.form["puzzles"])
+        results = get_results(request.form["puzzles"])
+        return render_template("Vote.html", puzzles=puzzles, results=results, selected=request.form["puzzles"])
 
 
 @app.route('/test/', methods = ['POST', 'GET'])
