@@ -47,14 +47,14 @@ def save_answer_by_puzzle_text(answer_text, puzzle_text):
 
     if (len(puzzles) == 0):
         #save this new puzzle
-        puzzle = Puzzles(text=puzzle_text)
-        db.session.add(puzzle)
-        db.session.commit()   
+        sql = f"INSERT INTO puzzles (text) VALUES (\"{puzzle_text}\")"
+        ret = db.session.execute(text(sql))
+        db.session.commit()     
 
         #save this answer with new puzzle id
-        answer = Answers(text=answer_text, puzzleId = puzzle.id)
-        db.session.add(answer)
-        db.session.commit()   
+        sql = f"INSERT INTO answers (puzzleId, text) VALUES ({ret.lastrowid}, \"{answer_text}\")"
+        db.session.execute(text(sql))
+        db.session.commit()     
         return "Saved as new puzzle and answer!"
     if (len(puzzles) > 1):
         #something is wrong
