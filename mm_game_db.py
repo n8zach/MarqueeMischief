@@ -86,12 +86,8 @@ def get_answers(puzzleId):
     sql = f"SELECT puzzles.id as puzzleId, answers.id as answerId, puzzles.text as puzzle, answers.text as answer FROM answers left join puzzles on puzzles.id = answers.puzzleId where puzzles.id = {puzzleId} order by puzzles.id;"
     return db.session.execute(text(sql)).all()
 
-def get_results():
-    sql = "select puzzleId, answerId, puzzles.text, answers.text, count(answerId) from votes left join answers on answers.id = votes.answerId left join puzzles on puzzles.id = puzzleId group by answerId;"
-    return db.session.execute(text(sql)).all()  
-
 def get_results(puzzleId):
-    sql = f"select answers.puzzleId, answers.id, answers.text, count(answerId) from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id"
+    sql = f"select answers.puzzleId, answers.id, answers.text, count(answerId) from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id;"
     return db.session.execute(text(sql)).all()
 
 def get_puzzles_with_answers():
