@@ -1,3 +1,4 @@
+import os
 from marquee_mischief_openAI import message_to_messages
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
@@ -7,7 +8,10 @@ from scrabble import suggest_words
 from mm_game_db import save_answer_by_puzzle_text, get_results, get_all_answers, get_answers, get_puzzles_with_answers, vote_for_answer
 from db import db
 USE_PROXY = True
+
 LOCAL = True
+if (os.environ.get('PYTHONANYWHERE_SITE') != None):
+    LOCAL = False
 
 if(LOCAL):
     SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://{username}:{password}@{hostname}/{databasename}".format(
@@ -40,10 +44,10 @@ def scrabbler():
         letters = request.form['letters']
         suggestions = suggest_words(letters)
         if(len(suggestions) > 0):
-            ret = "Some Suggestions:<br>" + ', '.join(suggestions)
+            ret = "Word Suggestions:<br>" + ', '.join(suggestions)
         return ret
     else:
-        return redirect(url_for('home'))
+        return redirect(url_for('solo'))
 
 @app.route('/vote/', methods = ['POST', 'GET'])
 def vote():
@@ -82,7 +86,7 @@ def test():
 
 @app.route('/', methods = ['GET'])
 def default():
-    return home()
+    return solo()
 
 @app.route('/save/', methods = ['POST'])
 def save():
@@ -90,13 +94,13 @@ def save():
     return result
 
 
-@app.route('/home/', methods = ['POST', 'GET'])
-def home():
+@app.route('/solo/', methods = ['POST', 'GET'])
+def solo():
     if request.method == 'GET':
         form_data = {}
         form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
         form_data["Best"] = form_data["OriginalMessage"].replace("\n", "")
-        return render_template('home.html', form_data = form_data)
+        return render_template('solo.html', form_data = form_data)
     if request.method == 'POST':
         data = MultiDict([("OriginalMessage", request.form["OriginalMessage"].upper())])  
         return render_template('thinking.html', form_data = data)
@@ -104,7 +108,7 @@ def home():
 @app.route('/thinking/', methods = ['POST', 'GET'])
 def thinking():
     if request.method == 'GET':
-        return redirect(url_for('home'))
+        return redirect(url_for('solo'))
     
     form_data = request.form
     message = form_data.getlist('OriginalMessage')[0]
@@ -143,7 +147,7 @@ def thinking():
     else:
         data["Best"] = ""
     
-    return render_template('home.html', form_data = data)
+    return render_template('solo.html', form_data = data)
 
 if __name__ == '__main__':
     app.run()

@@ -62,9 +62,9 @@
         },
         {
             "type": "chrome",
-            "name": "localhost:5000/home",
+            "name": "localhost:5000/solo",
             "request": "launch",
-            "url": "localhost:5000/home",
+            "url": "localhost:5000/solo",
             "webRoot": "${workspaceFolder}/templates"    
             }
     ]
