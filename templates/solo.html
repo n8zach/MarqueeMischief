@@ -76,7 +76,7 @@
 
     <br>
     <div id="tryItHereLable" class = "helpLabel">Make your own message here.<br>You can also click a suggestion above to move it here.</div>
-    <div id="tryItBox" class = "letterBox" contenteditable="true">{{ form_data['Best'] }}</div> 
+    <div id="tryItBox" class = "letterBox" contenteditable="true"></div> 
     <br>
     Unused Letters: <div id="unusedLetters" class = "unusedLetters"></div>
     <br>
@@ -101,8 +101,9 @@
             originalMessage = "{{ form_data['OriginalMessage']}}"
             document.getElementById("unusedLetters").innerHTML = unusedLetters("{{ form_data['Best'] }}", "{{ form_data['OriginalMessage'] }}");
             document.getElementById("saveResponse").innerHTML = "Click \"Save\" to save."
-            updateTryItBox()
-            updateVoteUrl()
+            updateTryItBox(false);
+            updateSuggestions();
+            updateVoteUrl();
         }; 
 
         function updateOriginalMessage(message)
@@ -158,8 +159,8 @@
         function changeTryItBox(clickedElement) {
             var newText = clickedElement.textContent;
             document.getElementById('tryItBox').innerText = newText;
-            updateTryItBox(true)
-            updateSuggestions()
+            updateTryItBox(true);
+            updateSuggestions();
         }
 
         document.addEventListener('keyup', function (e) {
@@ -175,17 +176,25 @@
         {
             e = document.getElementById('tryItBox');
             const text = e.textContent;
+
+            var selection;
+            var range;
+            var caretOffset;
+
+            if (fixCarrot)
+            {
+                selection = window.getSelection();
+                range = selection.getRangeAt(0);
+                caretOffset = range.startOffset;
+            }
+
             e.innerHTML = formatText(text, originalMessage); 
 
             if (fixCarrot)
             {
-                const selection = window.getSelection();
-                const range = selection.getRangeAt(0);
-
-                const caretOffset = range.startOffset;
                 // Restore caret position
-                const newRange = document.createRange();
-                if(e.length != 0)
+                const newRange = document.createRange();    
+                if(e.textContent.length != 0)
                 {
                     newRange.setStart(e.firstChild, caretOffset);
                     newRange.collapse(true);
