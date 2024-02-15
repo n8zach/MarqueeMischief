@@ -52,7 +52,7 @@
         }
 
         .saveResponse {
-            font-size: .5em;
+            font-size: .7em;
             text-align: center;
             align-items: center;
         }
@@ -61,9 +61,11 @@
 <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
+    Hello {{ current_user.username }}
+    <br>
     <form id="customForm" action="/solo" method="POST">
         <label for="customText">Original Message:</label><br>
-        <textarea  id="customText" name="OriginalMessage" rows="4" cols="15">{{ form_data['OriginalMessage'] }}</textarea><br>
+        <textarea  id="customText" name="OriginalMessage" rows="4" cols="15" onkeyup="updateOriginalMessage(this.value);">{{ form_data['OriginalMessage'] }}</textarea><br>
         <input type="submit" id="submitBtn" value="Get Suggestions">
     </form>
 
@@ -85,14 +87,25 @@
     <br>
     <a href="../vote">Vote</a>
 
+    <p><a href="{{ url_for('logout') }}">Logout</a></p>
 
     <script>
         window.addEventListener("load", myInit, true); 
-  
+
+        var originalMessage;
+        
         function myInit()
         {   
+            originalMessage = "{{ form_data['OriginalMessage']}}"
             document.getElementById("unusedLetters").innerHTML = unusedLetters("{{ form_data['Best'] }}", "{{ form_data['OriginalMessage'] }}");
+            document.getElementById("saveResponse").innerHTML = "Click \"Save\" to save."
         }; 
+
+        function updateOriginalMessage(message)
+        {
+            originalMessage = message;
+            updateTryItBox(false);
+        };
 
         function formatText(sentence, letters) {
             s= sentence.toUpperCase();
@@ -135,7 +148,7 @@
         function changeTryItBox(clickedElement) {
             var newText = clickedElement.textContent;
             document.getElementById('tryItBox').innerText = newText;
-            updateTryItBox()
+            updateTryItBox(true)
             updateSuggestions()
         }
 
@@ -143,12 +156,12 @@
             e.preventDefault();
             if (e.target.isContentEditable) {
                 
-                updateTryItBox();
+                updateTryItBox(true);
                 updateSuggestions();
             }
         });
     
-        function updateTryItBox()
+        function updateTryItBox(fixCarrot)
         {
             e = document.getElementById('tryItBox');
 
@@ -158,24 +171,30 @@
             const text = e.textContent;
             const caretOffset = range.startOffset;
 
-            e.innerHTML = formatText(text, "{{form_data['OriginalMessage']}}"); 
+            e.innerHTML = formatText(text, originalMessage); 
 
-            // Restore caret position
-            const newRange = document.createRange();
-            newRange.setStart(e.firstChild, caretOffset);
-            newRange.collapse(true);
+            if (fixCarrot)
+            {
+                // Restore caret position
+                const newRange = document.createRange();
+                if(e.length != 0)
+                {
+                    newRange.setStart(e.firstChild, caretOffset);
+                    newRange.collapse(true);
 
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-        
-            document.getElementById("unusedLetters").innerHTML = unusedLetters(text, "{{form_data['OriginalMessage']}}");
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            }        
+
+            document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage);
             document.getElementById("saveResponse").innerHTML = "Click \"Save\" to save."
         }
 
         function saveAnswer()
         {
             answer = document.getElementById('tryItBox').textContent;
-            puzzle = "{{form_data['OriginalMessage']}}"
+            puzzle = originalMessage;
             
             document.getElementById("saveResponse").innerHTML = "Saving..."
 
@@ -198,7 +217,7 @@
 
             $.ajax({
             data : {
-                letters : unusedLetters(text, "{{form_data['OriginalMessage']}}")
+                letters : unusedLetters(text, originalMessage)
             },
             type : 'POST',
             url : '/scrabbler'

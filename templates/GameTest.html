@@ -7,6 +7,15 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
 
         <title>My scratchboard page</title>
+
+        <style>
+          .table {
+            margin:25px 0 0 25px;
+            width:800px;
+            font-size:14px;
+            border:1px solid #000;
+            border-collapse:collapse; }
+        </style>
     </head>
 
     <body>
@@ -25,39 +34,10 @@
         </nav>
 
         <div class="container">
-            <div class="row">
-                <form action="." method="POST">
-                  {% for answer in answers %}
-                      <div class="row">
-                        <input type="radio" id="{{answer[0]}}" name="vote" value="{{answer[0]}}">
-                        <label for="html">{{answer[2]}} => {{ answer[1] }}</label><br>
-                      </div>
-                  {% endfor %}
-                  <input type="submit" value="VOTE">
-              </form>
-            </div>
-            <div class="row">
-                <form action="." method="POST">
-                  <textarea class="form-control" name="puzzle" placeholder="Enter a puzzle"></textarea>
-                  <textarea class="form-control" name="answer" placeholder="Enter an answer"></textarea>
-                  <input type="submit" class="btn btn-success" value="Post answer">
-                </form>
-            </div>
-
           <div class="container">
-            {% for answer in answers %}
-            <div class="row">
-                ({{answer[2]}}) {{answer[1]}} => {{ answer[0] }}
-            </div>
-            {% endfor %}
-          </div>
-          <br>
-          <div class="container">
-            {% for result in results %}
-            <div class="row">
-                {{result}}
-            </div>
-            {% endfor %}
+            {% autoescape false %}
+            {{text}}
+            {% endautoescape %}        
           </div>
         </div>
 

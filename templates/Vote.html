@@ -9,31 +9,47 @@
     function myInit()
     {   
         document.getElementById('puzzles').value="{{selected}}";
+        o = document.getElementById('puzzles')
+        document.getElementById("href_solo").href =  "{{ url_for('solo') }}?NewOriginalMessage=" + o.options[o.selectedIndex].text
     };
+
+    function handleChange()
+    {
+        document.getElementById("form").submit();
+    }t
+
 </script>
 
-<form action="." method="POST">
-    <label for="puzzles">Choose a puzzle:</label>
-    <select name="puzzles" id="puzzles" onchange="this.form.submit()">
+Hello {{ current_user.username }}
+<br>
+<br>
+Pick an original message to see current vote count and vote on your favorite:
+<br>
+<br>
+<form id="form" action="." method="POST">
+    <label for="puzzles">Original Message:</label>
+    <select name="puzzles" id="puzzles" onchange="handleChange()">
         {% for puzzle in puzzles %}
             <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
         {% endfor %}
     </select>
 </form>
 <br>
-<br>
     <form action="." method="POST">
-        {% for result in results %}
+        {% for vote in votes %}
             <div class="row">
-            <input type="radio" id="{{result[1]}}" name="vote" value="{{result[1]}}">
-            <label for="html">{{result[2]}} ({{result[3]}})</label><br>
+            <input type="radio" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
+            <label for="html">({{vote[3]}})  :  {{vote[2]}}</label><br>
             </div>
         {% endfor %}
+        <br>
+        Select a message above and click "Vote" to add your vote    
         <input type="hidden" id="selected" name="selected" value="{{selected}}">
         <br>
         <input type="submit" value="VOTE">
     </form>
     <br>
-    <a href="../solo">Play</a>
+    Click <a id="href_solo" href="{{ url_for('solo') }}">here</a> to make your own new messages for this one.
+    <p><a href="{{ url_for('logout') }}">Logout</a></p>
 
 </body>
