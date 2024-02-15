@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask import Flask, redirect, render_template, request, url_for, flash
 from flask_login import LoginManager, login_manager, login_user, login_required, logout_user, UserMixin, current_user
 from scrabble import suggest_words
-from mm_game_db import add_user, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answer, get_puzzle_user_answer_votes
+from mm_game_db import add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answer, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
 
@@ -104,7 +104,15 @@ def scrabbler():
 def vote():
     if request.method == "GET":
         puzzles = get_puzzles_that_have_answers()
-        return render_template("Vote.html", puzzles=puzzles, votes=[], selected=0)
+        currentPuzzleId = puzzles[0][0]
+
+        if(request.args.get("selection")):
+            ret = get_puzzle_id_from_text(request.args["selection"])
+            if ret != None:
+                currentPuzzleId = ret[0]
+
+        votes = get_puzzleId_answerId_answer_votes(currentPuzzleId)
+        return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=currentPuzzleId)
     
     # POST
     # vote or choose puzzle?
@@ -117,6 +125,7 @@ def vote():
         puzzles = get_puzzles_that_have_answers()
         votes = get_puzzleId_answerId_answer_votes(request.form["puzzles"])
         return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=request.form["puzzles"])
+ 
 
 
 @app.route('/test/', methods = ['POST', 'GET'])

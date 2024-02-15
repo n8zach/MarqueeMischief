@@ -8,15 +8,27 @@
   
     function myInit()
     {   
+        
         document.getElementById('puzzles').value="{{selected}}";
         o = document.getElementById('puzzles')
         document.getElementById("href_solo").href =  "{{ url_for('solo') }}?NewOriginalMessage=" + o.options[o.selectedIndex].text
+        // var url_string = window.location.href
+        // console.log(url_string)
+        // var url = new URL(url_string);
+        // var selection = url.searchParams.get("selection");
+        // console.log(selection);
+        //document.getElementById("puzzles").value = arguments.get()     
     };
 
-    function handleChange()
+    function handleSelectionChange()
     {
         document.getElementById("form").submit();
-    }t
+    }
+
+    function handleRadioChange()
+    {
+    	document.getElementById("vote_button").disabled = false;
+    }
 
 </script>
 
@@ -28,7 +40,7 @@ Pick an original message to see current vote count and vote on your favorite:
 <br>
 <form id="form" action="." method="POST">
     <label for="puzzles">Original Message:</label>
-    <select name="puzzles" id="puzzles" onchange="handleChange()">
+    <select name="puzzles" id="puzzles" onchange="handleSelectionChange()">
         {% for puzzle in puzzles %}
             <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
         {% endfor %}
@@ -38,7 +50,7 @@ Pick an original message to see current vote count and vote on your favorite:
     <form action="." method="POST">
         {% for vote in votes %}
             <div class="row">
-            <input type="radio" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
+            <input type="radio" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
             <label for="html">({{vote[3]}})  :  {{vote[2]}}</label><br>
             </div>
         {% endfor %}
@@ -46,7 +58,7 @@ Pick an original message to see current vote count and vote on your favorite:
         Select a message above and click "Vote" to add your vote    
         <input type="hidden" id="selected" name="selected" value="{{selected}}">
         <br>
-        <input type="submit" value="VOTE">
+        <input id="vote_button" type="submit" value="VOTE" disabled>
     </form>
     <br>
     Click <a id="href_solo" href="{{ url_for('solo') }}">here</a> to make your own new messages for this one.

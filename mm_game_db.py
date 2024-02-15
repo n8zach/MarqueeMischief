@@ -40,6 +40,10 @@ def vote_for_answer(userId, answerId):
 
     return
 
+def get_puzzle_id_from_text(puzzle_text):
+    sql = f"select puzzles.id from puzzles where puzzles.text = \"{puzzle_text}\";"
+    return db.session.execute(text(sql)).first()
+
 def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
     sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
     puzzles = db.session.execute(text(sql)).all()
