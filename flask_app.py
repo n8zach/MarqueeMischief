@@ -123,9 +123,7 @@ def vote():
 def test():
     if request.method == "GET":
         data = get_puzzle_user_answer_votes("%")
-        user = ""
-        puzzle = ""
-        
+        puzzle = ""     
         text = '<table class="table">'
                         
         for row in data:
@@ -214,4 +212,5 @@ def thinking():
     return render_template('solo.html', form_data = data)
 
 if __name__ == '__main__':
+    #app.run(host='192.168.1.78', port=5000, debug=True, threaded=False)
     app.run()

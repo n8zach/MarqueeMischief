@@ -54,10 +54,10 @@ def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
         sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {ret.lastrowid}, \"{answer_text}\")"
         db.session.execute(text(sql))
         db.session.commit()     
-        return "Saved as new puzzle and answer!"
+        return "Saved as new original message and new message!"
     if (len(puzzles) > 1):
         #something is wrong
-        return "Something is wrong! There was more than one puzzle matched."
+        return "Something is wrong! There was more than one message matched."
     else:
         #make sure this answer doesn't exist.
         sql = f"select * from answers where answers.text = \"{answer_text}\";"
@@ -67,13 +67,13 @@ def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
         #make sure it is a valid answer.
         for letter in answer_text:
             if (letter not in puzzle_text):
-                return "Not a vaid answer...  it has letters not in the puzzle. (extra spaces maybe?)"
+                return "Not a vaid message...  it has letters not in the origianl message. (extra spaces maybe?)"
 
         #save this answer with this puzzle id
         sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {puzzles[0].id}, \"{answer_text}\")"
         db.session.execute(text(sql))
         db.session.commit()        
-        return "Added answer to existing puzzle."
+        return "New message added!"
     
 def is_password_correct(login):
     sql = f"SELECT password from users where name = '{login['name']}'"
