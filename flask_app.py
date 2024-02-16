@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask import Flask, redirect, render_template, request, url_for, flash
 from flask_login import LoginManager, login_manager, login_user, login_required, logout_user, UserMixin, current_user
 from scrabble import suggest_words
-from mm_game_db import add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answer, get_puzzle_user_answer_votes
+from mm_game_db import get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answer, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
 
@@ -111,6 +111,9 @@ def vote():
             if ret != None:
                 currentPuzzleId = ret[0]
 
+        if(request.args.get("puzzleId")):
+            currentPuzzleId = request.args["puzzleId"]
+
         votes = get_puzzleId_answerId_answer_votes(currentPuzzleId)
         return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=currentPuzzleId)
     
@@ -127,23 +130,20 @@ def vote():
         return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=request.form["puzzles"])
  
 
-
+@app.route('/results', methods = ['POST', 'GET'])
+def results():
+    if request.method == "GET":
+        puzzleId = request.args.get("puzzleId", "%")
+        message = ""
+        if(puzzleId != "%"):
+            message = get_puzzle_text(puzzleId)
+        return render_template("results.html", text=get_results_text(puzzleId), puzzleId = puzzleId, originalMessage = message)
+    
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
+    puzzleId = "7"
     if request.method == "GET":
-        data = get_puzzle_user_answer_votes("%")
-        puzzle = ""     
-        text = '<table class="table">'
-                        
-        for row in data:
-            if puzzle != row[0]: # new puzzle
-                text += f'<tr><th td colspan="2">{row[0]}</th></tr>'
-                puzzle = row[0]
-            text += f'<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>'
-
-        # end thetable
-        text += '</table>'
-        return render_template("GameTest.html", text=text)
+        return render_template("GameTest.html", text=get_results_text(puzzleId))
 
 @app.route('/', methods = ['GET'])
 @login_required
@@ -165,8 +165,8 @@ def solo():
         form_data["user"] = current_user.username
         form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
         form_data["Best"] = form_data["OriginalMessage"]
-        if request.args.get("NewOriginalMessage"):
-            form_data["OriginalMessage"] = request.args["NewOriginalMessage"]
+        if request.args.get("OriginalMessage"):
+            form_data["OriginalMessage"] = request.args["OriginalMessage"]
             form_data["Best"] = form_data["OriginalMessage"]
         return render_template('solo.html', form_data = form_data)
 

@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <style>
+            table {table-layout:fixed; }
+            td {text-align:left; width: 1px; white-space:nowrap; border: 2px solid blue;}
+        </style>
+    </head>
+
+    <body>
+        {% autoescape false %}
+        {{text}}
+        {% endautoescape %}        
+    </body>
+
+    <br>
+    Click <a id="href_solo" href="{{ url_for('solo') }}?OriginalMessage={{originalMessage}}">HERE</a> to make your own new messages for this one.
+    <br>
+    Click <a id="href_vote" href="{{ url_for('vote') }}?puzzleId={{puzzleId}}">HERE</a> to vote on this one.
+
+</html>

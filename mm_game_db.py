@@ -89,6 +89,10 @@ def is_password_correct(login):
         return True
     return False
 
+def get_puzzle_text(puzzleId):
+    sql = f'SELECT puzzles.text from puzzles where puzzles.id = "{puzzleId}"'
+    return db.session.execute(text(sql)).first()[0]
+
 def get_answerId_answer_puzzle_puzzleId():
     sql = "SELECT answers.id as id, answers.text as answer, puzzles.text as puzzle, puzzles.id as puzzleId FROM answers left join puzzles on puzzles.id = answers.puzzleId order by puzzles.id;"
     return db.session.execute(text(sql)).all()
@@ -109,8 +113,8 @@ def get_puzzle_user_answer_votes(puzzleId):
     sql = f"SELECT puzzles.text as puzzle, users.name as user, answers.text as answer, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId left outer join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by answers.id order by puzzles.id, votes desc;"
     return db.session.execute(text(sql)).all()
 
-def get_user_votes(puzzleId):
-    sql = f"SELECT users.name as user, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by puzzleId, name order by user, puzzleId, votes desc;"
+def get_puzzle_user_votes(puzzleId):
+    sql = f"SELECT puzzles.text as puzzle, users.name as user, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by puzzleId, name order by puzzleId, user, votes desc;"
     return db.session.execute(text(sql)).all()
 
 def get_user_from_id(userId):
@@ -136,3 +140,39 @@ def add_user(username, password):
     db.session.execute(text(sql))
     db.session.commit()
     return True, "success"
+
+def delete_puzzle(puzzleId):
+    sql = f'delete from votes where id > 0 and id IN (select vid FROM (select votes.id as vid from votes inner join answers on answers.id = votes.answerId inner join puzzles on puzzles.id = answers.puzzleId where puzzles.id = "{puzzleId}") as v);'
+    db.session.execute(text(sql))
+    db.session.commit()
+    sql = f'delete from answers where id > 0 and id IN (select aid FROM (select answers.id as aid from answers inner join puzzles on puzzles.id = answers.puzzleId where puzzles.id = "{puzzleId}") as a);'
+    db.session.execute(text(sql))
+    db.session.commit()
+    sql = f'delete from puzzles where puzzles.id = "{puzzleId}";'
+    db.session.execute(text(sql))
+    db.session.commit()
+
+def get_results_text(puzzleId):
+        data = get_puzzle_user_votes(puzzleId)
+        puzzle = ""     
+        text = '<table>'                        
+        for row in data:
+            if puzzle != row[0]: # new puzzle
+                text += f'<tr><th colspan="2" nowrap>{row[0]}</th></tr>'
+                puzzle = row[0]
+            text += f'<tr><td>{row[1]}</td><td>{row[2]}</td></tr>'
+            # end thetable
+        text += '</table><br>'
+        
+        data = get_puzzle_user_answer_votes(puzzleId)
+        puzzle = ""     
+        text += '<table>'                        
+        for row in data:
+            if puzzle != row[0] and puzzleId == "%": # new puzzle
+                text += f'<tr><th colspan="3">{row[0]}</th></tr>'
+                puzzle = row[0]
+            text += f'<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>'
+
+        # end thetable
+        text += '</table>'
+        return text

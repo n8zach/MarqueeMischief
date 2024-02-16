@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
 </head>
+<style>
+    body {
+        appearance: none;
+        font-family: 'Helvetica ', sans-serif;
+        font-size: 20px;
+    }
+    [type=radio]:checked::before{
+        text-align: left;
+    }
+</style>
 <body>
 <script>
     window.addEventListener("load", myInit, true); 
@@ -11,13 +21,8 @@
         
         document.getElementById('puzzles').value="{{selected}}";
         o = document.getElementById('puzzles')
-        document.getElementById("href_solo").href =  "{{ url_for('solo') }}?NewOriginalMessage=" + o.options[o.selectedIndex].text
-        // var url_string = window.location.href
-        // console.log(url_string)
-        // var url = new URL(url_string);
-        // var selection = url.searchParams.get("selection");
-        // console.log(selection);
-        //document.getElementById("puzzles").value = arguments.get()     
+        document.getElementById("href_solo").href =  "{{ url_for('solo') }}?OriginalMessage=" + o.options[o.selectedIndex].text
+        document.getElementById("href_results").href =  "{{ url_for('results') }}?puzzleId=" + o.options[o.selectedIndex].value   
     };
 
     function handleSelectionChange()
@@ -61,7 +66,8 @@ Pick an original message to see current vote count and vote on your favorite:
         <input id="vote_button" type="submit" value="VOTE" disabled>
     </form>
     <br>
-    Click <a id="href_solo" href="{{ url_for('solo') }}">here</a> to make your own new messages for this one.
-    <p><a href="{{ url_for('logout') }}">Logout</a></p>
-
+    Click <a id="href_solo" href="{{ url_for('solo') }}">HERE</a> to make your own new messages for this one.
+    <br>
+    Click <a id="href_results" href="{{ url_for('results') }}">HERE</a> see results.
+    
 </body>
