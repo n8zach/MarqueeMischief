@@ -7,7 +7,6 @@
     <style>
         body {
             appearance: none;
-            font-family: 'Helvetica ', sans-serif;
             font-size: 20px;
             text-align: center;
         }
@@ -75,7 +74,7 @@
 
 
     <br>
-    <div id="tryItHereLable" class = "helpLabel">Make your own message here.<br>You can also click a suggestion above to move it here.</div>
+    <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.<br>You can also click a suggestion above to move it here.</div>
     <div id="tryItBox" class = "letterBox" contenteditable="true"></div> 
     <br>
     Unused Letters: <div id="unusedLetters" class = "unusedLetters"></div>
@@ -86,10 +85,8 @@
     <button type="submit" onclick="saveAnswer()">Save</button>
     <br>
     <br>
+    <div class = "helpLabel">Click VOTE when you are ready to see everyones else's entries and vote on your favorite.</div>
     <a id="href_vote" href="{{ url_for('vote') }}">VOTE</a>
-
-
-    <p><a href="{{ url_for('logout') }}">Logout</a></p>
 
     <script>
         window.addEventListener("load", myInit, true); 
@@ -205,7 +202,8 @@
             }        
 
             document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage);
-            document.getElementById("saveResponse").innerHTML = "Click \"Save\" to save."
+            document.getElementById("saveResponse").innerHTML = "Click \"Save\" when you have a good one you want to save."
+
         }
 
         function saveAnswer()

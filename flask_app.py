@@ -153,7 +153,7 @@ def default():
 @app.route('/save', methods = ['POST'])
 @login_required
 def save():
-    result = save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"], current_user.id)
+    result = save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"].strip(), current_user.id)
     return result
 
 

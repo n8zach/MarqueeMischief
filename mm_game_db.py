@@ -69,9 +69,13 @@ def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
         if(len(answers) != 0):
             return "Answer already exists.  Not adding it."
         #make sure it is a valid answer.
+        if (answer_text == puzzle_text):
+            return "That's the same as the original message! Not adding it."
         for letter in answer_text:
+            if (letter == " "):
+                continue
             if (letter not in puzzle_text):
-                return "Not a vaid message...  it has letters not in the origianl message. (extra spaces maybe?)"
+                return "Not a vaid message...  it has letters not in the origianl message."
 
         #save this answer with this puzzle id
         sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {puzzles[0].id}, \"{answer_text}\")"
