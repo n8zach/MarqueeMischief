@@ -4,13 +4,15 @@
 </head>
 <style>
     body {
-        appearance: none;
         font-family: 'Helvetica ', sans-serif;
         font-size: 20px;
     }
-    [type=radio]:checked::before{
-        text-align: left;
+
+    select.custom {
+        font-family: 'Helvetica ', sans-serif;
+        font-size: 20px;
     }
+
 </style>
 <body>
 <script>
@@ -45,7 +47,7 @@ Pick an original message to see current vote count and vote on your favorite:
 <br>
 <form id="form" action="." method="POST">
     <label for="puzzles">Original Message:</label>
-    <select name="puzzles" id="puzzles" onchange="handleSelectionChange()">
+    <select class="custom" name="puzzles" id="puzzles" onchange="handleSelectionChange()">
         {% for puzzle in puzzles %}
             <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
         {% endfor %}
@@ -54,7 +56,7 @@ Pick an original message to see current vote count and vote on your favorite:
 <br>
     <form action="." method="POST">
         {% for vote in votes %}
-            <div class="row">
+            <div>
             <input type="radio" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
             <label for="html">({{vote[3]}})  :  {{vote[2]}}</label><br>
             </div>

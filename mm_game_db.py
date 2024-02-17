@@ -45,6 +45,9 @@ def get_puzzle_id_from_text(puzzle_text):
     return db.session.execute(text(sql)).first()
 
 def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
+    if(len(answer_text) == 0):
+        return "New message is blank...  nothing saved."
+    
     sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
     puzzles = db.session.execute(text(sql)).all()
 

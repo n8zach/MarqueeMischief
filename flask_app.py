@@ -195,9 +195,8 @@ def thinking():
     close = [x for x in messages["bad"] if len(x["extra"]) == 1]
 
     out = []
-    if(len(messages["good"]) == 0 and len(close) == 0):
-        out.append("<b>I got no suggestions...  sorry :(</b>")
-    elif(len(messages["good"]) != 0):
+    
+    if(len(messages["good"]) != 0):
         out.append("<b>Here are some suggestions:</b>")
         for g in messages["good"]:
             out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
@@ -210,6 +209,9 @@ def thinking():
             out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
     elif(len(messages["good"]) != 0):
         out.append("<b>I got nothin close.</b>")
+
+    if(len(messages["good"]) == 0 and len(close) == 0):
+        out = ["<b>I got no suggestions...  sorry :(</b>"]
 
     data["NewMessages"] = ''.join(out)
     
