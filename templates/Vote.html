@@ -77,7 +77,7 @@ Pick an original message to see current vote count and vote on your favorite:
     <!-- puzzleId_answerId_userId_answer_votes-->
     <form id="vote" action="." method="POST">
         {% for vote in votes %}
-            {% if vote[2] == current_user.id %}
+            {% if vote[2] != current_user.id %}
                 <input type="checkbox" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
             {% else %}
                 <input disabled=true type="checkbox" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
