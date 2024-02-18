@@ -37,8 +37,17 @@ def vote_for_answer(userId, answerId):
     sql = f"INSERT INTO votes (userId, answerId) VALUES ({userId}, {answerId})"
     db.session.execute(text(sql))
     db.session.commit()
-
     return
+
+def vote_for_answers(userId, answerIds):
+    inserts = []
+    for answerId in answerIds:
+        inserts.append(f"({userId}, {answerId})")
+    inserts = ",".join(inserts)
+    sql = f"INSERT INTO votes (userId, answerId) VALUES {inserts}"
+    db.session.execute(text(sql))
+    db.session.commit()
+    return 
 
 def get_puzzle_id_from_text(puzzle_text):
     sql = f"select puzzles.id from puzzles where puzzles.text = \"{puzzle_text}\";"

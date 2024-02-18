@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask import Flask, redirect, render_template, request, url_for, flash
 from flask_login import LoginManager, login_manager, login_user, login_required, logout_user, UserMixin, current_user
 from scrabble import suggest_words
-from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answer, get_puzzle_user_answer_votes
+from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answers, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
 
@@ -118,12 +118,15 @@ def vote():
         return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=currentPuzzleId)
     
     # POST
-    # vote or choose puzzle?
-    if(request.form.get("vote")):
+    # Is this a vote?
+    if(request.form.get("vote[]")):
         puzzles = get_puzzles_that_have_answers()
-        vote_for_answer(userId=1, answerId=request.form["vote"])
+        answerIds = request.form.to_dict(flat=False)["vote[]"]
+        vote_for_answers(userId=current_user.id, answerIds=answerIds)
         votes = get_puzzleId_answerId_userId_answer_votes(request.form["selected"])
         return render_template("Vote.html", puzzles=puzzles, votes=votes, selected=request.form["selected"])
+    
+    # is this a request for list of puzzles? (when selection changes)
     elif(request.form.get("puzzles")):
         puzzles = get_puzzles_that_have_answers()
         votes = get_puzzleId_answerId_userId_answer_votes(request.form["puzzles"])
