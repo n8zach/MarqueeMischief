@@ -54,11 +54,16 @@ Pick an original message to see current vote count and vote on your favorite:
     </select>
 </form>
 <br>
+    <!-- puzzleId_answerId_userId_answer_votes-->
     <form action="." method="POST">
         {% for vote in votes %}
             <div>
-            <input type="radio" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
-            <label for="html">({{vote[3]}})  :  {{vote[2]}}</label><br>
+            {% if vote[2] == current_user.id %}
+                <input type="radio" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
+            {% else %}
+                <input disabled=true type="radio" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote" value="{{vote[1]}}">
+            {% endif %}
+            <label for="html">({{vote[4]}})  :  {{vote[3]}}</label><br>
             </div>
         {% endfor %}
         <br>

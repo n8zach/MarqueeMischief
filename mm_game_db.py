@@ -112,6 +112,10 @@ def get_puzzleId_answerId_answer_votes(puzzleId):
     sql = f"select answers.puzzleId, answers.id, answers.text, count(answerId) as count from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id order by count desc;"
     return db.session.execute(text(sql)).all()
 
+def get_puzzleId_answerId_userId_answer_votes(puzzleId):
+    sql = f"select answers.puzzleId, answers.id, answers.userId, answers.text, count(answerId) as count from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id order by count desc;"
+    return db.session.execute(text(sql)).all()
+
 def get_puzzles_that_have_answers():
     sql = "select distinct(puzzles.id), puzzles.text from puzzles join answers on puzzles.id = answers.puzzleId;"
     return db.session.execute(text(sql)).all()
