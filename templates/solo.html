@@ -98,18 +98,16 @@
         
         function myInit()
         {   
-            originalMessage = "{{ form_data['OriginalMessage']}}"
             document.getElementById("unusedLetters").innerHTML = unusedLetters("{{ form_data['Best'] }}", "{{ form_data['OriginalMessage'] }}");
             document.getElementById("saveResponse").innerHTML = "Click \"Save\" to save."
-            updateTryItBox(false);
-            updateSuggestions();
-            updateVoteUrl();
+            updateOriginalMessage("{{ form_data['OriginalMessage']}}")
         }; 
 
         function updateOriginalMessage(message)
         {
             originalMessage = message;
             updateTryItBox(false);
+            updateSuggesions();
             updateVoteUrl();
         };
 

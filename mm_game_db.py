@@ -54,46 +54,52 @@ def get_puzzle_id_from_text(puzzle_text):
     return db.session.execute(text(sql)).first()
 
 def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
+    messageOut = ""
+
+    # no blank messages
     if(len(answer_text) == 0):
         return "New message is blank...  nothing saved."
+    
+    # must be different than original message
+    if (answer_text == puzzle_text):
+        return "That's the same as the original message! Not adding it."
+
+    # must not have extra letters not in the original message
+    for letter in answer_text:
+        if (letter == " "):
+            continue
+        if (letter not in puzzle_text):
+            return "Not a vaid message...  it has letters not in the origianl message."
+        
     
     sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
     puzzles = db.session.execute(text(sql)).all()
 
+    if (len(puzzles) > 1):
+        #something is wrong
+        return "Something is wrong! There was more than one matching original message!"
+
     if (len(puzzles) == 0):
         #save this new puzzle
         sql = f"INSERT INTO puzzles (text) VALUES (\"{puzzle_text}\")"
-        ret = db.session.execute(text(sql))
-        db.session.commit()     
-
-        #save this answer with new puzzle id
-        sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {ret.lastrowid}, \"{answer_text}\")"
-        db.session.execute(text(sql))
-        db.session.commit()     
-        return "Saved as new original message and new message!"
-    if (len(puzzles) > 1):
-        #something is wrong
-        return "Something is wrong! There was more than one message matched."
+        puzzleId = db.session.execute(text(sql)).lastrowid
+        db.session.commit() 
+        messageOut = "Added new original message.\n" 
     else:
-        #make sure this answer doesn't exist.
-        sql = f"select * from answers where answers.text = \"{answer_text}\";"
-        answers = db.session.execute(text(sql)).all()
-        if(len(answers) != 0):
-            return "Answer already exists.  Not adding it."
-        #make sure it is a valid answer.
-        if (answer_text == puzzle_text):
-            return "That's the same as the original message! Not adding it."
-        for letter in answer_text:
-            if (letter == " "):
-                continue
-            if (letter not in puzzle_text):
-                return "Not a vaid message...  it has letters not in the origianl message."
+        puzzleId = puzzles[0].id
 
-        #save this answer with this puzzle id
-        sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {puzzles[0].id}, \"{answer_text}\")"
-        db.session.execute(text(sql))
-        db.session.commit()        
-        return "New message added!"
+
+    # no duplicate answers
+    sql = f"select * from answers where answers.text = \"{answer_text}\" and answers.puzzleId = \"{puzzleId}\";"
+    answers = db.session.execute(text(sql)).all()
+    if(len(answers) != 0):
+        return "Answer already exists.  Not adding it."
+    
+    #save this answer with this puzzle id
+    sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {puzzleId}, \"{answer_text}\")"
+    db.session.execute(text(sql))
+    db.session.commit()        
+    return messageOut + "New message added!"
     
 def is_password_correct(login):
     sql = f"SELECT password from users where name = '{login['name']}'"

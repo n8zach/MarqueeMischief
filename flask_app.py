@@ -169,7 +169,7 @@ def solo():
         form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
         form_data["Best"] = form_data["OriginalMessage"]
         if request.args.get("OriginalMessage"):
-            form_data["OriginalMessage"] = request.args["OriginalMessage"]
+            form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
             form_data["Best"] = form_data["OriginalMessage"]
         return render_template('solo.html', form_data = form_data)
 
