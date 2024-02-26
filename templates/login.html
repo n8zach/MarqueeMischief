@@ -22,10 +22,9 @@
         <br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
-        <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+        <input type="hidden" name="next_url" value="{{ request.args.get('next', '') }}">
         <br>
         <input type="submit" value="Login">
     </form>
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
 </body>
 </html>

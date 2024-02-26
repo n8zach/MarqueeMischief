@@ -168,13 +168,7 @@ def add_user(username, password):
     return True, "success"
 
 def delete_puzzle(puzzleId):
-    sql = f'delete from votes where id > 0 and id IN (select vid FROM (select votes.id as vid from votes inner join answers on answers.id = votes.answerId inner join puzzles on puzzles.id = answers.puzzleId where puzzles.id = "{puzzleId}") as v);'
-    db.session.execute(text(sql))
-    db.session.commit()
-    sql = f'delete from answers where id > 0 and id IN (select aid FROM (select answers.id as aid from answers inner join puzzles on puzzles.id = answers.puzzleId where puzzles.id = "{puzzleId}") as a);'
-    db.session.execute(text(sql))
-    db.session.commit()
-    sql = f'delete from puzzles where puzzles.id = "{puzzleId}";'
+    sql = f'CALL delete_puzzle({puzzleId});'
     db.session.execute(text(sql))
     db.session.commit()
 

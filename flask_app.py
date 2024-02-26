@@ -54,7 +54,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        next_url = request.form.get("next")
+        next_url = request.form.get("next_url")
 
         user = get_user_from_name_and_password(username, password) 
         if user:
@@ -74,17 +74,17 @@ def logout():
     flash('Logout successful!', 'success')
     return redirect(url_for('login'))
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        result, message = add_user(request.form['username'], request.form['password'])
-        if result:
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash(f'Registration failed. {message}', 'error')
+# @app.route('/register', methods=['GET', 'POST'])
+# def register():
+#     if request.method == 'POST':
+#         result, message = add_user(request.form['username'], request.form['password'])
+#         if result:
+#             flash('Registration successful! Please login.', 'success')
+#             return redirect(url_for('login'))
+#         else:
+#             flash(f'Registration failed. {message}', 'error')
  
-    return render_template('register.html')
+#     return render_template('register.html')
 
 @app.route('/scrabbler', methods = ['POST', 'GET'])
 @login_required
@@ -102,6 +102,7 @@ def scrabbler():
 @app.route('/vote/', methods = ['POST', 'GET'])
 @login_required
 def vote():
+    # GET
     if request.method == "GET":
         puzzles = get_puzzles_that_have_answers()
         currentPuzzleId = puzzles[0][0]
