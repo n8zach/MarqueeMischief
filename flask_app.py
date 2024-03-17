@@ -149,6 +149,18 @@ def test():
     if request.method == "GET":
         return render_template("GameTest.html", text=get_results_text(puzzleId))
 
+@app.route('/game/', methods = ['POST', 'GET'])
+def game():
+    if request.method == 'GET':
+        form_data = {}
+        form_data["user"] = current_user.username
+        form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
+        form_data["Best"] = form_data["OriginalMessage"]
+        if request.args.get("OriginalMessage"):
+            form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
+            form_data["Best"] = form_data["OriginalMessage"]
+        return render_template('game.html', form_data = form_data)
+
 @app.route('/', methods = ['GET'])
 @login_required
 def default():

@@ -20,5 +20,13 @@ def can_spell(letters, word):
             word.remove(letter)
     return len(word) == 0
 
-#ret = suggest_words("pleasewaittobeseated")
-#print(ret)
+def de_dupe_file(filename):
+    words = []
+    set_words = set()
+    with open('data/dictionary-weird.txt', 'r') as words_file:
+            for line in words_file:
+                word = line.strip()
+                words.append(word)
+                set_words.add(word)
+    
+    print(len(words), len(set_words)) 

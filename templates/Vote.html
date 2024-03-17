@@ -27,14 +27,14 @@
         document.getElementById("href_results").href =  "{{ url_for('results') }}?puzzleId=" + o.options[o.selectedIndex].value   
     };
 
-    function handleSelectionChange()
+    function handlePuzzleSelectionChange()
     {
         document.getElementById("form").submit();
     }
 
-    function handleRadioChange()
+    function handleVoteSelectionChange()
     {
-        if(checkboxes() > 0)
+        if(countCheckboxes() > 0)
         {
             document.getElementById("vote_button").disabled = false;           
         }
@@ -44,7 +44,7 @@
         }
     }
 
-    function checkboxes()
+    function countCheckboxes()
     {
         var inputElems = document.getElementById("vote")
         count = 0;
@@ -67,7 +67,7 @@ Pick an original message to see current vote count and vote on your favorite:
 <br>
 <form id="form" action="." method="POST">
     <label for="puzzles">Original Message:</label>
-    <select class="custom" name="puzzles" id="puzzles" onchange="handleSelectionChange()">
+    <select class="custom" name="puzzles" id="puzzles" onchange="handlePuzzleSelectionChange()">
         {% for puzzle in puzzles %}
             <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
         {% endfor %}
@@ -78,9 +78,9 @@ Pick an original message to see current vote count and vote on your favorite:
     <form id="vote" action="." method="POST">
         {% for vote in votes %}
             {% if vote[2] != current_user.id %}
-                <input type="checkbox" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
+                <input type="checkbox" onchange="handleVoteSelectionChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
             {% else %}
-                <input disabled=true type="checkbox" onchange="handleRadioChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
+                <input disabled=true type="checkbox" onchange="handleVoteSelectionChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
             {% endif %}
             <label for="html">({{vote[4]}})  :  {{vote[3]}}</label><br>
         {% endfor %}
