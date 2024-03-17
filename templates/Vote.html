@@ -23,7 +23,7 @@
         
         document.getElementById('puzzles').value="{{selected}}";
         o = document.getElementById('puzzles')
-        document.getElementById("href_solo").href =  "{{ url_for('solo') }}?OriginalMessage=" + o.options[o.selectedIndex].text
+        document.getElementById("href_game").href =  "{{ url_for('game') }}?OriginalMessage=" + o.options[o.selectedIndex].text
         document.getElementById("href_results").href =  "{{ url_for('results') }}?puzzleId=" + o.options[o.selectedIndex].value   
     };
 
@@ -91,7 +91,7 @@ Pick an original message to see current vote count and vote on your favorite:
         <input id="vote_button" type="submit" value="VOTE" disabled>
     </form>
     <br>
-    Click <a id="href_solo" href="{{ url_for('solo') }}">HERE</a> to make your own new messages for this one.
+    Click <a id="href_game" href="{{ url_for('game') }}">HERE</a> to make your own new messages for this one.
     <br>
     <br>
     Click <a id="href_results" href="{{ url_for('results') }}">HERE</a> see results.

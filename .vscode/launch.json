@@ -63,9 +63,9 @@
         },
         {
             "type": "chrome",
-            "name": "localhost:5000/solo",
+            "name": "localhost:5000/game",
             "request": "launch",
-            "url": "localhost:5000/solo",
+            "url": "localhost:5000/game",
             "webRoot": "${workspaceFolder}/templates"    
             }
     ]

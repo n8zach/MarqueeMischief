@@ -62,7 +62,7 @@ def login():
             flash('Login successful!', 'success')
             if(next_url):
                 return redirect(next_url)
-            return redirect(url_for('solo'))
+            return redirect(url_for('game'))
         else:
             flash('Login failed. Please check your username and password.', 'danger')
     return render_template('login.html')
@@ -97,7 +97,45 @@ def scrabbler():
             ret = "Word Suggestions:<br>" + ', '.join(suggestions)
         return ret
     else:
-        return redirect(url_for('solo'))
+        return redirect(url_for('game'))
+
+@app.route('/aisuggestions', methods = ['POST', 'GET'])
+@login_required
+def aisuggestions():
+    if request.method == "POST":
+        form_data = request.form
+        message = form_data.getlist('OriginalMessage')[0]
+
+        try:
+            messages = message_to_messages(remove_punctuation(message), USE_PROXY)
+        except decoder.JSONDecodeError as error:
+            messages = error.doc
+        except Exception as error:
+            messages = f"An exception occurred: {error}"
+
+        data = {}
+        data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
+        close = [x for x in messages["bad"] if len(x["extra"]) == 1]
+        out = []
+        
+        if(len(messages["good"]) != 0):
+            out.append("<b>Here are some suggestions:</b>")
+            for g in messages["good"]:
+                out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
+        else:
+            out.append("<b>I got nothin perfect.</b><br>")
+        
+        if(len(close) != 0):
+            out.append("<br><b>These are close (Missing One Letter):</b>")
+            for b in close:
+                out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
+        elif(len(messages["good"]) != 0):
+            out.append("<b>I got nothin close.</b>")
+
+        if(len(messages["good"]) == 0 and len(close) == 0):
+            out = ["<b>I got no suggestions...  sorry :(</b>"]
+
+        return ''.join(out)
 
 @app.route('/vote/', methods = ['POST', 'GET'])
 @login_required
@@ -164,7 +202,7 @@ def game():
 @app.route('/', methods = ['GET'])
 @login_required
 def default():
-    return solo()
+    return game()
 
 @app.route('/save', methods = ['POST'])
 @login_required
@@ -172,71 +210,6 @@ def save():
     result = save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"].strip(), current_user.id)
     return result
 
-
-@app.route('/solo', methods = ['POST', 'GET'])
-@login_required
-def solo():
-    if request.method == 'GET':
-        form_data = {}
-        form_data["user"] = current_user.username
-        form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
-        form_data["Best"] = form_data["OriginalMessage"]
-        if request.args.get("OriginalMessage"):
-            form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
-            form_data["Best"] = form_data["OriginalMessage"]
-        return render_template('solo.html', form_data = form_data)
-
-    if request.method == 'POST':
-        form_data = request.form
-        data = MultiDict([("OriginalMessage", form_data["OriginalMessage"].upper())])  
-        return render_template('thinking.html', form_data = data)
-
-@app.route('/thinking', methods = ['POST', 'GET'])
-@login_required
-def thinking():
-    if request.method == 'GET':
-        return redirect(url_for('solo'))
-    
-    form_data = request.form
-    message = form_data.getlist('OriginalMessage')[0]
-    try:
-        messages = message_to_messages(remove_punctuation(message), USE_PROXY)
-    except decoder.JSONDecodeError as error:
-        messages = error.doc
-    except Exception as error:
-        messages = f"An exception occurred: {error}"
-
-    data = {}
-    data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
-    close = [x for x in messages["bad"] if len(x["extra"]) == 1]
-
-    out = []
-    
-    if(len(messages["good"]) != 0):
-        out.append("<b>Here are some suggestions:</b>")
-        for g in messages["good"]:
-            out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
-    else:
-        out.append("<b>I got nothin perfect.</b><br>")
-    
-    if(len(close) != 0):
-        out.append("<br><b>These are close (Missing One Letter):</b>")
-        for b in close:
-            out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
-    elif(len(messages["good"]) != 0):
-        out.append("<b>I got nothin close.</b>")
-
-    if(len(messages["good"]) == 0 and len(close) == 0):
-        out = ["<b>I got no suggestions...  sorry :(</b>"]
-
-    data["NewMessages"] = ''.join(out)
-    
-    if(len(messages["good"]) != 0):
-        data["Best"] = messages["good"][0]["text"]
-    else:
-        data["Best"] = ""
-    
-    return render_template('solo.html', form_data = data)
 
 if __name__ == '__main__':
     #app.run(host='192.168.1.78', port=5000, debug=True, threaded=False)

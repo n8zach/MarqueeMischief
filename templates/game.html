@@ -75,13 +75,14 @@
     <br>
     Unused Letters: <div id="unusedLetters" class = "unusedLetters"></div>
     <br>
-    <div id="suggestions" class = "suggestions"></div>
+    <div id="wordSuggestions" class = "suggestions"></div>
+    <br>
+    <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
+    <div id="aiSuggestions" class = "suggestions"></div>
     <p></p>
     <div id="scrollBox">
-        <div id="radioList">
-          <!-- Radio buttons with labels will be dynamically added here -->
-        </div>
-      </div>
+        <div id="drafts"></div>
+    </div>
     <br>      
     <div id="saveResponse" class = "helpLabel"></div>
     <br>
@@ -102,7 +103,7 @@
         function updateOriginalMessage(message)
         {
             updateTryItBox(false);
-            updateSuggestions();
+            updateScrabbleSuggestions();
             updateVoteUrl();
             updateButtons();
         };
@@ -155,14 +156,14 @@
             var newText = clickedElement.textContent;
             document.getElementById('tryItBox').innerText = newText;
             updateTryItBox(true);
-            updateSuggestions();
+            updateScrabbleSuggestions();
         }
 
         document.addEventListener('keyup', function (e) {
             e.preventDefault();
             if (e.target.isContentEditable) {
                 updateTryItBox(true);
-                updateSuggestions();
+                updateScrabbleSuggestions();
                 updateButtons();
             }
         });
@@ -222,6 +223,7 @@
             }        
 
             document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage);
+            updateButtons();
 
         }
 
@@ -252,7 +254,7 @@
             document
         }
 
-        function updateSuggestions()
+        function updateScrabbleSuggestions()
         {
             text = document.getElementById('tryItBox').textContent;
             originalMessage = document.getElementById("originalMessage").value
@@ -265,14 +267,32 @@
             url : '/scrabbler'
             })
             .done(function(data){
-                document.getElementById("suggestions").innerHTML = data;
+                document.getElementById("wordSuggestions").innerHTML = data;
+            });
+        }
+
+        function updateAISuggestions()
+        {
+            document.getElementById("aiSuggestions").innerHTML = "Thinking...  Give me a second... this is hard...";
+
+            originalMessage = document.getElementById("originalMessage").value
+
+            $.ajax({
+            data : {
+                OriginalMessage : originalMessage
+            },
+            type : 'POST',
+            url : '/aisuggestions'
+            })
+            .done(function(data){
+                document.getElementById("aiSuggestions").innerHTML = data;
             });
         }
 
         function addDraftItem() {
             var label = document.createElement('label');
             label.innerHTML = document.getElementById('tryItBox').textContent;  
-
+            
             var submitButton = document.createElement('button');
             submitButton.innerHTML = 'submit';
             submitButton.value = document.getElementById('tryItBox').textContent;
@@ -288,15 +308,35 @@
             div.append("  ")
             div.appendChild(removeButton);
             
-            document.getElementById('radioList').appendChild(div);
+
+            var drafts = document.getElementById('drafts');
+            if(drafts.children.length == 0)
+            {
+                drafts.append("Drafts")
+            }
+            drafts.appendChild(div);
             
+            label.addEventListener('click', function() {
+                changeTryItBox(this);
+            });
+
             removeButton.addEventListener('click', function() {
                 div.remove(); // Remove the div (containing label, radio button, and remove button)
+                var drafts = document.getElementById('drafts')
+                if (drafts.children.length == 0)
+                {
+                    drafts.innerHTML = "";
+                }
             });
 
             submitButton.addEventListener('click', function(){
                 saveDraftAsAnswer(this);
                 div.remove();
+                var drafts = document.getElementById('drafts')
+                if (drafts.children.length == 0)
+                {
+                    drafts.innerHTML = "";
+                }
             });
 
         }
