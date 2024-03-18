@@ -55,7 +55,11 @@
             font-family: 'Helvetica ', sans-serif;
         }
 
-      
+        .fadingPhrase {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }      
     </style>
 </head>
 <body>
@@ -78,6 +82,13 @@
     <div id="wordSuggestions" class = "suggestions"></div>
     <br>
     <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
+    <div id="aiWaiting">
+        <div class="fadingPhrase">This is hard...  gimme a sec!</div>
+        <div class="fadingPhrase">Thinking...  Thinking...</div>
+        <div class="fadingPhrase">THINKING INTENSIFIES...</div>
+        <div class="fadingPhrase">Almost there...</div>
+        <div class="fadingPhrase">Hang on...</div>
+      </div>
     <div id="aiSuggestions" class = "suggestions"></div>
     <p></p>
     <div id="scrollBox">
@@ -273,7 +284,10 @@
 
         function updateAISuggestions()
         {
-            document.getElementById("aiSuggestions").innerHTML = "Thinking...  Give me a second... this is hard...";
+            document.getElementById("aiSuggestions").innerHTML = "";
+            startAnimation();
+
+            //document.getElementById("aiSuggestions").innerHTML = "";
 
             originalMessage = document.getElementById("originalMessage").value
 
@@ -286,6 +300,7 @@
             })
             .done(function(data){
                 document.getElementById("aiSuggestions").innerHTML = data;
+                stopAnimation();
             });
         }
 
@@ -345,6 +360,40 @@
             addDraftItem();
         }
  
+    const phrases = document.querySelectorAll('.fadingPhrase');
+    let index = 0;
+    let animationStopped = false;
+    let timeouts = [];
+
+    function showNextPhrase() {
+        if (animationStopped) return;
+        phrases[index].style.display = 'block';
+        timeouts.push(setTimeout(() => {
+        phrases[index].style.opacity = '1';
+        timeouts.push(setTimeout(() => {
+            phrases[index].style.opacity = '0';
+            index = (index + 1) % phrases.length;
+            showNextPhrase(); // Adjust timing here (1000 = 1 second)
+        }, 1000)); // Adjust timing here (1000 = 1 second)
+        }, 100)); // Adjust timing here
+    }
+
+    function startAnimation() {
+        document.getElementById('aiWaiting').style.display = "block"
+        index = 0;
+        animationStopped = false;
+        timeouts = [];
+        showNextPhrase();
+    }
+
+    function stopAnimation() {
+        document.getElementById('aiWaiting').style.display = "none"
+        animationStopped = true;
+        timeouts.forEach(timeout => clearTimeout(timeout));
+        phrases.forEach(phrase => {
+            phrase.style.display = 'none';
+            phrase.style.opacity = '0';
+        });}
 
     </script>
 </body>

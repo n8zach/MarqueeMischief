@@ -181,12 +181,6 @@ def results():
             message = get_puzzle_text(puzzleId)
         return render_template("results.html", text=get_results_text(puzzleId), puzzleId = puzzleId, originalMessage = message)
     
-@app.route('/test/', methods = ['POST', 'GET'])
-def test():
-    puzzleId = "7"
-    if request.method == "GET":
-        return render_template("GameTest.html", text=get_results_text(puzzleId))
-
 @app.route('/game/', methods = ['POST', 'GET'])
 def game():
     if request.method == 'GET':
@@ -199,17 +193,20 @@ def game():
             form_data["Best"] = form_data["OriginalMessage"]
         return render_template('game.html', form_data = form_data)
 
-@app.route('/', methods = ['GET'])
-@login_required
-def default():
-    return game()
-
 @app.route('/save', methods = ['POST'])
 @login_required
 def save():
     result = save_answer_by_puzzle_text(request.form["answer"], request.form["puzzle"].strip(), current_user.id)
     return result
 
+@app.route('/', methods = ['GET'])
+@login_required
+def default():
+    return game()
+
+@app.route('/test/', methods = ['POST', 'GET'])
+def test():
+    return render_template("FadeInOut.html")
 
 if __name__ == '__main__':
     #app.run(host='192.168.1.78', port=5000, debug=True, threaded=False)

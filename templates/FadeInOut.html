@@ -1,56 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fading Phrases</title>
-  <style>
-    #phrases {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-size: 24px;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fading Phrases</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  .phrase {
+    display: none;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+</style>
 </head>
 <body>
-
-<div id="phrases"></div>
+<div id="phrases">
+  <div class="phrase">Phrase 1</div>
+  <div class="phrase">Phrase 2</div>
+  <div class="phrase">Phrase 3</div>
+  <!-- Add more phrases as needed -->
+</div>
 
 <script>
-  const phrases = [
-    "Hello, World!",
-    "This is a fading text example.",
-    "You can add more phrases to the array.",
-    "Each phrase will fade in and out."
-  ];
+  const phrases = document.querySelectorAll('.phrase');
+  let index = 0;
 
-  const phraseContainer = document.getElementById('phrases');
-
-  let currentPhraseIndex = 0;
-
-  function displayNextPhrase() {
-    phraseContainer.textContent = phrases[currentPhraseIndex];
-    fadeIn();
-    setTimeout(fadeOut, 2000); // Adjust the duration as needed
-    currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+  function showNextPhrase() {
+    phrases[index].style.display = 'block';
+    setTimeout(() => {
+      phrases[index].style.opacity = '1';
+      setTimeout(() => {
+        phrases[index].style.opacity = '0';
+        index = (index + 1) % phrases.length;
+        setTimeout(showNextPhrase, 1000); // Adjust timing here (1000 = 1 second)
+      }, 1000); // Adjust timing here (1000 = 1 second)
+    }, 100); // Adjust timing here
   }
 
-  function fadeIn() {
-    phraseContainer.style.opacity = 1;
-  }
-
-  function fadeOut() {
-    phraseContainer.style.opacity = 0;
-    setTimeout(displayNextPhrase, 500); // Adjust the delay between phrases as needed
-  }
-
-  // Start the display
-  displayNextPhrase();
+  showNextPhrase();
 </script>
-
 </body>
 </html>
