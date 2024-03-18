@@ -59,7 +59,25 @@
             display: none;
             opacity: 0;
             transition: opacity 1s ease-in-out;
-        }      
+        }     
+        
+        #aiSuggestions {
+            height: 100px; /* Set the desired height for the scroll box */
+            display: none;
+            border-style: solid;
+            border-width: 1px;
+            overflow: auto;
+        }
+
+        #drafts {
+            height: 100px; /* Set the desired height for the scroll box */
+            border-style: solid;
+            border-width: 1px;
+            overflow: auto;
+        }
+
+</style>
+
     </style>
 </head>
 <body>
@@ -82,18 +100,21 @@
     <div id="wordSuggestions" class = "suggestions"></div>
     <br>
     <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
-    <div id="aiWaiting">
+
+    <div id="aiWaiting" name="fadeText">
         <div class="fadingPhrase">This is hard...  gimme a sec!</div>
         <div class="fadingPhrase">Thinking...  Thinking...</div>
         <div class="fadingPhrase">THINKING INTENSIFIES...</div>
         <div class="fadingPhrase">Almost there...</div>
         <div class="fadingPhrase">Hang on...</div>
-      </div>
-    <div id="aiSuggestions" class = "suggestions"></div>
-    <p></p>
-    <div id="scrollBox">
-        <div id="drafts"></div>
     </div>
+    <div id="aiSuggestions" class = "suggestions">
+    </div>
+
+
+    <div class = "helpLabel">Drafts</div>
+    <div id="drafts"></div>
+
     <br>      
     <div id="saveResponse" class = "helpLabel"></div>
     <br>
@@ -284,7 +305,7 @@
 
         function updateAISuggestions()
         {
-            document.getElementById("aiSuggestions").innerHTML = "";
+            //document.getElementById("aiSuggestions").innerHTML.text = "";
             startAnimation();
 
             //document.getElementById("aiSuggestions").innerHTML = "";
@@ -299,7 +320,7 @@
             url : '/aisuggestions'
             })
             .done(function(data){
-                document.getElementById("aiSuggestions").innerHTML = data;
+                document.getElementById("aiSuggestions").innerHTML += data;
                 stopAnimation();
             });
         }
@@ -325,10 +346,10 @@
             
 
             var drafts = document.getElementById('drafts');
-            if(drafts.children.length == 0)
-            {
-                drafts.append("Drafts")
-            }
+            // if(drafts.children.length == 0)
+            // {
+            //     drafts.append("Drafts")
+            // }
             drafts.appendChild(div);
             
             label.addEventListener('click', function() {
@@ -337,21 +358,21 @@
 
             removeButton.addEventListener('click', function() {
                 div.remove(); // Remove the div (containing label, radio button, and remove button)
-                var drafts = document.getElementById('drafts')
-                if (drafts.children.length == 0)
-                {
-                    drafts.innerHTML = "";
-                }
+                // var drafts = document.getElementById('drafts')
+                // if (drafts.children.length == 0)
+                // {
+                //     drafts.innerHTML = "";
+                // }
             });
 
             submitButton.addEventListener('click', function(){
                 saveDraftAsAnswer(this);
                 div.remove();
-                var drafts = document.getElementById('drafts')
-                if (drafts.children.length == 0)
-                {
-                    drafts.innerHTML = "";
-                }
+                // var drafts = document.getElementById('drafts')
+                // if (drafts.children.length == 0)
+                // {
+                //     drafts.innerHTML = "";
+                // }
             });
 
         }
@@ -379,7 +400,8 @@
     }
 
     function startAnimation() {
-        document.getElementById('aiWaiting').style.display = "block"
+        document.getElementById('aiSuggestions').style.display = "block"
+        //document.getElementById('aiWaiting').style.display = "block"
         index = 0;
         animationStopped = false;
         timeouts = [];
