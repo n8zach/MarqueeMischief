@@ -29,13 +29,13 @@
             overflow-wrap: break-word;
         }
 
-        .letterBox {
+        .tryItBox {
             margin: auto;
             font-family: 'Times';
             text-align: center;
             align-items: center;
             border:1px solid black;
-            width: 50%
+            width: 75%
         }
 
         .unusedLetters {
@@ -55,7 +55,7 @@
             font-family: 'Helvetica ', sans-serif;
         }
 
-        .fadingPhrase {
+        .aiWaiting {
             display: none;
             opacity: 0;
             transition: opacity 1s ease-in-out;
@@ -64,6 +64,7 @@
         #scrollBox {
             height: 100px; /* Set the desired height for the scroll box */
             overflow: auto;
+            background-color: #9fc5df; /* a dark color */
         }
 
     </style>
@@ -73,32 +74,25 @@
 
     Hello {{ current_user.username }}
     <br>
-    <form id="customForm" action="/game" method="POST">
-        <label for="originalMessage">Original Message:</label><br>
-        <textarea  id="originalMessage" name="OriginalMessage" rows="4" cols="15" onkeyup="updateOriginalMessage(this.value);">{{ form_data['OriginalMessage'] }}</textarea><br>
-    </form>
+    <img src="{{form_data['ImageSrc']}}" />
     <br>
     <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
     
-   <div id="tryItBox" class = "letterBox" contenteditable="true"></div> 
+   <div id="tryItBox" class = "tryItBox" contenteditable="true"></div> 
    <button id="saveDraft" onclick="saveDraft()">Save Draft</button>
+   
     <br>
     Unused Letters: <div id="unusedLetters" class = "unusedLetters"></div>
     <br>
     <div id="wordSuggestions" class = "suggestions"></div>
     <br>
     <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
-    <div id="aiWaiting">
-        <div class="fadingPhrase">This is hard...  gimme a sec!</div>
-        <div class="fadingPhrase">Thinking...  Thinking...</div>
-        <div class="fadingPhrase">THINKING INTENSIFIES...</div>
-        <div class="fadingPhrase">Almost there...</div>
-        <div class="fadingPhrase">Hang on...</div>
-      </div>
-      <div id="scrollBox">
+    <div class="aiWaiting" id="aiWaiting"></div>
+    <div id="scrollBox">
         <div id="aiSuggestions" class = "suggestions"></div>
     </div>
     <p></p>
+    <div class="body">Drafts</div>
     <div id="scrollBox">
         <div id="drafts"></div>
     </div>
@@ -129,7 +123,7 @@
 
         function updateVoteUrl()
         {
-            originalMessage = document.getElementById("originalMessage").value
+            originalMessage = "{{ form_data['OriginalMessage']}}"
             document.getElementById("href_vote").href =  "{{ url_for('vote') }}?selection=" + originalMessage
         };
 
@@ -213,7 +207,7 @@
             e = document.getElementById('tryItBox');
             const text = e.textContent;
 
-            originalMessage = document.getElementById("originalMessage").value
+            originalMessage = "{{ form_data['OriginalMessage']}}"
             var selection;
             var range;
             var caretOffset;
@@ -249,7 +243,7 @@
         function saveAnswer(text)
         {
             answer = text;
-            puzzle = document.getElementById("originalMessage").value
+            puzzle = "{{ form_data['OriginalMessage']}}"
 
             
             document.getElementById("saveResponse").innerHTML = "Saving..."
@@ -276,7 +270,7 @@
         function updateScrabbleSuggestions()
         {
             text = document.getElementById('tryItBox').textContent;
-            originalMessage = document.getElementById("originalMessage").value
+            originalMessage = "{{ form_data['OriginalMessage']}}"
 
             $.ajax({
             data : {
@@ -297,7 +291,7 @@
 
             //document.getElementById("aiSuggestions").innerHTML = "";
 
-            originalMessage = document.getElementById("originalMessage").value
+            originalMessage = "{{ form_data['OriginalMessage']}}"
 
             $.ajax({
             data : {
@@ -368,40 +362,44 @@
             addDraftItem();
         }
  
-    const phrases = document.querySelectorAll('.fadingPhrase');
     let index = 0;
     let animationStopped = false;
-    let timeouts = [];
+    const phrases = [
+        "This is hard...  gimme a sec!",
+        "Thinking...  Thinking...",
+        "THINKING INTENSIFIES...",
+        "Almost there...",
+        "Hang on..."
+    ];
 
     function showNextPhrase() {
         if (animationStopped) return;
-        phrases[index].style.display = 'block';
-        timeouts.push(setTimeout(() => {
-        phrases[index].style.opacity = '1';
-        timeouts.push(setTimeout(() => {
-            phrases[index].style.opacity = '0';
+        var div = document.getElementById('aiWaiting');
+        div.style.display = "block";
+        div.innerHTML = phrases[index];
+        setTimeout(() => {
+        div.style.opacity = '1';
+        div.style.transition = 'opacity 1s ease-in-out';
+        setTimeout(() => {
+            div.style.opacity = '0';
+            div.style.transition = 'opacity 1s ease-in-out';
             index = (index + 1) % phrases.length;
-            showNextPhrase(); // Adjust timing here (1000 = 1 second)
-        }, 1000)); // Adjust timing here (1000 = 1 second)
-        }, 100)); // Adjust timing here
+            setTimeout(showNextPhrase, 1000); // Adjust timing here (1000 = 1 second)
+        }, 1000); // Adjust timing here (1000 = 1 second)
+        }, 100); // Adjust timing here
     }
 
     function startAnimation() {
         document.getElementById('aiWaiting').style.display = "block"
         index = 0;
         animationStopped = false;
-        timeouts = [];
         showNextPhrase();
     }
 
     function stopAnimation() {
         document.getElementById('aiWaiting').style.display = "none"
         animationStopped = true;
-        timeouts.forEach(timeout => clearTimeout(timeout));
-        phrases.forEach(phrase => {
-            phrase.style.display = 'none';
-            phrase.style.opacity = '0';
-        });}
+        }
 
     </script>
 </body>

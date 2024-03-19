@@ -9,6 +9,7 @@ from scrabble import suggest_words
 from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answers, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
+from redkid_helper import message_to_image_url
 
 USE_PROXY = True
 
@@ -191,6 +192,7 @@ def game():
         if request.args.get("OriginalMessage"):
             form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
             form_data["Best"] = form_data["OriginalMessage"]
+        form_data['ImageSrc'] = message_to_image_url(form_data["OriginalMessage"])
         return render_template('game.html', form_data = form_data)
 
 @app.route('/save', methods = ['POST'])

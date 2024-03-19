@@ -17,29 +17,33 @@
 </style>
 </head>
 <body>
-<div id="phrases">
-  <div class="phrase">This is hard...  gimme a sec!</div>
-  <div class="phrase">Thinking...  Thinking...</div>
-  <div class="phrase">THINKING INTENSIFIES...</div>
-  <div class="phrase">Almost there...</div>
-  <div class="phrase">Hang on...</div>
-</div>
+<div id="phrases">boo</div>
 
 <script>
-  const phrases = document.querySelectorAll('.phrase');
+  const phrases = [
+    "This is hard...  gimme a sec!",
+    "Thinking...  Thinking...",
+    "THINKING INTENSIFIES...",
+    "Almost there...",
+    "Hang on..."
+  ];
   let index = 0;
 
   function showNextPhrase() {
-    phrases[index].style.display = 'block';
+    var div = document.getElementById('phrases')
+    div.style.display = 'block';
     setTimeout(() => {
-      phrases[index].style.opacity = '1';
+      div.style.opacity = '1';
+      div.style.transition = 'opacity 1s ease-in-out';
       setTimeout(() => {
-        phrases[index].style.opacity = '0';
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 1s ease-in-out';
         index = (index + 1) % phrases.length;
         setTimeout(showNextPhrase, 1000); // Adjust timing here (1000 = 1 second)
       }, 1000); // Adjust timing here (1000 = 1 second)
     }, 100); // Adjust timing here
   }
+
 
   showNextPhrase();
 </script>
