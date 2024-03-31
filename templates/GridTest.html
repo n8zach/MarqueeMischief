@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+ 
+        .grid-container {
+            display: grid;
+            grid-template-rows: 1fr .25fr;
+        }
+ 
+        .row1 {
+            display: grid;
+            grid-template-columns: 60% 40%;
+            border: 1px solid #000;
+        }
+ 
+        .row2 {
+            display: grid;
+            grid-template-columns: 10% 90%;
+            border: 1px solid #000;
+        }
+ 
+        .nested-grid {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+        }
+ 
+        .nested-row1 {
+            display: grid;
+            grid-template-columns: 70% 30%;
+            border: 1px solid #000;
+        }
+ 
+        .nested-row2 {
+            display: grid;
+            grid-template-columns: 100%;
+            border: 1px solid #000;
+        }
+ 
+        /* Second Separate Grid */
+        .second-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 20px;
+        }
+ 
+        .second-grid .first-column {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            border: 1px solid #000;
+        }
+ 
+        .second-grid .second-column {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            border: 1px solid #000;
+        }
+ 
+        /* Images */
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+ 
+ 
+    <div class="grid-container">
+        <!-- First Row -->
+        <div class="row1">
+            <div style="background-color: #b53131;"><img style="float: right"; src="https://process.filestackapi.com/AhTgLagciQByzXpFGRI0Az/crop=d:%5B85,155,475,138%5D/http:/www.redkid.net/generator/roosevelt/newsign.php?line1=you+are+and+say+what&line2=you+feel%2C+those+who&line3=mind+don%27t+matter+and+those&line4=who+matter+don%27t+mind.+-TSG" /></div>
+            <div style="background-color: #e4b529;">40%</div>
+        </div>
+        
+        <!-- Second Row -->
+        <div class="row2">
+            <div style="background-color: #faff69;"><button style="float: right;">Save Draft</button></div>
+            <!-- Nested Grid in the second column of the second row -->
+            <div class="nested-grid">
+                <!-- Nested Row 1 -->
+                <div class="nested-row1">
+                    <div style="background-color: #1faf3f; text-align:center">TryItHere<br>UnusedLetters</div>
+                    <div style="background-color: #0bb0c9;">40%</div>
+                </div>
+                <!-- Nested Row 2 -->
+                <div class="nested-row2">
+                    <div style="background-color: #1b0a9d;">100%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Second Separate Grid -->
+    <div class="second-grid">
+        <!-- First Column -->
+        <div class="first-column">
+            <div style="background-color: #540872;">1fr</div>
+            <div style="background-color: #9f5cba;">1fr</div>
+        </div>
+ 
+        <!-- Second Column -->
+        <div class="second-column">
+            <div style="background-color: #5f5b5b;">1fr</div>
+            <div style="background-color: #242121;">1fr</div>
+        </div>
+    </div>
+ 
+</body>
+</html>

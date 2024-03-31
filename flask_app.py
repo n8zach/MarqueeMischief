@@ -75,17 +75,18 @@ def logout():
     flash('Logout successful!', 'success')
     return redirect(url_for('login'))
 
-# @app.route('/register', methods=['GET', 'POST'])
-# def register():
-#     if request.method == 'POST':
-#         result, message = add_user(request.form['username'], request.form['password'])
-#         if result:
-#             flash('Registration successful! Please login.', 'success')
-#             return redirect(url_for('login'))
-#         else:
-#             flash(f'Registration failed. {message}', 'error')
+@app.route('/register', methods=['GET', 'POST'])
+@login_required
+def register():
+    if request.method == 'POST':
+        result, message = add_user(request.form['username'], request.form['password'])
+        if result:
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash(f'Registration failed. {message}', 'error')
  
-#     return render_template('register.html')
+    return render_template('register.html')
 
 @app.route('/scrabbler', methods = ['POST', 'GET'])
 @login_required
@@ -208,7 +209,7 @@ def default():
 
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
-    return render_template("FadeInOut.html")
+    return render_template("GridTest.html")
 
 if __name__ == '__main__':
     #app.run(host='192.168.1.78', port=5000, debug=True, threaded=False)
