@@ -86,7 +86,7 @@ def register():
         else:
             flash(f'Registration failed. {message}', 'error')
  
-    return render_template('register.html')
+    return render_template('register.html') 
 
 @app.route('/scrabbler', methods = ['POST', 'GET'])
 @login_required
@@ -184,6 +184,7 @@ def results():
         return render_template("results.html", text=get_results_text(puzzleId), puzzleId = puzzleId, originalMessage = message)
     
 @app.route('/game/', methods = ['POST', 'GET'])
+@login_required
 def game():
     if request.method == 'GET':
         form_data = {}
