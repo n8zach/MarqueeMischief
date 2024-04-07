@@ -1,5 +1,5 @@
 import os
-from marquee_mischief_openAI import message_to_messages
+from marquee_mischief_openAI import message_to_messages_using_agent
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 from werkzeug.datastructures import MultiDict 
@@ -109,7 +109,7 @@ def aisuggestions():
         message = form_data.getlist('OriginalMessage')[0]
 
         try:
-            messages = message_to_messages(remove_punctuation(message), USE_PROXY)
+            messages = message_to_messages_using_agent(remove_punctuation(message), USE_PROXY)
         except decoder.JSONDecodeError as error:
             messages = error.doc
         except Exception as error:
