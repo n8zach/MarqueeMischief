@@ -121,21 +121,19 @@ def aisuggestions():
         out = []
         
         if(len(messages["good"]) != 0):
-            #out.append("<b>Here are some suggestions:</b>")
             for g in messages["good"]:
                 out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
-        else:
-            out.append("<b>I got nothin perfect.</b><br>")
-        
+
         if(len(close) != 0):
-            out.append("<br><b>These are close (Missing One Letter):</b>")
+            if(len(messages["good"]) == 0):
+                out.append("<br><b>I have no perfect suggestions, but these are close:</b>")
+            else:
+                out.append("<br><b>These are close (Missing One Letter):</b>")
             for b in close:
                 out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
-        #elif(len(messages["good"]) != 0):
-            #out.append("<b>I got nothin close.</b>")
 
         if(len(messages["good"]) == 0 and len(close) == 0):
-            out = ["<b>I got no suggestions...  sorry :(</b>"]
+            out = ["<b>I have no suggestions...  sorry :(</b>"]
 
         return ''.join(out)
 

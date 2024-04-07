@@ -76,7 +76,7 @@
 <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    Hello World {{ current_user.username }}
+    Hello {{ current_user.username }}
     <br>
     <img style="max-width: 100%" src="{{form_data['ImageSrc']}}" />
     <br>
@@ -86,7 +86,7 @@
    <button id="saveDraft" onclick="saveDraft()">Save Draft</button>
    
     <br>
-    Unused Letters: <div id="unusedLetters" class = "unusedLetters"></div>
+    Unused Letters: <button onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class = "unusedLetters"></div>
     <br>
     <div id="wordSuggestions" class = "suggestions"></div>
     <br>
@@ -303,8 +303,8 @@
             url : '/aisuggestions'
             })
             .done(function(data){
-                document.getElementById("aiSuggestions").innerHTML = data;
                 stopAnimation();
+                document.getElementById("aiSuggestions").innerHTML = data;
             });
         }
 
@@ -372,6 +372,21 @@
             addDraftItem();
         }
  
+        function clickScrambleUnusedLetters() {
+            var letters = document.getElementById('unusedLetters').innerHTML;
+
+            var a = letters.split(""),
+            n = a.length;
+
+            for(var i = n - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = a[i];
+                a[i] = a[j];
+                a[j] = tmp;
+            }
+            document.getElementById('unusedLetters').innerHTML = a.join("");
+        }
+        
         let index = 0;
         let animationStopped = false;
         const phrases = [
@@ -390,11 +405,11 @@
             setTimeout(() => {
             div.style.opacity = '1';
             div.style.transition = 'opacity 1s ease-in-out';
-            setTimeout(() => {
-                div.style.opacity = '0';
-                div.style.transition = 'opacity 1s ease-in-out';
-                index = (index + 1) % phrases.length;
-                setTimeout(showNextPhrase, 1000); // Adjust timing here (1000 = 1 second)
+                setTimeout(() => {
+                    div.style.opacity = '0';
+                    div.style.transition = 'opacity 1s ease-in-out';
+                    index = (index + 1) % phrases.length;
+                    setTimeout(showNextPhrase, 1000); // Adjust timing here (1000 = 1 second)
             }, 1000); // Adjust timing here (1000 = 1 second)
             }, 100); // Adjust timing here
         }
