@@ -75,6 +75,7 @@
 </head>
 <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="/static/JavaScript/cookies.js"></script>
 
     Hello {{ current_user.username }}
     <br>
@@ -83,7 +84,7 @@
     <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
     
    <div id="tryItBox" class = "tryItBox" contenteditable="true"></div><button id="clearTryItBox" onclick="clearTryItBox()">X</button>
-   <button id="saveDraft" onclick="saveDraft()">Save Draft</button>
+   <button id="saveDraft" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save Draft</button>
    
     <br>
     Unused Letters: <button onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class = "unusedLetters"></div>
@@ -113,7 +114,21 @@
             document.getElementById("saveResponse").innerHTML = "";
             updateOriginalMessage("{{ form_data['OriginalMessage']}}");
             updateButtons();
+            LoadDraftsFromCookie();
         }; 
+
+        function LoadDraftsFromCookie()
+        {
+            drafts = getCookie("{{ form_data['OriginalMessage']}}").split("#");
+            if(drafts.length == 1 && drafts[0] == '')
+            {
+                //none
+                return;
+            }
+            drafts.forEach(draft => {
+                addDraftItem(draft);
+            });
+        }
 
         function updateOriginalMessage(message)
         {
@@ -218,8 +233,11 @@
             if (fixCarrot)
             {
                 selection = window.getSelection();
-                range = selection.getRangeAt(0);
-                caretOffset = range.startOffset;
+                if (selection.rangeCount != 0)
+                {
+                    range = selection.getRangeAt(0);
+                    caretOffset = range.startOffset;
+                }
             }
 
             e.innerHTML = formatText(text, originalMessage); 
@@ -308,19 +326,21 @@
             });
         }
 
-        function addDraftItem() {
+        function addDraftItem(draft) {
             var label = document.createElement('label');
-            label.innerHTML = document.getElementById('tryItBox').textContent;  
-            
+            label.innerHTML = draft;  
+            label.id = "label"
+
             var submitButton = document.createElement('button');
             submitButton.innerHTML = 'submit';
-            submitButton.value = document.getElementById('tryItBox').textContent;
+            submitButton.value = draft;
             
             var removeButton = document.createElement('button');
             removeButton.innerHTML = 'x';
             
             // Create a new div to hold the label, radio button, and remove button
             var div = document.createElement('div');
+            div.className = "draft"
             div.appendChild(label);
             div.append("  ")
             div.appendChild(submitButton);
@@ -329,10 +349,7 @@
             
 
             var drafts = document.getElementById('drafts');
-            // if(drafts.children.length == 0)
-            // {
-            //     drafts.append("Drafts")
-            // }
+
             drafts.appendChild(div);
             
             label.addEventListener('click', function() {
@@ -340,25 +357,30 @@
             });
 
             removeButton.addEventListener('click', function() {
-                div.remove(); // Remove the div (containing label, radio button, and remove button)
-                // var drafts = document.getElementById('drafts')
-                // if (drafts.children.length == 0)
-                // {
-                //     drafts.innerHTML = "";
-                // }
+                div.remove(); 
+                SaveDraftsCookie();
             });
 
             submitButton.addEventListener('click', function(){
+                removeDraft(div.label.innerHTML);
                 saveDraftAsAnswer(this);
                 div.remove();
-                // var drafts = document.getElementById('drafts')
-                // if (drafts.children.length == 0)
-                // {
-                //     drafts.innerHTML = "";
-                // }
+                SaveDraftsCookie();
             });
 
             clearTryItBox();
+
+            SaveDraftsCookie();
+        }
+
+        function SaveDraftsCookie()
+        {
+            var drafts = "";
+            Array.from(document.getElementsByClassName("draft")).forEach(draft => {
+                drafts = drafts + draft.firstChild.innerText + "#";
+             });
+
+             setCookie("{{ form_data['OriginalMessage']}}", drafts.slice(0, -1));
         }
 
         function clearTryItBox() {
@@ -366,12 +388,9 @@
             updateTryItBox(true);
             document.getElementById('tryItBox').focus();
             updateButtons();
+            updateScrabbleSuggestions();
         }
 
-        function saveDraft() {
-            addDraftItem();
-        }
- 
         function clickScrambleUnusedLetters() {
             var letters = document.getElementById('unusedLetters').innerHTML;
 
