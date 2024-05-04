@@ -115,11 +115,12 @@
             updateOriginalMessage("{{ form_data['OriginalMessage']}}");
             updateButtons();
             LoadDraftsFromCookie();
+            LoadSuggestionsFromCookie();
         }; 
 
         function LoadDraftsFromCookie()
         {
-            drafts = getCookie("{{ form_data['OriginalMessage']}}").split("#");
+            drafts = getCookie("{{ form_data['OriginalMessage']}}+drafts").split("#");
             if(drafts.length == 1 && drafts[0] == '')
             {
                 //none
@@ -128,6 +129,13 @@
             drafts.forEach(draft => {
                 addDraftItem(draft);
             });
+        }
+
+        function LoadSuggestionsFromCookie()
+        {
+            suggestions = getCookie("{{ form_data['OriginalMessage']}}+suggestions");
+
+            document.getElementById("aiSuggestions").innerHTML = suggestions;
         }
 
         function updateOriginalMessage(message)
@@ -323,6 +331,7 @@
             .done(function(data){
                 stopAnimation();
                 document.getElementById("aiSuggestions").innerHTML = data;
+                SaveAiSuggestionsCookie(data);
             });
         }
 
@@ -380,7 +389,14 @@
                 drafts = drafts + draft.firstChild.innerText + "#";
              });
 
-             setCookie("{{ form_data['OriginalMessage']}}", drafts.slice(0, -1));
+             setCookie("{{ form_data['OriginalMessage']}}+drafts", drafts.slice(0, -1));
+        }
+
+        function SaveAiSuggestionsCookie()
+        {
+            var suggestions =  document.getElementById("aiSuggestions").innerHTML;
+
+             setCookie("{{ form_data['OriginalMessage']}}+suggestions", suggestions);
         }
 
         function clearTryItBox() {
