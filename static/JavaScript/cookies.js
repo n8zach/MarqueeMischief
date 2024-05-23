@@ -39,7 +39,7 @@ function LoadSuggestionsFromCookie()
 {
     suggestions = getCookie("{{ form_data['OriginalMessage']}}+suggestions");
 
-    if (suggestons == undefined)
+    if (suggestions == undefined)
     {
         suggestions = ''
     }
