@@ -21,3 +21,44 @@ function getCookie(name) {
       }
   }
 }
+
+function LoadDraftsFromCookie()
+{
+    drafts = getCookie("{{ form_data['OriginalMessage']}}+drafts").split("#");
+    if(drafts.length == 1 && drafts[0] == '')
+    {
+        //none
+        return;
+    }
+    drafts.forEach(draft => {
+        addDraftItem(draft);
+    });
+}
+
+function LoadSuggestionsFromCookie()
+{
+    suggestions = getCookie("{{ form_data['OriginalMessage']}}+suggestions");
+
+    if (suggestons == undefined)
+    {
+        suggestions = ''
+    }
+    document.getElementById("aiSuggestions").innerHTML = suggestions;
+}
+
+function SaveDraftsCookie()
+        {
+            var drafts = "";
+            Array.from(document.getElementsByClassName("draft")).forEach(draft => {
+                drafts = drafts + draft.firstChild.innerText + "#";
+             });
+
+             setCookie("{{ form_data['OriginalMessage']}}+drafts", drafts.slice(0, -1));
+        }
+
+function SaveAiSuggestionsCookie()
+{
+    var suggestions =  document.getElementById("aiSuggestions").innerHTML;
+
+        setCookie("{{ form_data['OriginalMessage']}}+suggestions", suggestions);
+}
