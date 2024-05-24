@@ -54,7 +54,7 @@ def message_to_messages(message, use_proxy = False):
     
     return validated
 
-def message_to_messages_using_agent(message, use_proxy = False):
+def message_to_messages_using_assistant_v1(message, use_proxy = False):
     letters = message_to_letters(message)
 
     proxy = "proxy.server:3128"
@@ -79,7 +79,7 @@ def message_to_messages_using_agent(message, use_proxy = False):
 
     run = wait_on_run(run, thread)
 
-    response = client.beta.threads.messages.list(thread_id=thread.id)
+    response = client.beta.threads.messages.list(thread_id=thread.id)   
 
     messages = response.data[0].content[0].text.value.split('\n')
 

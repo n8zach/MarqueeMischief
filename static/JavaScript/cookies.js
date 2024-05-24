@@ -22,22 +22,26 @@ function getCookie(name) {
   }
 }
 
-function LoadDraftsFromCookie()
+function LoadDraftsFromCookie(name)
 {
-    drafts = getCookie("{{ form_data['OriginalMessage']}}+drafts").split("#");
-    if(drafts.length == 1 && drafts[0] == '')
+    drafts = getCookie(name)
+    if (drafts != undefined)
     {
-        //none
-        return;
+        drafts = drafts.split("#");
+        if(drafts.length == 1 && drafts[0] == '')
+        {
+            //none
+            return;
+        }
+        drafts.forEach(draft => {
+            addDraftItem(draft);
+        });
     }
-    drafts.forEach(draft => {
-        addDraftItem(draft);
-    });
 }
 
-function LoadSuggestionsFromCookie()
+function LoadSuggestionsFromCookie(name)
 {
-    suggestions = getCookie("{{ form_data['OriginalMessage']}}+suggestions");
+    suggestions = getCookie(name);
 
     if (suggestions == undefined)
     {
@@ -46,19 +50,19 @@ function LoadSuggestionsFromCookie()
     document.getElementById("aiSuggestions").innerHTML = suggestions;
 }
 
-function SaveDraftsCookie()
+function SaveDraftsCookie(name)
         {
             var drafts = "";
             Array.from(document.getElementsByClassName("draft")).forEach(draft => {
                 drafts = drafts + draft.firstChild.innerText + "#";
              });
 
-             setCookie("{{ form_data['OriginalMessage']}}+drafts", drafts.slice(0, -1));
+             setCookie(name, drafts.slice(0, -1));
         }
 
-function SaveAiSuggestionsCookie()
+function SaveAiSuggestionsCookie(name)
 {
     var suggestions =  document.getElementById("aiSuggestions").innerHTML;
 
-        setCookie("{{ form_data['OriginalMessage']}}+suggestions", suggestions);
+        setCookie(name, suggestions);
 }

@@ -115,8 +115,8 @@
             document.getElementById("saveResponse").innerHTML = "";
             updateOriginalMessage("{{ form_data['OriginalMessage']}}");
             updateButtons();
-            LoadDraftsFromCookie();
-            LoadSuggestionsFromCookie();
+            LoadDraftsFromCookie("{{ form_data['OriginalMessage']}}+drafts");
+            LoadSuggestionsFromCookie("{{ form_data['OriginalMessage']}}+suggestions");
         }; 
 
         function updateOriginalMessage(message)
@@ -312,7 +312,7 @@
             .done(function(data){
                 stopAnimation();
                 document.getElementById("aiSuggestions").innerHTML = data;
-                SaveAiSuggestionsCookie(data);
+                SaveAiSuggestionsCookie("{{ form_data['OriginalMessage']}}+suggestions");
             });
         }
 
@@ -348,18 +348,18 @@
 
             removeButton.addEventListener('click', function() {
                 div.remove(); 
-                SaveDraftsCookie();
+                SaveDraftsCookie("{{ form_data['OriginalMessage']}}+drafts");
             });
 
             submitButton.addEventListener('click', function(){
                 saveDraftAsAnswer(this);
                 div.remove();
-                SaveDraftsCookie();
+                SaveDraftsCookie("{{ form_data['OriginalMessage']}}+drafts");
             });
 
             clearTryItBox();
 
-            SaveDraftsCookie();
+            SaveDraftsCookie("{{ form_data['OriginalMessage']}}+drafts");
         }
 
         function clearTryItBox() {
@@ -384,7 +384,7 @@
             }
             document.getElementById('unusedLetters').innerHTML = a.join("");
         }
-        
+
     </script>
 </body>
 
