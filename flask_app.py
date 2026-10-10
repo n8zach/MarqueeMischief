@@ -1,5 +1,5 @@
 import os
-from marquee_mischief_openAI_v2 import message_to_messages_using_assistant
+from marquee_mischief_openAI import message_to_messages
 from marquee_helper import remove_punctuation, format_extra_letters
 from json import decoder
 from werkzeug.datastructures import MultiDict 
@@ -9,7 +9,6 @@ from scrabble import suggest_words
 from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answers, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
-#from redkid_helper import message_to_image_url
 from original_message_display import message_to_marquee_html
 
 USE_PROXY = True
@@ -102,7 +101,7 @@ def scrabbler():
     else:
         return redirect(url_for('game'))
 
-@app.route('/aisuggestions', methods = ['POST', 'GET'])
+@app.route('/aisuggestions', methods=['POST', 'GET'])
 @login_required
 def aisuggestions():
     if request.method == "POST":
@@ -110,33 +109,33 @@ def aisuggestions():
         message = form_data.getlist('OriginalMessage')[0]
 
         try:
-            messages = message_to_messages_using_assistant(remove_punctuation(message), USE_PROXY)
-        except decoder.JSONDecodeError as error:
-            messages = error.doc
+            messages = message_to_messages(remove_punctuation(message), USE_PROXY)
         except Exception as error:
-            messages = f"An exception occurred: {error}"
+            messages = {"good": [], "bad": [], "assistant": f"An exception occurred: {error}"}
 
-        data = {}
-        data["OriginalMessage"] = form_data.getlist('OriginalMessage')[0]
-        close = [x for x in messages["bad"] if len(x["extra"]) == 1]
         out = []
         
-        if(len(messages["good"]) != 0):
+        # 1. Process verified perfect matches
+        if len(messages["good"]) > 0:
+            out.append("<b>Suggestions:</b><br>")
             for g in messages["good"]:
                 out.append(f'<div onclick="changeTryItBox(this)">{g["text"]}</div>')
 
-        if(len(close) != 0):
-            if(len(messages["good"]) == 0):
-                out.append("<br><b>I have no perfect suggestions, but these are close:</b>")
+        # 2. Process close matches (missing only 1 letter)
+        close = [x for x in messages["bad"] if len(x.get("extra", [])) == 1]
+        if len(close) > 0:
+            if len(messages["good"]) == 0:
+                out.append("<b>I have no perfect suggestions, but these are close:</b><br>")
             else:
-                out.append("<br><b>These are close (Missing One Letter):</b>")
+                out.append("<br><b>These are close (Missing One Letter):</b><br>")
             for b in close:
-                out.append(f'<div onclick="changeTryItBox(this)">{format_extra_letters(b["text"], message.upper())}</div>')
+                out.append(f'<div onclick="changeTryItBox(this)">{b["text"]}</div>')
 
-        if(len(messages["good"]) == 0 and len(close) == 0):
-            out = ["<b>I have no suggestions...  sorry :(</b>"]
+        # 3. Handle cases with zero matches
+        if len(messages["good"]) == 0 and len(close) == 0:
+            out = ["<b>I have no suggestions... sorry :(</b>"]
 
-        return ''.join(out) + '<br><br>' + messages["assistant"]
+        return ''.join(out) + '<br><br>' + messages.get("assistant", "")
 
 @app.route('/vote/', methods = ['POST', 'GET'])
 @login_required
