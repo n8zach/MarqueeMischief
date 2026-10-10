@@ -80,7 +80,11 @@
 
     Hello {{ current_user.username }}
     <br>
-    <img style="max-width: 100%" src="{{form_data['ImageSrc']}}" />
+    <div style="width: 475px; height: 135px; overflow: hidden; position: relative; margin: 0 auto">
+        <img src="{{form_data['ImageSrc']}}" 
+            style="position: absolute; left: -85px; top: -155px; max-width: none;" />
+            
+    </div>
     <br>
     <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
     

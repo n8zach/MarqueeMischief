@@ -41,7 +41,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 with app.app_context():
     db.init_app(app) # to add the app inside SQLAlchemy()
     #migrate = Migrate(app, db)
-    #db.create_all()
+    db.create_all()
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -76,7 +76,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
-@login_required
+#@login_required
 def register():
     if request.method == 'POST':
         result, message = add_user(request.form['username'], request.form['password'])
