@@ -312,6 +312,13 @@
 
         function addDraftItem(draft) {
             var label = document.createElement('label');
+            // trim any whitespace from front and back of the draft text
+            draft = draft.trim();
+            // replace any \xA0 with a space
+            draft = draft.replace(/\xA0/g, ' ');
+            // replace consecutive spaces with a single space
+            draft = draft.replace(/\s+/g, ' ');
+            
             label.innerHTML = draft;  
             label.id = "label"
 

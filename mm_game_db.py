@@ -66,10 +66,10 @@ def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
 
     # must not have extra letters not in the original message
     for letter in answer_text:
-        if (letter == " "):
+        if (letter == " " or letter == '\xA0'):
             continue
         if (letter not in puzzle_text):
-            return "Not a vaid message...  it has letters not in the origianl message."
+            return "Not a valid message...  it has letters not in the origianl message."
         
     
     sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
