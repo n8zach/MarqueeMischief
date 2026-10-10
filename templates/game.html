@@ -12,21 +12,14 @@
             font-family: 'Helvetica ', sans-serif;
         }
 
-        #customForm {
+        #marqee-message {
             text-align: center;
             margin: 20px;
         }
 
-        #originalMessage {
-            width: 60%;
-            height: 50px;
-            text-transform: uppercase;
+        #customForm {
             text-align: center;
-            font-size: .75em;
-            align-items: center;
-            justify-content: center;
-            vertical-align: middle;
-            overflow-wrap: break-word;
+            margin: 20px;
         }
 
         .tryItBox {
@@ -80,11 +73,8 @@
 
     Hello {{ current_user.username }}
     <br>
-    <div style="width: 475px; height: 135px; overflow: hidden; position: relative; margin: 0 auto">
-        <img src="{{form_data['ImageSrc']}}" 
-            style="position: absolute; left: -85px; top: -155px; max-width: none;" />
-            
-    </div>
+    <br>
+    {{ form_data['OriginalMessageDisplay'] | safe }}
     <br>
     <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
     
