@@ -1,7 +1,20 @@
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import DateTime, text, insert
+
+from sqlalchemy import func, inspect, text
 from db import db
 from flask_login import UserMixin
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
+def utc_datetime(value):
+    """Treat timestamps returned by MySQL as UTC when they are timezone-naive."""
+    if value is not None and value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
 
 class User(UserMixin):
     def __init__(self, id, username, password):
@@ -9,194 +22,255 @@ class User(UserMixin):
         self.username = username
         self.password = password
 
+
 class Users(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
     password = db.Column(db.String(32))
 
+
 class Puzzles(db.Model):
     __tablename__ = "puzzles"
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(256))
 
-class Answers(db.Model):    
+
+class Games(db.Model):
+    __tablename__ = "games"
+    id = db.Column(db.Integer, primary_key=True)
+    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id"), nullable=False)
+    durationSeconds = db.Column(db.Integer, nullable=False)
+    createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    startTime = db.Column(db.DateTime(timezone=True), nullable=True)
+
+
+class Answers(db.Model):
     __tablename__ = "answers"
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey('users.id'))
-    puzzleId = db.Column(db.Integer, db.ForeignKey('puzzles.id'))
+    userId = db.Column(db.Integer, db.ForeignKey("users.id"))
+    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id"))
+    gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
     text = db.Column(db.String(256))
+
 
 class Votes(db.Model):
     __tablename__ = "votes"
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey('users.id'))
-    answerId = db.Column(db.Integer, db.ForeignKey('answers.id'))
+    userId = db.Column(db.Integer, db.ForeignKey("users.id"))
+    answerId = db.Column(db.Integer, db.ForeignKey("answers.id"))
+    gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
 
-def vote_for_answer(userId, answerId):
-    sql = f"INSERT INTO votes (userId, answerId) VALUES ({userId}, {answerId})"
-    db.session.execute(text(sql))
+
+def ensure_game_schema():
+    """Add game references to databases created before the games feature."""
+    inspector = inspect(db.engine)
+    existing_tables = set(inspector.get_table_names())
+    statements = []
+    if "answers" in existing_tables:
+        columns = {column["name"] for column in inspector.get_columns("answers")}
+        if "gameId" not in columns:
+            statements.append("ALTER TABLE answers ADD COLUMN gameId INTEGER NULL")
+    if "votes" in existing_tables:
+        columns = {column["name"] for column in inspector.get_columns("votes")}
+        if "gameId" not in columns:
+            statements.append("ALTER TABLE votes ADD COLUMN gameId INTEGER NULL")
+    for statement in statements:
+        db.session.execute(text(statement))
+    if statements:
+        db.session.commit()
+
+
+def get_or_create_puzzle(puzzle_text):
+    puzzle_text = puzzle_text.strip().upper()
+    puzzle = Puzzles.query.filter_by(text=puzzle_text).first()
+    if puzzle is None:
+        puzzle = Puzzles(text=puzzle_text)
+        db.session.add(puzzle)
+        db.session.commit()
+    return puzzle
+
+
+def create_game(puzzle_id, duration_seconds):
+    game = Games(puzzleId=int(puzzle_id), durationSeconds=int(duration_seconds))
+    db.session.add(game)
     db.session.commit()
-    return
+    return game
 
-def vote_for_answers(userId, answerIds):
-    inserts = []
-    for answerId in answerIds:
-        inserts.append(f"({userId}, {answerId})")
-    inserts = ",".join(inserts)
-    sql = f"INSERT INTO votes (userId, answerId) VALUES {inserts}"
-    db.session.execute(text(sql))
+
+def get_game(game_id):
+    if not game_id:
+        return None
+    try:
+        return db.session.get(Games, int(game_id))
+    except (TypeError, ValueError):
+        return None
+
+
+def get_game_with_puzzle(game_id):
+    game = get_game(game_id)
+    if game is None:
+        return None
+    return (
+        db.session.query(Games, Puzzles.text)
+        .join(Puzzles, Puzzles.id == Games.puzzleId)
+        .filter(Games.id == game.id)
+        .first()
+    )
+
+
+def get_all_games():
+    return (
+        db.session.query(Games.id, Games.startTime, Puzzles.text, Games.durationSeconds)
+        .join(Puzzles, Puzzles.id == Games.puzzleId)
+        .order_by(Games.id.desc())
+        .all()
+    )
+
+
+def start_game(game_id):
+    game = get_game(game_id)
+    if game is None:
+        return None, "Game not found."
+    if game.startTime is not None:
+        return game, "This game has already started."
+    game.startTime = utc_now()
     db.session.commit()
-    return 
+    return game, None
 
-def get_puzzle_id_from_text(puzzle_text):
-    sql = f"select puzzles.id from puzzles where puzzles.text = \"{puzzle_text}\";"
-    return db.session.execute(text(sql)).first()
 
-def save_answer_by_puzzle_text(answer_text, puzzle_text, userId):
-    messageOut = ""
+def game_end_time(game):
+    if game is None or game.startTime is None:
+        return None
+    return utc_datetime(game.startTime) + timedelta(seconds=game.durationSeconds)
 
-    # no blank messages
-    if(len(answer_text) == 0):
-        return "New message is blank...  nothing saved."
-    
-    # must be different than original message
-    if (answer_text == puzzle_text):
+
+def game_has_ended(game, now=None):
+    end_time = game_end_time(game)
+    return end_time is not None and (now or utc_now()) >= end_time
+
+
+def vote_for_answers(user_id, answer_ids, game_id):
+    game = get_game(game_id)
+    if game is None:
+        return "Game not found."
+    if not game_has_ended(game):
+        return "Voting opens when this game's timer ends."
+
+    try:
+        answer_ids = [int(answer_id) for answer_id in answer_ids]
+    except (TypeError, ValueError):
+        return "One or more selected answers are invalid."
+    answers = Answers.query.filter(Answers.id.in_(answer_ids), Answers.gameId == game.id).all()
+    answers_by_id = {answer.id: answer for answer in answers}
+    if len(answers_by_id) != len(set(answer_ids)):
+        return "One or more selected answers do not belong to this game."
+    if any(answer.userId == user_id for answer in answers):
+        return "You cannot vote for your own answer."
+
+    already_voted = {vote.answerId for vote in Votes.query.filter_by(userId=user_id, gameId=game.id).all()}
+    for answer_id in set(answer_ids) - already_voted:
+        db.session.add(Votes(userId=user_id, answerId=answer_id, gameId=game.id))
+    db.session.commit()
+    return None
+
+
+def get_game_answer_votes(game_id):
+    return (
+        db.session.query(
+            Answers.gameId,
+            Answers.id,
+            Answers.userId,
+            Answers.text,
+            func.count(Votes.id).label("count"),
+        )
+        .outerjoin(Votes, Votes.answerId == Answers.id)
+        .filter(Answers.gameId == int(game_id))
+        .group_by(Answers.id, Answers.gameId, Answers.userId, Answers.text)
+        .order_by(func.count(Votes.id).desc(), Answers.id)
+        .all()
+    )
+
+
+def save_answer_for_game(answer_text, game_id, user_id):
+    game_and_puzzle = get_game_with_puzzle(game_id)
+    if game_and_puzzle is None:
+        return "Game not found."
+    game, puzzle_text = game_and_puzzle
+    if game.startTime is None:
+        return "Waiting for the game master to start the game."
+    if game_has_ended(game):
+        return "The game has ended; answers can no longer be submitted."
+
+    answer_text = " ".join(answer_text.replace("\xa0", " ").split()).upper()
+    if not answer_text:
+        return "New message is blank... nothing saved."
+    if answer_text == puzzle_text:
         return "That's the same as the original message! Not adding it."
-
-    # must not have extra letters not in the original message
     for letter in answer_text:
-        if (letter == " " or letter == '\xA0'):
-            continue
-        if (letter not in puzzle_text):
-            return "Not a valid message...  it has letters not in the origianl message."
-        
-    
-    sql = f"select * from puzzles where puzzles.text = \"{puzzle_text}\";"
-    puzzles = db.session.execute(text(sql)).all()
+        if letter != " " and letter not in puzzle_text:
+            return "Not a valid message... it has letters not in the original message."
+    if Answers.query.filter_by(gameId=game.id, text=answer_text).first() is not None:
+        return "Answer already exists in this game. Not adding it."
 
-    if (len(puzzles) > 1):
-        #something is wrong
-        return "Something is wrong! There was more than one matching original message!"
+    db.session.add(Answers(userId=user_id, puzzleId=game.puzzleId, gameId=game.id, text=answer_text))
+    db.session.commit()
+    return "New message added!"
 
-    if (len(puzzles) == 0):
-        #save this new puzzle
-        sql = f"INSERT INTO puzzles (text) VALUES (\"{puzzle_text}\")"
-        puzzleId = db.session.execute(text(sql)).lastrowid
-        db.session.commit() 
-        messageOut = "Added new original message.\n" 
-    else:
-        puzzleId = puzzles[0].id
-
-
-    # no duplicate answers
-    sql = f"select * from answers where answers.text = \"{answer_text}\" and answers.puzzleId = \"{puzzleId}\";"
-    answers = db.session.execute(text(sql)).all()
-    if(len(answers) != 0):
-        return "Answer already exists.  Not adding it."
-    
-    #save this answer with this puzzle id
-    sql = f"INSERT INTO answers (userId, puzzleId, text) VALUES ({userId}, {puzzleId}, \"{answer_text}\")"
-    db.session.execute(text(sql))
-    db.session.commit()        
-    return messageOut + "New message added!"
-    
-def is_password_correct(login):
-    sql = f"SELECT password from users where name = '{login['name']}'"
-    password = db.session.execute(text(sql)).all()
-    if password.count == 0:
-        return False
-    
-    if (login["password"] == password[0][0]):
-        return True
-    return False
-
-def get_puzzle_text(puzzleId):
-    sql = f'SELECT puzzles.text from puzzles where puzzles.id = "{puzzleId}"'
-    return db.session.execute(text(sql)).first()[0]
-
-def get_answerId_answer_puzzle_puzzleId():
-    sql = "SELECT answers.id as id, answers.text as answer, puzzles.text as puzzle, puzzles.id as puzzleId FROM answers left join puzzles on puzzles.id = answers.puzzleId order by puzzles.id;"
-    return db.session.execute(text(sql)).all()
-
-def get_puzzleId_answerId_puzzle_answer(puzzleId):
-    sql = f"SELECT puzzles.id as puzzleId, answers.id as answerId, puzzles.text as puzzle, answers.text as answer FROM answers left join puzzles on puzzles.id = answers.puzzleId where puzzles.id = {puzzleId} order by puzzles.id;"
-    return db.session.execute(text(sql)).all()
-
-def get_puzzleId_answerId_answer_votes(puzzleId):
-    sql = f"select answers.puzzleId, answers.id, answers.text, count(answerId) as count from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id order by count desc;"
-    return db.session.execute(text(sql)).all()
-
-def get_puzzleId_answerId_userId_answer_votes(puzzleId):
-    sql = f"select answers.puzzleId, answers.id, answers.userId, answers.text, count(answerId) as count from answers left outer join votes on votes.answerId = answers.Id where answers.puzzleId = {puzzleId} group by answers.Id order by count desc;"
-    return db.session.execute(text(sql)).all()
-
-def get_puzzles_that_have_answers():
-    sql = "select distinct(puzzles.id), puzzles.text from puzzles join answers on puzzles.id = answers.puzzleId;"
-    return db.session.execute(text(sql)).all()
 
 def get_all_puzzles():
-    sql = "select puzzles.id, puzzles.text from puzzles order by puzzles.id;"
-    return db.session.execute(text(sql)).all()
+    return [(puzzle.id, puzzle.text) for puzzle in Puzzles.query.order_by(Puzzles.id).all()]
 
-def get_puzzle_user_answer_votes(puzzleId):
-    sql = f"SELECT puzzles.text as puzzle, users.name as user, answers.text as answer, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId left outer join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by answers.id order by puzzles.id, votes desc;"
-    return db.session.execute(text(sql)).all()
 
-def get_puzzle_user_votes(puzzleId):
-    sql = f"SELECT puzzles.text as puzzle, users.name as user, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by puzzleId, name order by puzzleId, user, votes desc;"
-    return db.session.execute(text(sql)).all()
+def get_game_user_votes(game_id):
+    return db.session.execute(text("""
+        SELECT puzzles.text AS puzzle, users.name AS user, COUNT(votes.id) AS votes
+        FROM answers
+        JOIN puzzles ON puzzles.id = answers.puzzleId
+        JOIN users ON users.id = answers.userId
+        LEFT JOIN votes ON votes.answerId = answers.id AND votes.gameId = answers.gameId
+        WHERE answers.gameId = :game_id
+        GROUP BY answers.gameId, users.name, puzzles.text
+        ORDER BY users.name, votes DESC
+    """), {"game_id": int(game_id)}).all()
 
-def get_user_from_id(userId):
-    sql = f'SELECT * FROM users WHERE id = {userId};'
-    user_data = db.session.execute(text(sql)).fetchone()
-    if user_data:
-        return User(*user_data)
-    return None
+
+def get_game_user_answer_votes(game_id):
+    return db.session.execute(text("""
+        SELECT puzzles.text AS puzzle, users.name AS user, answers.text AS answer, COUNT(votes.id) AS votes
+        FROM answers
+        JOIN puzzles ON puzzles.id = answers.puzzleId
+        JOIN users ON users.id = answers.userId
+        LEFT JOIN votes ON votes.answerId = answers.id AND votes.gameId = answers.gameId
+        WHERE answers.gameId = :game_id
+        GROUP BY answers.id, puzzles.text, users.name, answers.text
+        ORDER BY votes DESC, answers.id
+    """), {"game_id": int(game_id)}).all()
+
+
+def get_game_results_text(game_id):
+    text_out = "<table>"
+    for row in get_game_user_votes(game_id):
+        text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td></tr>"
+    text_out += "</table><br><table>"
+    for row in get_game_user_answer_votes(game_id):
+        text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>"
+    return text_out + "</table>"
+
+
+def get_user_from_id(user_id):
+    user = db.session.get(Users, int(user_id))
+    return User(user.id, user.name, user.password) if user else None
+
 
 def get_user_from_name_and_password(username, password):
-    sql = f'SELECT * FROM users WHERE name = "{username}" AND password = "{password}";'
-    user_data = db.session.execute(text(sql)).fetchone()
-    if user_data:
-        return User(*user_data)
-    return None
+    user = Users.query.filter_by(name=username, password=password).first()
+    return User(user.id, user.name, user.password) if user else None
+
 
 def add_user(username, password):
-    sql = f'select * from users where name = "{username}";'
-    users = db.session.execute(text(sql)).all()
-    if(len(users) != 0):
-        return False, "User already exists.  Not adding it."
-    sql = f'INSERT INTO users (name, password) VALUES ("{username}", "{password}");'
-    db.session.execute(text(sql))
+    if Users.query.filter_by(name=username).first() is not None:
+        return False, "User already exists. Not adding it."
+    db.session.add(Users(name=username, password=password))
     db.session.commit()
     return True, "success"
-
-def delete_puzzle(puzzleId):
-    sql = f'CALL delete_puzzle({puzzleId});'
-    db.session.execute(text(sql))
-    db.session.commit()
-
-def get_results_text(puzzleId):
-        data = get_puzzle_user_votes(puzzleId)
-        puzzle = ""     
-        text = '<table>'                        
-        for row in data:
-            if puzzle != row[0]: # new puzzle
-                text += f'<tr><th colspan="2" nowrap>{row[0]}</th></tr>'
-                puzzle = row[0]
-            text += f'<tr><td>{row[1]}</td><td>{row[2]}</td></tr>'
-            # end thetable
-        text += '</table><br>'
-        
-        data = get_puzzle_user_answer_votes(puzzleId)
-        puzzle = ""     
-        text += '<table>'                        
-        for row in data:
-            if puzzle != row[0] and puzzleId == "%": # new puzzle
-                text += f'<tr><th colspan="3">{row[0]}</th></tr>'
-                puzzle = row[0]
-            text += f'<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>'
-
-        # end thetable
-        text += '</table>'
-        return text

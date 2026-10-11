@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create game</title>
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 20px; text-align: center; }
+        form { display: inline-block; text-align: left; }
+        input, select, button { font-size: inherit; margin: 5px; }
+        .notice { color: #8b0000; }
+    </style>
+</head>
+<body>
+    <h1>Create a game</h1>
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}<p class="notice">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    {% if not game %}
+        <form method="post">
+            <label for="puzzleId">Use an existing original message:</label><br>
+            <select id="puzzleId" name="puzzleId">
+                <option value="">Choose an original message</option>
+                {% for puzzle in puzzles %}<option value="{{ puzzle[0] }}">{{ puzzle[1] }}</option>{% endfor %}
+            </select>
+            <br>
+            <label for="newPuzzle">Or enter a new original message:</label><br>
+            <input id="newPuzzle" name="newPuzzle" maxlength="256">
+            <br>
+            <label for="hours">Duration:</label>
+            <input id="hours" name="hours" type="number" min="0" value="0" required> hours
+            <input id="minutes" name="minutes" type="number" min="0" max="59" value="5" required> minutes
+            <br>
+            <button type="submit">Create game</button>
+        </form>
+    {% else %}
+        <h2>Game {{ game[0].id }} is ready</h2>
+        <p>Original message: {{ game[1] }}</p>
+        <p>Share this QR code or link with players:</p>
+        <img alt="QR code for game {{ game[0].id }}" width="220" height="220" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data={{ game_url|urlencode }}">
+        <p><a href="{{ game_url }}">{{ game_url }}</a></p>
+        {% if game[0].startTime is none %}
+            <form method="post" action="{{ url_for('start_created_game', game_id=game[0].id) }}"><button type="submit">Start game</button></form>
+        {% else %}
+            <p>This game started at {{ game[0].startTime }}.</p>
+            <p><a href="{{ game_url }}">Open the game</a></p>
+        {% endif %}
+        <p><a href="{{ url_for('create_game') }}">Create another game</a></p>
+    {% endif %}
+</body>
+</html>

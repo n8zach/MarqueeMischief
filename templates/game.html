@@ -3,105 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
-        body {
-            appearance: none;
-            font-size: 20px;
-            text-align: center;
-            font-family: 'Helvetica ', sans-serif;
-        }
-
-        #marqee-message {
-            text-align: center;
-            margin: 20px;
-        }
-
-        #customForm {
-            text-align: center;
-            margin: 20px;
-        }
-
-        .tryItBox {
-            margin: auto;
-            font-family: 'Times';
-            text-align: center;
-            align-items: center;
-            border:1px solid black;
-            width: 75%;
-        }
-
-        .unusedLetters {
-            text-align: center;
-            align-items: center;
-        }
-
-        .suggestsions {
-            text-align: center;
-            align-items: center;
-        }
-
-        .helpLabel {
-            font-size: .7em;
-            text-align: center;
-            align-items: center;
-            font-family: 'Helvetica ', sans-serif;
-        }
-
-        .aiWaiting {
-            display: none;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }      
-
-        #scrollBox {
-            height: 200px; /* Set the desired height for the scroll box */
-            overflow: auto;
-            background-color: #9fc5df; /* a dark color */
-        }
-
-        .drafts {
-            font-size: 15px;
-        }
-
+        body { appearance: none; font-size: 20px; text-align: center; font-family: Helvetica, sans-serif; }
+        #marqee-message { text-align: center; margin: 20px; }
+        .tryItBox { margin: auto; font-family: Times, serif; text-align: center; border: 1px solid black; width: 75%; }
+        .unusedLetters, .suggestions, .helpLabel { text-align: center; }
+        .helpLabel { font-size: .7em; font-family: Helvetica, sans-serif; }
+        .aiWaiting { display: none; opacity: 0; transition: opacity 1s ease-in-out; }
+        #scrollBox { height: 200px; overflow: auto; background-color: #9fc5df; }
+        .drafts { font-size: 15px; }
+        #gameTimer { font-size: 1.25em; font-weight: bold; margin: 12px; }
     </style>
 </head>
-<body>
+<body data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="/static/JavaScript/cookies.js"></script>
     <script src="/static/JavaScript/textChangeNFade.js"></script>
 
     Hello {{ current_user.username }}
-    <br>
+    <div id="gameTimer" aria-live="polite"></div>
+    <div id="gameComplete" class="helpLabel" {% if not game_has_ended %}hidden{% endif %}>Time is up — you can now vote.</div>
     <br>
     {{ form_data['OriginalMessageDisplay'] | safe }}
     <br>
-    <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
-    
-    <div id="tryItBox" class = "tryItBox" contenteditable="true" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div><button id="clearTryItBox" onclick="clearTryItBox()">X</button>
-   <button id="saveDraft" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save Draft</button>
-   
+    <div class="helpLabel">Make your own message here from the letters in the Original Message.</div>
+    <div id="tryItBox" class="tryItBox" contenteditable="true" data-game-id="{{ game.id }}" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div><button id="clearTryItBox" onclick="clearTryItBox()">X</button>
+    <button id="saveDraft" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save Draft</button>
     <br>
-    Unused Letters: <button onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class = "unusedLetters"></div>
+    Unused Letters: <button id="scrambleUnusedLetters" onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class="unusedLetters"></div>
     <br>
-    <div id="wordSuggestions" class = "suggestions"></div>
+    <div id="wordSuggestions" class="suggestions"></div>
     <br>
     <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
     <div class="aiWaiting" id="aiWaiting"></div>
-    <div id="scrollBox">
-        <div id="aiSuggestions" class = "suggestions"></div>
-    </div>
+    <div id="scrollBox"><div id="aiSuggestions" class="suggestions"></div></div>
     <p></p>
-    <div class="body">Drafts</div>
+    <div>Drafts</div>
     <div class="drafts" id="drafts"></div>
-    <br>      
-    <div id="saveResponse" class = "helpLabel"></div>
     <br>
-    <div class = "helpLabel">Click VOTE when you are ready to see everyones else's entries and vote on your favorite.</div>
-    <a id="href_vote" href="{{ url_for('vote') }}">VOTE</a>
+    <div id="saveResponse" class="helpLabel"></div>
+    <br>
+    <div class="helpLabel" id="voteHelp" {% if game_has_ended %}hidden{% endif %}>Voting will open when the timer ends.</div>
+    <a id="href_vote" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>VOTE</a>
 
     <script src="/static/JavaScript/marqueemischief.js"></script>
 </body>
-
-
 </html>

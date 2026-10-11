@@ -4,8 +4,14 @@ function originalMessage() {
     return document.getElementById("tryItBox").dataset.originalMessage;
 }
 
+function gameId() {
+    return document.getElementById("tryItBox").dataset.gameId;
+}
+
 function cookieName(name) {
-    return originalMessage() + "+" + name;
+    // TryIt retains its original cookie names, so existing saved drafts and
+    // suggestions still load. A game uses its id to isolate reused puzzles.
+    return gameId() ? "game-" + gameId() + "+" + name : originalMessage() + "+" + name;
 }
 
 function myInit() {
@@ -23,6 +29,7 @@ function myInit() {
     updateButtons();
     LoadDraftsFromCookie(cookieName("drafts"));
     LoadSuggestionsFromCookie(cookieName("suggestions"));
+    initializeGameTimer();
 }
 
 function updateOriginalMessage() {
@@ -39,7 +46,11 @@ function updateVoteUrl() {
     }
 
     const voteUrl = new URL(voteLink.href, window.location.origin);
-    voteUrl.searchParams.set("selection", originalMessage());
+    if (gameId()) {
+        voteUrl.searchParams.set("gameId", gameId());
+    } else {
+        voteUrl.searchParams.set("selection", originalMessage());
+    }
     voteLink.href = voteUrl.toString();
 }
 
@@ -95,6 +106,9 @@ function newMessageIsValid() {
 }
 
 function updateButtons() {
+    if (document.body.dataset.gameEnded === "true") {
+        return;
+    }
     document.getElementById("saveDraft").disabled = !newMessageIsValid();
     document.getElementById("clearTryItBox").disabled =
         document.getElementById("tryItBox").textContent === "";
@@ -133,7 +147,8 @@ function saveAnswer(text) {
     $.ajax({
         data: {
             answer: text,
-            puzzle: originalMessage()
+            puzzle: originalMessage(),
+            gameId: gameId()
         },
         type: "POST",
         url: "/save"
@@ -161,12 +176,16 @@ function updateScrabbleSuggestions() {
 }
 
 function updateAISuggestions() {
+    if (document.body.dataset.gameEnded === "true") {
+        return;
+    }
     document.getElementById("aiSuggestions").innerHTML = "";
     startAnimation();
 
     $.ajax({
         data: {
-            OriginalMessage: originalMessage()
+            OriginalMessage: originalMessage(),
+            gameId: gameId()
         },
         type: "POST",
         url: "/aisuggestions"
@@ -201,6 +220,7 @@ function addDraftItem(draft) {
 
     const removeButton = document.createElement("button");
     removeButton.innerHTML = "x";
+    removeButton.className = "draftRemove";
     div.appendChild(removeButton);
     document.getElementById("drafts").appendChild(div);
 
@@ -214,6 +234,7 @@ function addDraftItem(draft) {
     });
 
     if (submitButton) {
+        submitButton.className = "draftSubmit";
         submitButton.addEventListener("click", function () {
             saveDraftAsAnswer(this);
             div.remove();
@@ -223,6 +244,50 @@ function addDraftItem(draft) {
 
     clearTryItBox();
     SaveDraftsCookie(cookieName("drafts"));
+}
+
+function initializeGameTimer() {
+    const timer = document.getElementById("gameTimer");
+    const endTime = document.body.dataset.gameEndTime;
+    if (!timer || !endTime) {
+        return;
+    }
+
+    const updateTimer = function () {
+        const remainingMilliseconds = new Date(endTime).getTime() - Date.now();
+        if (remainingMilliseconds <= 0) {
+            timer.textContent = "Time remaining: 0:00";
+            setGameEnded();
+            return true;
+        }
+        const totalSeconds = Math.ceil(remainingMilliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        timer.textContent = "Time remaining: " + (hours ? hours + ":" + String(minutes).padStart(2, "0") : minutes) + ":" + String(seconds).padStart(2, "0");
+        return false;
+    };
+    if (updateTimer()) {
+        return;
+    }
+    const timerInterval = window.setInterval(function () {
+        if (updateTimer()) {
+            window.clearInterval(timerInterval);
+        }
+    }, 1000);
+}
+
+function setGameEnded() {
+    document.body.dataset.gameEnded = "true";
+    document.getElementById("gameComplete").hidden = false;
+    document.getElementById("voteHelp").hidden = true;
+    document.getElementById("href_vote").hidden = false;
+    document.querySelectorAll(".draftSubmit, .draftRemove").forEach(function (button) { button.hidden = true; });
+    document.getElementById("getAiSuggestions").disabled = true;
+    document.getElementById("saveDraft").disabled = true;
+    document.getElementById("clearTryItBox").disabled = true;
+    document.getElementById("scrambleUnusedLetters").disabled = true;
+    document.getElementById("tryItBox").contentEditable = "false";
 }
 
 function clearTryItBox() {

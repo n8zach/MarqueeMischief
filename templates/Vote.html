@@ -1,99 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <style>
+        body, select, input { font-family: Helvetica, sans-serif; font-size: 20px; }
+        body { text-align: center; }
+        .notice { color: #8b0000; }
+    </style>
 </head>
-<style>
-    body {
-        font-family: 'Helvetica ', sans-serif;
-        font-size: 20px;
-    }
-
-    select.custom {
-        font-family: 'Helvetica ', sans-serif;
-        font-size: 20px;
-    }
-
-</style>
 <body>
-<script>
-    window.addEventListener("load", myInit, true); 
-  
-    function myInit()
-    {   
-        
-        document.getElementById('puzzles').value="{{selected}}";
-        o = document.getElementById('puzzles')
-        document.getElementById("href_game").href =  "{{ url_for('tryit') }}?OriginalMessage=" + o.options[o.selectedIndex].text
-        document.getElementById("href_results").href =  "{{ url_for('results') }}?puzzleId=" + o.options[o.selectedIndex].value   
-    };
-
-    function handlePuzzleSelectionChange()
-    {
-        document.getElementById("form").submit();
-    }
-
-    function handleVoteSelectionChange()
-    {
-        if(countCheckboxes() > 0)
-        {
-            document.getElementById("vote_button").disabled = false;           
-        }
-        else
-        {
-        	document.getElementById("vote_button").disabled = true;
-        }
-    }
-
-    function countCheckboxes()
-    {
-        var inputElems = document.getElementById("vote")
-        count = 0;
-        for (var i=0; i<inputElems.length; i++) 
-        {       
-            if (inputElems[i].type == "checkbox" && inputElems[i].checked == true)
-            {
-                count++;
-            }
-        }
-        return count
-    }
-</script>
-
-Hello {{ current_user.username }}
-<br>
-<br>
-Pick an original message to see current vote count and vote on your favorite:
-<br>
-<br>
-<form id="form" action="." method="POST">
-    <label for="puzzles">Original Message:</label>
-    <select class="custom" name="puzzles" id="puzzles" onchange="handlePuzzleSelectionChange()">
-        {% for puzzle in puzzles %}
-            <option value="{{puzzle[0]}}">{{puzzle[1]}}</option>
-        {% endfor %}
-    </select>
-</form>
-<br>
-    <!-- puzzleId_answerId_userId_answer_votes-->
-    <form id="vote" action="." method="POST">
-        {% for vote in votes %}
-            {% if vote[2] != current_user.id %}
-                <input type="checkbox" onchange="handleVoteSelectionChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
-            {% else %}
-                <input disabled=true type="checkbox" onchange="handleVoteSelectionChange()" id="{{vote[1]}}" name="vote[]" value="{{vote[1]}}">
-            {% endif %}
-            <label for="html">({{vote[4]}})  :  {{vote[3]}}</label><br>
-        {% endfor %}
-        <br>
-        Select a message above and click "Vote" to add your vote    
-        <input type="hidden" id="selected" name="selected" value="{{selected}}">
-        <br>
-        <input id="vote_button" type="submit" value="VOTE" disabled>
+    Hello {{ current_user.username }}
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}<p class="notice">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    <p>Pick a game to see its answers and vote on your favorite.</p>
+    <form id="gameForm" action="{{ url_for('vote') }}" method="get">
+        <label for="gameId">Game:</label>
+        <select name="gameId" id="gameId" onchange="this.form.submit()">
+            {% for game in games %}
+                <option value="{{ game[0] }}" {% if game[0] == selected %}selected{% endif %}>Game {{ game[0] }} — {{ game[1] or 'not started' }} — {{ game[2] }}</option>
+            {% endfor %}
+        </select>
     </form>
-    <br>
-    Click <a id="href_game" >HERE</a> to make your own new messages for this one.
-    <br>
-    <br>
-    Click <a id="href_results" >HERE</a> see results.
-    
+    {% if selected %}
+        {% if can_vote %}
+            <form id="vote" action="{{ url_for('vote') }}" method="post">
+                {% for vote in votes %}
+                    {% if vote[2] != current_user.id %}
+                        <input type="checkbox" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
+                    {% else %}
+                        <input disabled type="checkbox" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
+                    {% endif %}
+                    <label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label><br>
+                {% endfor %}
+                <input type="hidden" name="gameId" value="{{ selected }}">
+                <br>
+                <input id="vote_button" type="submit" value="VOTE" disabled>
+            </form>
+        {% else %}
+            <p>Voting opens when this game's timer ends.</p>
+        {% endif %}
+        <p><a href="{{ url_for('results', gameId=selected) }}">See results</a></p>
+    {% else %}
+        <p>There are no games yet.</p>
+    {% endif %}
+    <script>
+        function handleVoteSelectionChange() {
+            document.getElementById("vote_button").disabled = !document.querySelector("#vote input[type=checkbox]:checked");
+        }
+    </script>
 </body>
+</html>

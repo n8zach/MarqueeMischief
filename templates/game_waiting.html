@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting for game</title>
+</head>
+<body style="font-family: Helvetica, sans-serif; font-size: 20px; text-align: center;">
+    <p>Waiting for the game master to start the game.</p>
+    <p id="waitingStatus" aria-live="polite">This page will begin automatically when the game starts.</p>
+    <script>
+        const statusUrl = {{ url_for('game_status', game_id=game.id)|tojson }};
+        async function checkGameStatus() {
+            try {
+                const status = await (await fetch(statusUrl, {cache: "no-store"})).json();
+                if (status.started) window.location.reload();
+            } catch (_) {
+                document.getElementById("waitingStatus").textContent = "Still waiting for the game to start.";
+            }
+        }
+        checkGameStatus();
+        window.setInterval(checkGameStatus, 5000);
+    </script>
+</body>
+</html>
