@@ -9,7 +9,7 @@ class GeneratedSentence(BaseModel):
     text: str = Field(description="The generated sentence using only letters from the multiset.")
 
 class MarqueeGameResponse(BaseModel):
-    sentences: List[GeneratedSentence] = Field(description="A list of 15 generated sentences.")
+    sentences: List[GeneratedSentence] = Field(description="A list of generated sentences.")
 
 def message_to_messages(message: str, use_proxy: bool = False):
     letters = message_to_letters(message)
@@ -20,9 +20,10 @@ def message_to_messages(message: str, use_proxy: bool = False):
         f"Rules:\n"
         f"1. You must not use any letter more times than it appears in the multiset.\n"
         #f"2. Keep each sentence length to 4 or 5 words.\n"
+        f"2. Favor adolescent humor. Such as is employed by Dav Pilkey in the Captain Underpants series.\n"
         f"3. Favor short and funny words.\n"
         f"4. Do not use any punctuation or special characters. Not even a period at the end.\n"
-        f"5. Aim for lots of variety in the sentences. Avoid repeating the same words.\n"
+        f"5. Aim for lots of variety in word choices across the sentences.\n"
         f"The letter multiset is: [{str_letters}]"
     )
 
@@ -31,7 +32,7 @@ def message_to_messages(message: str, use_proxy: bool = False):
         messages=[
             {
                 "role": "system", 
-                "content": "You are a precise word game engine. Strictly adhere to character multiset constraints."
+                "content": "You are a creative and precise word game engine. Strictly adhere to character multiset constraints."
             },
             {
                 "role": "user", 
