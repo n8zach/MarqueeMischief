@@ -1,54 +1,38 @@
-#import openai
-from marquee_helper import validate_messages, message_to_letters, letter_use
-import time
-#import requests
+from openai import OpenAI
+from marquee_helper import message_to_letters, validate_messages
 
-def message_to_messages_using_assistant(message, use_proxy = False):
-    # letters = message_to_letters(message)
+client = OpenAI()    
 
-    # proxy = "proxy.server:3128"
-    # if(use_proxy):
-    #     session = requests.Session()
-    #     session.proxies = {'http': proxy, 'https': proxy}
-    #     #openai.api_base = 'https://api.openai.com/v1'
-    #     openai.OpenAI.session = session
+def message_to_messages(message: str, use_proxy: bool = False):
+    letters = message_to_letters(message)
+    str_letters = ', '.join(letters)
+    
+    prompt = (
+        f"Create 15 complete, funny, ironic sentences using ONLY the letters in the provided multiset. "
+        f"Rules:\n"
+        f"1. You must write and run a Python script using the code interpreter tool to verify that every sentence strictly obeys the multiset character limits.\n"
+        f"2. Do not include any sentence that fails the code check.\n"
+        f"3. Keep each sentence length to 4 or 5 words.\n"
+        f"4. Favor short and funny words.\n"
+        f"The letter multiset is: [{str_letters}]"
+    )
 
-    # client = openai.OpenAI()
+    response = client.responses.create(
+        model="gpt-4o",
+        tools=[
+            {
+                "type": "code_interpreter",
+                "container": {"type": "auto"}  # Automatically manages the sandboxed execution container
+            }
+        ],
+        instructions="You are a precise word game engine. Always write and execute Python code to verify character counts before outputting sentences.",
+        input=prompt
+    )
 
-    # thread = client.beta.threads.create()
-
-    # client.beta.threads.messages.create(
-    # thread_id=thread.id,
-    # role="user",
-    # content=message,
-    # )
-
-    # run = client.beta.threads.runs.create_and_poll(
-    # thread_id=thread.id,
-    # assistant_id="asst_Tbi4s9QV2Nk8vXwudouT0eVP",
-    # )
-
-    # allowed_time_sec = 20
-    # start = time.time()
-    # validated = {}
-    # while run.status != 'completed':
-    #     time.sleep(.5)
-    #     if time.time() - start > allowed_time_sec:
-    #         break
-
-    # if run.status == 'completed':
-    #     response = client.beta.threads.messages.list(thread_id=thread.id)
-    #     messages = response.data[0].content[0].text.value.split('\n')
-    #     validated = validate_messages(messages, letters)
-
-    # else:
-    #     validated["good"] = "ran out of time"
-
-
-    # validated["assistant"] = run.assistant_id
-    # print(validated)
-
-    # return validated
-    return {}
-
-#print(message_to_messages_using_assistant_v1("O, D, H, A, A, D, G, H, E, L, S, S, T, T, W, O, R"))
+    output_text = response.output_text
+    raw_sentences = [line.strip() for line in output_text.split('\n') if line.strip()]
+    
+    # Final local safety net validation
+    validated = validate_messages(raw_sentences, letters)
+    
+    return validated
