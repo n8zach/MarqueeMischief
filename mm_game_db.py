@@ -135,6 +135,10 @@ def get_puzzles_that_have_answers():
     sql = "select distinct(puzzles.id), puzzles.text from puzzles join answers on puzzles.id = answers.puzzleId;"
     return db.session.execute(text(sql)).all()
 
+def get_all_puzzles():
+    sql = "select puzzles.id, puzzles.text from puzzles order by puzzles.id;"
+    return db.session.execute(text(sql)).all()
+
 def get_puzzle_user_answer_votes(puzzleId):
     sql = f"SELECT puzzles.text as puzzle, users.name as user, answers.text as answer, count(votes.id) as votes FROM answers left join puzzles on puzzles.id = answers.puzzleId left outer join users on users.Id = userId left outer join votes on votes.answerId = answers.id where puzzleId LIKE '{puzzleId}' group by answers.id order by puzzles.id, votes desc;"
     return db.session.execute(text(sql)).all()

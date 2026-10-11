@@ -6,7 +6,7 @@ from werkzeug.datastructures import MultiDict
 from flask import Flask, redirect, render_template, request, url_for, flash
 from flask_login import LoginManager, login_manager, login_user, login_required, logout_user, UserMixin, current_user
 from scrabble import suggest_words
-from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_answer_votes, get_puzzles_that_have_answers, vote_for_answers, get_puzzle_user_answer_votes
+from mm_game_db import get_puzzleId_answerId_userId_answer_votes, get_puzzle_text, delete_puzzle, get_results_text, add_user, get_puzzle_id_from_text, get_user_from_id, get_user_from_name_and_password, save_answer_by_puzzle_text, get_puzzleId_answerId_userId_answer_votes, get_puzzles_that_have_answers, get_all_puzzles, vote_for_answers, get_puzzle_user_answer_votes
 from db import db
 from flask_migrate import Migrate
 from original_message_display import message_to_marquee_html
@@ -193,7 +193,8 @@ def tryit():
             form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
             form_data["Best"] = form_data["OriginalMessage"]
         form_data['OriginalMessageDisplay'] = message_to_marquee_html(form_data["OriginalMessage"])
-        return render_template('tryit.html', form_data = form_data)
+        puzzles = get_all_puzzles()
+        return render_template('tryit.html', form_data = form_data, puzzles = puzzles)
 
 @app.route('/game/', methods = ['POST', 'GET'])
 @login_required

@@ -243,3 +243,13 @@ function clickScrambleUnusedLetters() {
     }
     document.getElementById("unusedLetters").innerHTML = letters.join("");
 }
+
+function navigateToTryAnotherPuzzle(selector) {
+    if (!selector.value) {
+        return;
+    }
+
+    const tryItUrl = new URL(selector.dataset.tryitUrl, window.location.origin);
+    tryItUrl.searchParams.set("OriginalMessage", selector.value);
+    window.location.href = tryItUrl.toString();
+}
