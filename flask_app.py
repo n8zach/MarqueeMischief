@@ -218,7 +218,7 @@ def save():
 @app.route('/', methods = ['GET'])
 @login_required
 def default():
-    return tryit()
+    return game()
 
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
