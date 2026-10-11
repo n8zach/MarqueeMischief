@@ -181,6 +181,20 @@ def results():
             message = get_puzzle_text(puzzleId)
         return render_template("results.html", text=get_results_text(puzzleId), puzzleId = puzzleId, originalMessage = message)
     
+@app.route('/tryit/', methods = ['POST', 'GET'])
+@login_required
+def tryit():
+    if request.method == 'GET':
+        form_data = {}
+        form_data["user"] = current_user.username
+        form_data["OriginalMessage"] = "PLEASE WAIT TO BE SEATED"
+        form_data["Best"] = form_data["OriginalMessage"]
+        if request.args.get("OriginalMessage"):
+            form_data["OriginalMessage"] = request.args["OriginalMessage"].upper()
+            form_data["Best"] = form_data["OriginalMessage"]
+        form_data['OriginalMessageDisplay'] = message_to_marquee_html(form_data["OriginalMessage"])
+        return render_template('tryit.html', form_data = form_data)
+
 @app.route('/game/', methods = ['POST', 'GET'])
 @login_required
 def game():
@@ -194,7 +208,7 @@ def game():
             form_data["Best"] = form_data["OriginalMessage"]
         form_data['OriginalMessageDisplay'] = message_to_marquee_html(form_data["OriginalMessage"])
         return render_template('game.html', form_data = form_data)
-
+    
 @app.route('/save', methods = ['POST'])
 @login_required
 def save():
@@ -204,7 +218,7 @@ def save():
 @app.route('/', methods = ['GET'])
 @login_required
 def default():
-    return game()
+    return tryit()
 
 @app.route('/test/', methods = ['POST', 'GET'])
 def test():
