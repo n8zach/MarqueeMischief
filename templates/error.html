@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request error</title>
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 20px; text-align: center; }
+        main { margin: 15vh auto; max-width: 38rem; padding: 0 1rem; }
+        .home-button { display: inline-block; padding: 0.6rem 1rem; border: 1px solid #333; color: inherit; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Request error</h1>
+        <p>{{ message }}</p>
+        <a class="home-button" href="{{ url_for('default') }}">Back to home</a>
+    </main>
+</body>
+</html>

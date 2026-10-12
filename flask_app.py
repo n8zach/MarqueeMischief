@@ -55,6 +55,16 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
 
+@app.errorhandler(404)
+def not_found(error):
+    return render_template("error.html", message="Page not found."), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return render_template("error.html", message="That request method is not allowed."), 405
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return get_user_from_id(user_id)
@@ -90,20 +100,16 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/scrabbler", methods=["POST", "GET"])
+@app.route("/scrabbler", methods=["POST"])
 @login_required
 def scrabbler():
-    if request.method != "POST":
-        return redirect(url_for("tryit"))
     suggestions = suggest_words(request.form["letters"])
     return "Word Suggestions:<br>" + ", ".join(suggestions) if suggestions else ""
 
 
-@app.route("/aisuggestions", methods=["POST", "GET"])
+@app.route("/aisuggestions", methods=["POST"])
 @login_required
 def aisuggestions():
-    if request.method != "POST":
-        return redirect(url_for("tryit"))
     requested_game = get_game(request.form.get("gameId"))
     if requested_game and game_has_ended(requested_game):
         return "This game has ended; AI suggestions are no longer available.", 409
@@ -222,10 +228,13 @@ def tryit():
 @app.route("/game/", methods=["GET"])
 @login_required
 def game():
-    game_and_puzzle = get_game_with_puzzle(request.args.get("gameId"))
+    game_id = request.args.get("gameId")
+    if not game_id:
+        return render_template("error.html", message="No game ID specified."), 400
+
+    game_and_puzzle = get_game_with_puzzle(game_id)
     if game_and_puzzle is None:
-        flash("Choose or create a game first.", "error")
-        return redirect(url_for("tryit"))
+        return render_template("error.html", message="Game not found."), 404
     game_record, puzzle_text = game_and_puzzle
     if game_record.startTime is None:
         return render_template("game_waiting.html", game=game_record)
