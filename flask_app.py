@@ -67,7 +67,7 @@ def login():
         next_url = request.form.get("next_url")
         if user:
             login_user(user)
-            return redirect(next_url or url_for("create_game"))
+            return redirect(next_url or url_for("tryit"))
         flash("Login failed. Please check your username and password.", "danger")
     return render_template("login.html")
 
@@ -94,7 +94,7 @@ def register():
 @login_required
 def scrabbler():
     if request.method != "POST":
-        return redirect(url_for("create_game"))
+        return redirect(url_for("tryit"))
     suggestions = suggest_words(request.form["letters"])
     return "Word Suggestions:<br>" + ", ".join(suggestions) if suggestions else ""
 
@@ -103,7 +103,7 @@ def scrabbler():
 @login_required
 def aisuggestions():
     if request.method != "POST":
-        return redirect(url_for("create_game"))
+        return redirect(url_for("tryit"))
     requested_game = get_game(request.form.get("gameId"))
     if requested_game and game_has_ended(requested_game):
         return "This game has ended; AI suggestions are no longer available.", 409
@@ -163,7 +163,7 @@ def create_game():
 def start_created_game(game_id):
     _, error = start_game(game_id)
     flash(error or "Game started.", "error" if error else "success")
-    return redirect(url_for("create_game", gameId=game_id))
+    return redirect(url_for("tryit", gameId=game_id))
 
 
 @app.route("/game-status/<int:game_id>")
@@ -225,7 +225,7 @@ def game():
     game_and_puzzle = get_game_with_puzzle(request.args.get("gameId"))
     if game_and_puzzle is None:
         flash("Choose or create a game first.", "error")
-        return redirect(url_for("create_game"))
+        return redirect(url_for("tryit"))
     game_record, puzzle_text = game_and_puzzle
     if game_record.startTime is None:
         return render_template("game_waiting.html", game=game_record)
@@ -242,7 +242,7 @@ def save():
 @app.route("/", methods=["GET"])
 @login_required
 def default():
-    return redirect(url_for("create_game"))
+    return redirect(url_for("tryit"))
 
 
 @app.route("/test/", methods=["POST", "GET"])

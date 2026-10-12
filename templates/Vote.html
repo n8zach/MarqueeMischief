@@ -28,7 +28,7 @@
             <form id="vote" action="{{ url_for('vote') }}" method="post">
                 {% for vote in votes %}
                     {% if vote[2] != current_user.id %}
-                        <input type="checkbox" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
+                        <input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
                         <label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label><br>
                     {% endif %}
                 {% endfor %}
@@ -44,9 +44,40 @@
         <p>There are no games yet.</p>
     {% endif %}
     <script>
-        function handleVoteSelectionChange() {
-            document.getElementById("vote_button").disabled = !document.querySelector("#vote input[type=checkbox]:checked");
+        const voteCookie = "voted_game_{{ selected }}_user_{{ current_user.id }}";
+
+        function hasVoted() {
+            return getCookie(voteCookie) === "true";
         }
+
+        function rememberVote() {
+            setCookie(voteCookie, "true", 400);
+            updateVoteState();
+        }
+
+        function handleVoteSelectionChange() {
+            const voteButton = document.getElementById("vote_button");
+            if (voteButton) {
+                voteButton.disabled = hasVoted() || !document.querySelector("#vote input[type=radio]:checked");
+            }
+        }
+
+        function updateVoteState() {
+            if (!hasVoted()) {
+                handleVoteSelectionChange();
+                return;
+            }
+
+            document.querySelectorAll("#vote input[type=radio]").forEach(radio => radio.disabled = true);
+            const voteButton = document.getElementById("vote_button");
+            if (voteButton) {
+                const notice = document.createElement("span");
+                notice.textContent = "You have already voted on this game";
+                voteButton.replaceWith(notice);
+            }
+        }
+
+        updateVoteState();
     </script>
 </body>
 </html>
