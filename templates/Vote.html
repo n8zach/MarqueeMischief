@@ -6,6 +6,7 @@
         body, select, input { font-family: Helvetica, sans-serif; font-size: 20px; }
         body { text-align: center; }
         .notice { color: #8b0000; }
+        #vote { width: fit-content; margin: 0 auto; text-align: left; }
     </style>
 </head>
 <body>
@@ -28,10 +29,8 @@
                 {% for vote in votes %}
                     {% if vote[2] != current_user.id %}
                         <input type="checkbox" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
-                    {% else %}
-                        <input disabled type="checkbox" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
+                        <label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label><br>
                     {% endif %}
-                    <label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label><br>
                 {% endfor %}
                 <input type="hidden" name="gameId" value="{{ selected }}">
                 <br>
