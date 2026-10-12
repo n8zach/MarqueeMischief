@@ -7,13 +7,13 @@ import textwrap
 class MarqueeSettings:
     wrap_width: int = 25
     max_lines: int = 4
-    font_family: str = '"Arial Black", Impact, sans-serif'
+    font_family: str = '"3606-marquee-web", sans-serif'
     font_size_px: int = 32
     min_font_size_px: int = 14
     font_weight: int = 900
     line_height: float = 1.1
     text_color: str = "#142327"
-    background_color: str = "#e0d9d9"
+    background_color: str = "#ffffff"
     border_color: str = "#8e1717"
     border_width_px: int = 3
     border_radius_px: int = 2
@@ -57,6 +57,11 @@ def message_to_marquee_html(message, settings=None):
         f"font-family:{settings.font_family};font-size:{font_size}px;"
         f"font-weight:{settings.font_weight};line-height:{settings.line_height};"
     )
-    
+
     line_html = "".join(f"<div>{escape(line)}</div>" for line in lines)
-    return f'<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
+    font_face = (
+        '<style>@font-face{font-family:"3606-marquee-web";'
+        'src:url("/static/fonts/3606-marquee-web/3606-marquee-web.woff2") format("woff2");'
+        'font-weight:900;font-style:normal;font-display:swap;}</style>'
+    )
+    return f'{font_face}<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
