@@ -12,6 +12,7 @@ class MarqueeSettings:
     min_font_size_px: int = 14
     font_weight: int = 900
     line_height: float = 1.1
+    row_spacing_px: int = 4
     text_color: str = "#142327"
     background_color: str = "#ffffff"
     border_color: str = "#8e1717"
@@ -26,6 +27,8 @@ class MarqueeSettings:
             raise ValueError("wrap_width and max_lines must be positive")
         if self.font_size_px < 1 or not 1 <= self.min_font_size_px <= self.font_size_px:
             raise ValueError("font sizes must be positive and min_font_size_px <= font_size_px")
+        if self.row_spacing_px < 0:
+            raise ValueError("row_spacing_px must be non-negative")
         if self.text_align not in {"left", "center", "right"}:
             raise ValueError("text_align must be left, center, or right")
 
@@ -58,10 +61,83 @@ def message_to_marquee_html(message, settings=None):
         f"font-weight:{settings.font_weight};line-height:{settings.line_height};"
     )
 
-    line_html = "".join(f"<div>{escape(line)}</div>" for line in lines)
+    row_line_height = font_size * settings.line_height + settings.row_spacing_px
+    row_style = f"position:relative;line-height:{row_line_height}px"
+    line_html = "".join(
+        f'<div class="marquee-row" style="{escape(row_style, quote=True)}">'
+        f"{escape(line)}</div>"
+        for line in lines
+    )
     font_face = (
         '<style>@font-face{font-family:"3606-marquee-web";'
         'src:url("/static/fonts/3606-marquee-web/3606-marquee-web.woff2") format("woff2");'
         'font-weight:900;font-style:normal;font-display:swap;}</style>'
     )
-    return f'{font_face}<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
+    rule_script = """
+<script>
+(() => {
+    const scheduleRules = (marquee) => {
+        if (marquee.dataset.rulesScheduled) return;
+        marquee.dataset.rulesScheduled = "true";
+        requestAnimationFrame(() => {
+            delete marquee.dataset.rulesScheduled;
+            const color = getComputedStyle(marquee).borderTopColor;
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            marquee.querySelectorAll(".marquee-row").forEach((row) => {
+                row.querySelectorAll(".marquee-row-rule").forEach((rule) => rule.remove());
+                const textNode = row.firstChild;
+                if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
+
+                const rowStyle = getComputedStyle(row);
+                context.font = `${rowStyle.fontStyle} ${rowStyle.fontWeight} ${rowStyle.fontSize} ${rowStyle.fontFamily}`;
+                const groups = new Map();
+                for (let offset = 0; offset < textNode.length; offset++) {
+                    const range = document.createRange();
+                    range.setStart(textNode, offset);
+                    range.setEnd(textNode, offset + 1);
+                    const rect = range.getBoundingClientRect();
+                    if (rect.width === 0 || rect.height === 0) continue;
+                    const lineTop = Math.round(rect.top * 100) / 100;
+                    const group = groups.get(lineTop) || { top: lineTop, start: offset, end: offset + 1 };
+                    group.start = Math.min(group.start, offset);
+                    group.end = Math.max(group.end, offset + 1);
+                    groups.set(lineTop, group);
+                }
+
+                const rowTop = row.getBoundingClientRect().top;
+                const pixelRatio = window.devicePixelRatio || 1;
+                const snap = (value) => Math.round(value * pixelRatio) / pixelRatio;
+                groups.forEach((group) => {
+                    const metrics = context.measureText(textNode.data.slice(group.start, group.end).trim());
+                    const fontAscent = metrics.fontBoundingBoxAscent ?? Number.parseFloat(rowStyle.fontSize);
+                    const inkTop = group.top + fontAscent - metrics.actualBoundingBoxAscent;
+                    const inkBottom = group.top + fontAscent + metrics.actualBoundingBoxDescent;
+
+                    [inkTop - 1, inkBottom].forEach((lineTop) => {
+                        const rule = document.createElement("span");
+                        rule.className = "marquee-row-rule";
+                        rule.setAttribute("aria-hidden", "true");
+                        rule.style.cssText = `position:absolute;left:0;right:0;height:1px;top:${snap(lineTop - rowTop)}px;background-color:${color};pointer-events:none;z-index:1`;
+                        row.append(rule);
+                    });
+                });
+            });
+        });
+    };
+
+    document.querySelectorAll(".marquee-message").forEach((marquee) => {
+        if (marquee.dataset.rulesInitialized) return;
+        marquee.dataset.rulesInitialized = "true";
+        const schedule = () => scheduleRules(marquee);
+        window.addEventListener("resize", schedule, { passive: true });
+        if (window.ResizeObserver) new ResizeObserver(schedule).observe(marquee);
+        if (document.fonts) document.fonts.ready.then(schedule);
+        else schedule();
+    });
+})();
+</script>
+"""
+    marquee_html = f'<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
+    return f"{font_face}{marquee_html}{rule_script}"
