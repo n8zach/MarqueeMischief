@@ -18,22 +18,22 @@
             </div>
             <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
             <p class="help-label">Build a new message from the letters in the original message.</p>
-            <div class="composer">
-                <div id="tryItBox" class="tryItBox" contenteditable="true" role="textbox" aria-label="Your new message" data-game-id="{{ game.id }}" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>
-                <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
-            </div>
             <div>
                 <p class="help-label">Unused letters</p>
                 <div id="unusedLetters" class="letter-bank"></div>
                 <div class="letter-actions"><button id="scrambleUnusedLetters" type="button" onclick="clickScrambleUnusedLetters()">Scramble</button></div>
             </div>
+            <div class="composer">
+                <div id="tryItBox" class="tryItBox" contenteditable="true" role="textbox" aria-label="Your new message" data-game-id="{{ game.id }}" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>
+                <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+            </div>
+            <div class="saved-drafts"><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div><div id="saveResponse" class="help-label"></div></div>
             <div id="wordSuggestions" class="suggestion-box"></div>
             <div>
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
                 <div class="aiWaiting" id="aiWaiting"></div>
                 <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
             </div>
-            <div><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div><div id="saveResponse" class="help-label"></div></div>
             <div class="center"><p class="help-label" id="voteHelp" {% if game_has_ended %}hidden{% endif %}>Voting will open when the timer ends.</p><a id="href_vote" class="button gold" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>Vote</a></div>
         </section>
     </main>

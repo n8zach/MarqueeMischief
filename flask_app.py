@@ -74,10 +74,9 @@ def load_user(user_id):
 def login():
     if request.method == "POST":
         user = get_user_from_name_and_password(request.form["username"], request.form["password"])
-        next_url = request.form.get("next_url")
         if user:
             login_user(user)
-            return redirect(next_url or url_for("tryit"))
+            return redirect(url_for("default"))
         flash("Login failed. Please check your username and password.", "danger")
     return render_template("login.html")
 

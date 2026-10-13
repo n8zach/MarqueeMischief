@@ -138,8 +138,20 @@ function updateTryItBox(fixCaret) {
     }
 
     document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage());
+    resizeTryItBox();
     updateButtons();
 }
+
+function resizeTryItBox() {
+    const box = document.getElementById("tryItBox");
+    if (!box) {
+        return;
+    }
+    box.style.height = "auto";
+    box.style.height = box.scrollHeight + "px";
+}
+
+window.addEventListener("resize", resizeTryItBox, { passive: true });
 
 function saveAnswer(text) {
     document.getElementById("saveResponse").innerHTML = "Saving...";
