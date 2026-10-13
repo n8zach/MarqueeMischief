@@ -2,81 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        body, select, input { font-family: Helvetica, sans-serif; font-size: 20px; }
-        body { text-align: center; }
-        .notice { color: #8b0000; }
-        #vote { width: fit-content; margin: 0 auto; text-align: left; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+    <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
 </head>
 <body>
-    Hello {{ current_user.username }}
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}<p class="notice">{{ message }}</p>{% endfor %}
-    {% endwith %}
-    <p>Pick a game to see its answers and vote on your favorite.</p>
-    <form id="gameForm" action="{{ url_for('vote') }}" method="get">
-        <label for="gameId">Game:</label>
-        <select name="gameId" id="gameId" onchange="this.form.submit()">
-            {% for game in games %}
-                <option value="{{ game[0] }}" {% if game[0] == selected %}selected{% endif %}>Game {{ game[0] }} — {{ game[1] or 'not started' }} — {{ game[2] }}</option>
-            {% endfor %}
-        </select>
-    </form>
-    {% if selected %}
-        {% if can_vote %}
-            <form id="vote" action="{{ url_for('vote') }}" method="post">
-                {% for vote in votes %}
-                    {% if vote[2] != current_user.id %}
-                        <input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}">
-                        <label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label><br>
-                    {% endif %}
-                {% endfor %}
-                <input type="hidden" name="gameId" value="{{ selected }}">
-                <br>
-                <input id="vote_button" type="submit" value="VOTE" disabled>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Cast your vote</h1>
+            <p class="page-lede">Pick a completed game, then choose the message that made you grin widest.</p>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}<ul class="notice-list">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+            {% endwith %}
+            <form class="form-stack" action="{{ url_for('vote') }}" method="get">
+                <div class="field"><label for="gameId">Game</label><select name="gameId" id="gameId" onchange="this.form.submit()">{% for game in games %}<option value="{{ game[0] }}" {% if game[0] == selected %}selected{% endif %}>Game {{ game[0] }} — {{ game[1] or 'not started' }} — {{ game[2] }}</option>{% endfor %}</select></div>
             </form>
-        {% else %}
-            <p>Voting opens when this game's timer ends.</p>
-        {% endif %}
-        <p><a href="{{ url_for('results', gameId=selected) }}">See results</a></p>
-    {% else %}
-        <p>There are no games yet.</p>
-    {% endif %}
+            {% if selected %}
+                {% if can_vote %}
+                    <form action="{{ url_for('vote') }}" method="post">
+                        <div id="vote" class="choice-list">
+                            {% for vote in votes %}{% if vote[2] != current_user.id %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label></div>{% endif %}{% endfor %}
+                        </div>
+                        <input type="hidden" name="gameId" value="{{ selected }}">
+                        <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>
+                    </form>
+                {% else %}
+                    <p class="center">Voting opens when this game’s timer ends.</p>
+                {% endif %}
+                <p class="center"><a class="text-link" href="{{ url_for('results', gameId=selected) }}">See results</a></p>
+            {% else %}
+                <p class="center">There are no games yet.</p>
+            {% endif %}
+        </section>
+    </main>
     <script>
         const voteCookie = "voted_game_{{ selected }}_user_{{ current_user.id }}";
-
-        function hasVoted() {
-            return getCookie(voteCookie) === "true";
-        }
-
-        function rememberVote() {
-            setCookie(voteCookie, "true", 400);
-            updateVoteState();
-        }
-
+        function hasVoted() { return getCookie(voteCookie) === "true"; }
         function handleVoteSelectionChange() {
             const voteButton = document.getElementById("vote_button");
-            if (voteButton) {
-                voteButton.disabled = hasVoted() || !document.querySelector("#vote input[type=radio]:checked");
-            }
+            if (voteButton) voteButton.disabled = hasVoted() || !document.querySelector("#vote input[type=radio]:checked");
         }
-
         function updateVoteState() {
-            if (!hasVoted()) {
-                handleVoteSelectionChange();
-                return;
-            }
-
+            if (!hasVoted()) return handleVoteSelectionChange();
             document.querySelectorAll("#vote input[type=radio]").forEach(radio => radio.disabled = true);
             const voteButton = document.getElementById("vote_button");
-            if (voteButton) {
-                const notice = document.createElement("span");
-                notice.textContent = "You have already voted on this game";
-                voteButton.replaceWith(notice);
-            }
+            if (voteButton) { const notice = document.createElement("span"); notice.textContent = "You have already voted on this game."; voteButton.replaceWith(notice); }
         }
-
         updateVoteState();
     </script>
 </body>

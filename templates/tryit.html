@@ -3,108 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <style>
-        body {
-            appearance: none;
-            font-size: 20px;
-            text-align: center;
-            font-family: 'Helvetica ', sans-serif;
-        }
-
-        #marqee-message {
-            text-align: center;
-            margin: 20px;
-        }
-
-        #customForm {
-            text-align: center;
-            margin: 20px;
-        }
-
-        .tryItBox {
-            margin: auto;
-            font-family: 'Times';
-            text-align: center;
-            align-items: center;
-            border:1px solid black;
-            width: 75%;
-        }
-
-        .unusedLetters {
-            text-align: center;
-            align-items: center;
-        }
-
-        .suggestsions {
-            text-align: center;
-            align-items: center;
-        }
-
-        .helpLabel {
-            font-size: .7em;
-            text-align: center;
-            align-items: center;
-            font-family: 'Helvetica ', sans-serif;
-        }
-
-        .aiWaiting {
-            display: none;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }      
-
-        #scrollBox {
-            height: 200px; /* Set the desired height for the scroll box */
-            overflow: auto;
-            background-color: #9fc5df; /* a dark color */
-        }
-
-        .drafts {
-            font-size: 15px;
-        }
-
-    </style>
+    <title>Try It — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
 <body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel play-layout">
+            <div>
+                <h1 class="page-title">Make it your own</h1>
+                <p class="player-greeting">Hello {{ current_user.username }} — rearrange the letters and see what mischief appears.</p>
+            </div>
+            <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
+            <p id="tryItHereLable" class="help-label">Build a new message from the letters in the original message.</p>
+            <div class="composer">
+                <div id="tryItBox" class="tryItBox" contenteditable="true" role="textbox" aria-label="Your new message" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>
+                <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()" aria-label="Clear message">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+            </div>
+            <div>
+                <p class="help-label">Unused letters</p>
+                <div id="unusedLetters" class="letter-bank"></div>
+                <div class="letter-actions"><button type="button" onclick="clickScrambleUnusedLetters()">Scramble</button></div>
+            </div>
+            <div id="wordSuggestions" class="suggestion-box"></div>
+            <div>
+                <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
+                <div class="aiWaiting" id="aiWaiting"></div>
+                <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
+            </div>
+            <div><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div></div>
+            <div class="field">
+                <label for="tryAnotherPuzzleSelect">Try a different original message</label>
+                <select id="tryAnotherPuzzleSelect" data-tryit-url="{{ url_for('tryit') }}" onchange="navigateToTryAnotherPuzzle(this)"><option value="" selected disabled>Choose an original message</option>{% for puzzle in puzzles %}<option value="{{ puzzle[1] }}">{{ puzzle[1] }}</option>{% endfor %}</select>
+            </div>
+        </section>
+    </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="/static/JavaScript/cookies.js"></script>
-    <script src="/static/JavaScript/textChangeNFade.js"></script>
-
-    Hello {{ current_user.username }}
-    <br>
-    <br>
-    {{ form_data['OriginalMessageDisplay'] | safe }}
-    <br>
-    <div id="tryItHereLable" class = "helpLabel">Make your own message here from the letters in the Original Message.</div>
-    
-    <div id="tryItBox" class = "tryItBox" contenteditable="true" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div><button id="clearTryItBox" onclick="clearTryItBox()">X</button>
-   <button id="saveDraft" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save Draft</button>
-   
-    <br>
-    Unused Letters: <button onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class = "unusedLetters"></div>
-    <br>
-    <div id="wordSuggestions" class = "suggestions"></div>
-    <br>
-    <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
-    <div class="aiWaiting" id="aiWaiting"></div>
-    <div id="scrollBox">
-        <div id="aiSuggestions" class = "suggestions"></div>
-    </div>
-    <p></p>
-    <div class="body">Drafts</div>
-    <div class="drafts" id="drafts"></div>
-    <br>      
-    <label for="tryAnotherPuzzleSelect">Try a different one:</label>
-    <select id="tryAnotherPuzzleSelect" data-tryit-url="{{ url_for('tryit') }}" onchange="navigateToTryAnotherPuzzle(this)">
-        <option value="" selected disabled>Choose an original message</option>
-        {% for puzzle in puzzles %}
-            <option value="{{ puzzle[1] }}">{{ puzzle[1] }}</option>
-        {% endfor %}
-    </select>
-
-    <script src="/static/JavaScript/marqueemischief.js"></script>
+    <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/textChangeNFade.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/marqueemischief.js') }}"></script>
 </body>
-
-
 </html>

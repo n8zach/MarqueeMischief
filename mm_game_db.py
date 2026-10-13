@@ -249,13 +249,13 @@ def get_game_user_answer_votes(game_id):
 
 
 def get_game_results_text(game_id):
-    text_out = "<table>"
+    text_out = '<table class="results-table"><thead><tr><th>Player</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_votes(game_id):
         text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td></tr>"
-    text_out += "</table><br><table>"
+    text_out += '</tbody></table><table class="results-table"><thead><tr><th>Player</th><th>Message</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_answer_votes(game_id):
         text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>"
-    return text_out + "</table>"
+    return text_out + "</tbody></table>"
 
 
 def get_user_from_id(user_id):
