@@ -249,9 +249,13 @@ def save():
 
 
 @app.route("/", methods=["GET"])
-@login_required
 def default():
-    return redirect(url_for("tryit"))
+    return render_template("home.html")
+
+
+@app.route("/coming-soon/", methods=["GET"])
+def coming_soon():
+    return render_template("coming_soon.html")
 
 
 @app.route("/test/", methods=["POST", "GET"])

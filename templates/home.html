@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marquee Mischief</title>
+    <style>
+        :root {
+            --ink: #20152b;
+            --purple: #5a267b;
+            --violet: #8c3fa9;
+            --cream: #fff8e9;
+            --gold: #ffc94d;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            font-family: Georgia, "Times New Roman", serif;
+            background:
+                radial-gradient(circle at 8% 15%, #ffd97b99 0 5px, transparent 6px),
+                radial-gradient(circle at 93% 24%, #ffffff99 0 3px, transparent 4px),
+                linear-gradient(135deg, #3c165d, #8b3e9c 53%, #e55a91);
+        }
+
+        .page {
+            width: min(900px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 1.4rem 0 3rem;
+        }
+
+        .banner {
+            display: block;
+            width: 100%;
+            max-height: 235px;
+            object-fit: cover;
+            border: 5px solid var(--gold);
+            border-radius: 20px;
+            box-shadow: 0 10px 0 #351243, 0 16px 32px #1d092c99;
+        }
+
+        .panel {
+            margin-top: 1.8rem;
+            padding: clamp(1.2rem, 4vw, 2.4rem);
+            border-radius: 24px;
+            background: #fffdf7;
+            box-shadow: 0 13px 36px #250c3799;
+        }
+
+        .intro { margin: 0 0 1.5rem; text-align: center; font-size: clamp(1.15rem, 2.7vw, 1.55rem); }
+        .intro strong { color: var(--purple); }
+
+        .account-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
+        .account-actions a, .action-card {
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .account-actions a {
+            min-width: 150px;
+            padding: .85rem 1.5rem;
+            border-radius: 999px;
+            color: white;
+            background: var(--purple);
+            font: 700 1.1rem/1 Georgia, "Times New Roman", serif;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 0 #321144;
+        }
+        .account-actions a:last-child { color: var(--ink); background: var(--gold); }
+        .account-actions a:hover, .account-actions a:focus-visible, .action-card:hover, .action-card:focus-visible { transform: translateY(-3px); }
+
+        .action-list { display: grid; gap: 1rem; }
+        .action-card {
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            min-height: 125px;
+            overflow: hidden;
+            border: 2px solid #ead8b5;
+            border-radius: 17px;
+            color: var(--ink);
+            background: white;
+            text-decoration: none;
+            box-shadow: 0 4px 0 #ead8b5;
+        }
+        .action-card:hover, .action-card:focus-visible { box-shadow: 0 8px 0 #e5b340; outline: 3px solid transparent; }
+        .action-card img { width: 100%; height: 100%; min-height: 125px; object-fit: cover; }
+        .action-card span { align-self: center; padding: 1rem 1.5rem; color: var(--purple); font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 700; }
+        .action-card small { display: block; margin-top: .35rem; color: #785a70; font-size: 1.05rem; font-weight: normal; }
+
+        @media (max-width: 480px) {
+            .page { width: min(100% - 1rem, 900px); padding-top: .6rem; }
+            .banner { border-width: 3px; border-radius: 13px; }
+            .panel { margin-top: 1rem; border-radius: 16px; }
+            .action-card { grid-template-columns: 105px 1fr; min-height: 105px; }
+            .action-card img { min-height: 105px; }
+            .action-card span { padding: .7rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <img class="banner" src="{{ url_for('static', filename='images/MainBanner.JPG') }}" alt="Marquee Mischief">
+
+        <section class="panel">
+            {% if current_user.is_authenticated %}
+                <p class="intro">Welcome back, <strong>{{ current_user.username }}</strong>. What kind of mischief are we making?</p>
+                <nav class="action-list" aria-label="Marquee Mischief activities">
+                    <a class="action-card" href="{{ url_for('tryit') }}">
+                        <img src="{{ url_for('static', filename='images/friendly.jfif') }}" alt="Friendly face">
+                        <span>Try It<small>Make a marquee message your own.</small></span>
+                    </a>
+                    <a class="action-card" href="{{ url_for('create_game') }}">
+                        <img src="{{ url_for('static', filename='images/dancing.jfif') }}" alt="Dancing figure">
+                        <span>New Game<small>Start a new round with friends.</small></span>
+                    </a>
+                    <a class="action-card" href="{{ url_for('coming_soon') }}">
+                        <img src="{{ url_for('static', filename='images/evil.jpg') }}" alt="Mischievous character">
+                        <span>Today's Mischief<small>Coming soon.</small></span>
+                    </a>
+                    <a class="action-card" href="{{ url_for('coming_soon') }}">
+                        <img src="{{ url_for('static', filename='images/laughing.jpg') }}" alt="Laughing face">
+                        <span>Vote On Yesterday's Mischief<small>Coming soon.</small></span>
+                    </a>
+                    <a class="action-card" href="{{ url_for('coming_soon') }}">
+                        <img src="{{ url_for('static', filename='images/b&wLaughing.png') }}" alt="Black-and-white laughing face">
+                        <span>Witness the Mahem<small>Coming soon.</small></span>
+                    </a>
+                </nav>
+            {% else %}
+                <p class="intro">A little wordplay, a little spectacle, and plenty of mischief.</p>
+                <div class="account-actions">
+                    <a href="{{ url_for('login') }}">Log in</a>
+                    <a href="{{ url_for('register') }}">Register</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
