@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create game</title>
     <style>
-        body { font-family: Helvetica, sans-serif; font-size: 20px; text-align: center; }
-        form { display: inline-block; text-align: left; }
-        input, select, button { font-size: inherit; margin: 5px; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 1rem; font-family: Helvetica, sans-serif; font-size: 20px; text-align: center; }
+        form { display: inline-block; width: min(100%, 34rem); text-align: left; }
+        input, select, button { max-width: 100%; font-size: inherit; margin: 5px; }
+        #puzzleId, #newPuzzle { width: calc(100% - 10px); }
+        #hours, #minutes { width: 4.5rem; }
+        button { padding: .35rem .7rem; }
+        p { overflow-wrap: anywhere; }
+        img { max-width: 100%; height: auto; }
         .notice { color: #8b0000; }
+
+        @media (max-width: 420px) {
+            body { padding: .75rem; font-size: 18px; }
+            h1 { font-size: 1.65rem; }
+            #hours, #minutes { width: 4rem; }
+        }
     </style>
 </head>
 <body>
