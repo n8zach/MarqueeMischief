@@ -15,7 +15,6 @@
                 <p class="player-greeting">Hello {{ current_user.username }} — rearrange the letters and see what mischief appears.</p>
             </div>
             <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
-            <p id="tryItHereLable" class="help-label">Build a new message from the letters in the original message.</p>
             <div>
                 <p class="help-label">Unused letters</p>
                 <div id="unusedLetters" class="letter-bank"></div>
