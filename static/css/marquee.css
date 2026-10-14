@@ -12,6 +12,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
     min-height: 100vh;
@@ -42,7 +43,21 @@ a { color: var(--purple); }
     background: #351243;
     box-shadow: 0 6px 0 #250c37, 0 10px 24px #1d092c77;
 }
+.site-identity { display: flex; min-width: 0; align-items: center; gap: .5rem; }
 .brand { color: white; font-size: clamp(1.15rem, 3vw, 1.55rem); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.current-user {
+    max-width: 11ch;
+    padding: .12rem .45rem;
+    overflow: hidden;
+    border: 1px solid #ffffff70;
+    border-radius: 999px;
+    color: #fff8e9;
+    font-family: system-ui, sans-serif;
+    font-size: .72rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .site-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .25rem .7rem; }
 .site-nav a { padding: .28rem .42rem; border-radius: 8px; color: white; text-decoration: none; }
 .site-nav a:hover, .site-nav a:focus-visible { background: #ffffff2e; outline: none; }
@@ -145,7 +160,7 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .draftSubmit { grid-column: 2; }
 .draftRemove { grid-column: -1; }
 #gameTimer { margin: 0; color: var(--purple); font-size: 1.35rem; font-weight: 700; text-align: center; }
-#gameComplete { color: #8b2641; font-weight: 700; }
+.game-status { min-height: 2.8rem; display: grid; place-items: center; }
 .aiWaiting { display: none; min-height: 1.5rem; color: var(--muted); font-style: italic; text-align: center; opacity: 0; transition: opacity 1s ease-in-out; }
 
 .choice-list { display: grid; gap: .7rem; width: min(100%, 40rem); margin: 1.2rem auto; }
@@ -166,6 +181,7 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
     body { font-size: 16px; }
     .site-shell { width: min(100% - 1rem, 900px); padding-top: .6rem; }
     .site-header { align-items: flex-start; flex-direction: column; gap: .45rem; border-radius: 13px; }
+    .site-identity { width: 100%; justify-content: space-between; }
     .site-nav { width: 100%; flex-wrap: nowrap; justify-content: space-between; gap: .1rem; font-size: .78rem; }
     .site-nav a { padding: .18rem .22rem; white-space: nowrap; }
     .panel { border-radius: 16px; }

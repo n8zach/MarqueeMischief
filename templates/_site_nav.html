@@ -1,5 +1,10 @@
 <header class="site-header">
-    <a class="brand" href="{{ url_for('default') }}">Marquee Mischief</a>
+    <div class="site-identity">
+        <a class="brand" href="{{ url_for('default') }}">Marquee Mischief</a>
+        {% if current_user.is_authenticated %}
+            <span class="current-user" title="Signed in as {{ current_user.username }}">{{ current_user.username }}</span>
+        {% endif %}
+    </div>
     <nav class="site-nav" aria-label="Primary navigation">
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('tryit') }}">Try It</a>

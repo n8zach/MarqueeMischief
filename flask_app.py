@@ -19,6 +19,7 @@ from mm_game_db import (
     get_or_create_puzzle,
     get_user_from_id,
     get_user_from_name_and_password,
+    has_voted_in_game,
     save_answer_for_game,
     start_game,
     utc_datetime,
@@ -195,8 +196,18 @@ def vote():
         return render_template("Vote.html", games=games, votes=[], selected=None, can_vote=False)
     if request.method == "POST" and request.form.getlist("vote[]"):
         error = vote_for_answers(current_user.id, request.form.getlist("vote[]"), game.id)
-        flash(error or "Your vote was saved.", "error" if error else "success")
-    return render_template("Vote.html", games=games, votes=get_game_answer_votes(game.id), selected=game.id, can_vote=game_has_ended(game))
+        if error:
+            flash(error, "error")
+        else:
+            return redirect(url_for("results", gameId=game.id))
+    return render_template(
+        "Vote.html",
+        games=games,
+        votes=get_game_answer_votes(game.id),
+        selected=game.id,
+        can_vote=game_has_ended(game),
+        has_voted=has_voted_in_game(current_user.id, game.id),
+    )
 
 
 @app.route("/results", methods=["GET"])

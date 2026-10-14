@@ -156,11 +156,15 @@ def vote_for_answers(user_id, answer_ids, game_id):
         return "Game not found."
     if not game_has_ended(game):
         return "Voting opens when this game's timer ends."
+    if has_voted_in_game(user_id, game.id):
+        return "You have already voted on this game."
 
     try:
         answer_ids = [int(answer_id) for answer_id in answer_ids]
     except (TypeError, ValueError):
         return "One or more selected answers are invalid."
+    if len(set(answer_ids)) != 1:
+        return "Choose exactly one answer."
     answers = Answers.query.filter(Answers.id.in_(answer_ids), Answers.gameId == game.id).all()
     answers_by_id = {answer.id: answer for answer in answers}
     if len(answers_by_id) != len(set(answer_ids)):
@@ -168,11 +172,13 @@ def vote_for_answers(user_id, answer_ids, game_id):
     if any(answer.userId == user_id for answer in answers):
         return "You cannot vote for your own answer."
 
-    already_voted = {vote.answerId for vote in Votes.query.filter_by(userId=user_id, gameId=game.id).all()}
-    for answer_id in set(answer_ids) - already_voted:
-        db.session.add(Votes(userId=user_id, answerId=answer_id, gameId=game.id))
+    db.session.add(Votes(userId=user_id, answerId=answer_ids[0], gameId=game.id))
     db.session.commit()
     return None
+
+
+def has_voted_in_game(user_id, game_id):
+    return db.session.query(Votes.id).filter_by(userId=user_id, gameId=game_id).first() is not None
 
 
 def get_game_answer_votes(game_id):

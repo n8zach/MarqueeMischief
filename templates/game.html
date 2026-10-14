@@ -13,8 +13,10 @@
             <div>
                 <h1 class="page-title">Game on</h1>
                 <p class="player-greeting">Hello {{ current_user.username }} — make every letter count.</p>
-                <p id="gameTimer" aria-live="polite"></p>
-                <p id="gameComplete" class="help-label" {% if not game_has_ended %}hidden{% endif %}>Time is up — you can now vote.</p>
+                <div class="game-status">
+                    <p id="gameTimer" aria-live="polite" {% if game_has_ended %}hidden{% endif %}></p>
+                    <a id="href_vote" class="button gold" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>Vote</a>
+                </div>
             </div>
             <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
             <div>
@@ -33,7 +35,6 @@
                 <div class="aiWaiting" id="aiWaiting"></div>
                 <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
             </div>
-            <div class="center"><p class="help-label" id="voteHelp" {% if game_has_ended %}hidden{% endif %}>Voting will open when the timer ends.</p><a id="href_vote" class="button gold" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>Vote</a></div>
         </section>
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
