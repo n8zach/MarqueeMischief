@@ -6,7 +6,22 @@
     <style>
         body { appearance: none; font-size: 20px; text-align: center; font-family: Helvetica, sans-serif; }
         #marqee-message { text-align: center; margin: 20px; }
-        .tryItBox { margin: auto; font-family: Times, serif; text-align: center; border: 1px solid black; width: 75%; }
+        .tryItBox {
+            box-sizing: border-box;
+            margin: auto;
+            min-height: 100px;
+            padding: 12px;
+            width: min(75%, 42rem);
+            font-family: "3606-marquee-web", sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.1;
+            text-align: center;
+            color: #142327;
+            background-color: #fff;
+            border: 3px solid #8e1717;
+            border-radius: 2px;
+        }
         .unusedLetters, .suggestions, .helpLabel { text-align: center; }
         .helpLabel { font-size: .7em; font-family: Helvetica, sans-serif; }
         .aiWaiting { display: none; opacity: 0; transition: opacity 1s ease-in-out; }
