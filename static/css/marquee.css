@@ -134,18 +134,22 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .help-label { margin: 0; color: var(--muted); font-size: .95rem; text-align: center; }
 .composer { display: grid; gap: .6rem; }
 .tryItBox {
-    min-height: calc(1.45em + .8rem + 6px);
+    box-sizing: border-box;
+    min-height: 100px;
     padding: 12px;
+    width: min(75%, 42rem);
+    margin-inline: auto;
     border: 3px solid #8e1717;
     border-radius: 2px;
     color: #142327;
     background: #fff;
     font-family: "3606-marquee-web", sans-serif;
-    font-size: clamp(1.5rem, 5vw, 32px);
+    font-size: clamp(14px, 4vw, 32px);
     font-weight: 900;
     line-height: 1.1;
     text-align: center;
 }
+.unavailable-letter { color: #c00; }
 .composer-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
 .letter-bank { min-height: 2.8rem; padding: .55rem .85rem; border-radius: 12px; background: #f4e8fc; color: var(--purple); font-weight: 700; letter-spacing: .08em; text-align: center; overflow-wrap: anywhere; }
 .letter-actions { display: flex; justify-content: center; margin-top: .55rem; }
