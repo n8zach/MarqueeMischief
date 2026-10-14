@@ -19,6 +19,8 @@ from mm_game_db import (
     get_or_create_puzzle,
     get_user_from_id,
     get_user_from_name_and_password,
+    get_unvoted_ended_games,
+    has_voted_in_game,
     save_answer_for_game,
     start_game,
     utc_datetime,
@@ -74,10 +76,9 @@ def load_user(user_id):
 def login():
     if request.method == "POST":
         user = get_user_from_name_and_password(request.form["username"], request.form["password"])
-        next_url = request.form.get("next_url")
         if user:
             login_user(user)
-            return redirect(next_url or url_for("tryit"))
+            return redirect(url_for("default"))
         flash("Login failed. Please check your username and password.", "danger")
     return render_template("login.html")
 
@@ -189,15 +190,26 @@ def game_status(game_id):
 @app.route("/vote/", methods=["POST", "GET"])
 @login_required
 def vote():
-    games = get_all_games()
-    selected = request.values.get("gameId") or (str(games[0][0]) if games else None)
+    games = get_unvoted_ended_games(current_user.id)
+    requested_game_id = request.values.get("gameId")
+    selected = next((game[0] for game in games if str(game[0]) == requested_game_id), games[0][0] if games else None)
     game = get_game(selected)
     if game is None:
         return render_template("Vote.html", games=games, votes=[], selected=None, can_vote=False)
     if request.method == "POST" and request.form.getlist("vote[]"):
         error = vote_for_answers(current_user.id, request.form.getlist("vote[]"), game.id)
-        flash(error or "Your vote was saved.", "error" if error else "success")
-    return render_template("Vote.html", games=games, votes=get_game_answer_votes(game.id), selected=game.id, can_vote=game_has_ended(game))
+        if error:
+            flash(error, "error")
+        else:
+            return redirect(url_for("results", gameId=game.id))
+    return render_template(
+        "Vote.html",
+        games=games,
+        votes=get_game_answer_votes(game.id),
+        selected=game.id,
+        can_vote=game_has_ended(game),
+        has_voted=has_voted_in_game(current_user.id, game.id),
+    )
 
 
 @app.route("/results", methods=["GET"])

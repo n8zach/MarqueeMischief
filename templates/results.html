@@ -2,35 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-size: 20px; font-family: Helvetica, sans-serif; text-align: center; }
-        table { margin-left: auto; margin-right: auto; table-layout: fixed; }
-        td { width: 1px; white-space: nowrap; border: 2px solid blue; padding: 5px; }
-        select { font-size: inherit; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
 <body>
-    <h1>Game results</h1>
-    <form method="get" action="{{ url_for('results') }}">
-        <label for="gameId">Game:</label>
-        <select name="gameId" id="gameId" onchange="this.form.submit()">
-            {% for item in games %}
-                <option value="{{ item[0] }}" {% if item[0] == selected %}selected{% endif %}>Game {{ item[0] }} — {{ item[1] or 'not started' }} — {{ item[2] }}</option>
-            {% endfor %}
-        </select>
-    </form>
-    {% if game %}
-        <p>{{ game[1] }}</p>
-        {% if can_view_results %}
-            {% autoescape false %}{{ text }}{% endautoescape %}
-            <p><a href="{{ url_for('vote', gameId=selected) }}">Vote for this game</a></p>
-        {% else %}
-            <p>Results will be available after this game's timer ends.</p>
-        {% endif %}
-        <p><a href="{{ url_for('game', gameId=selected) }}">Return to game</a></p>
-    {% else %}
-        <p>There are no games yet.</p>
-    {% endif %}
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Game results</h1>
+            <form class="form-stack" method="get" action="{{ url_for('results') }}">
+                <div class="field"><label for="gameId">Game</label><select name="gameId" id="gameId" onchange="this.form.submit()">{% for item in games %}<option value="{{ item[0] }}" {% if item[0] == selected %}selected{% endif %}>Game {{ item[0] }} — {{ item[1] or 'not started' }} — {{ item[2] }}</option>{% endfor %}</select></div>
+            </form>
+            {% if game %}
+                <p class="page-lede">{{ game[1] }}</p>
+                {% if can_view_results %}
+                    <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
+                    <div class="button-row"><a class="button gold" href="{{ url_for('vote', gameId=selected) }}">Vote for this game</a><a class="button" href="{{ url_for('game', gameId=selected) }}">Return to game</a></div>
+                {% else %}
+                    <p class="center">Results will be available after this game’s timer ends.</p>
+                    <div class="button-row"><a class="button" href="{{ url_for('game', gameId=selected) }}">Return to game</a></div>
+                {% endif %}
+            {% else %}
+                <p class="center">There are no games yet.</p>
+            {% endif %}
+        </section>
+    </main>
 </body>
 </html>

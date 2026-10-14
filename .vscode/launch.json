@@ -28,7 +28,8 @@
                 "--no-debugger",
                 "--no-reload"
             ],
-            "jinja": false,
+            "jinja": true,
+            "autoStartBrowser": true,
             "justMyCode": true
         },       {
             "name": "Python: Flask local",

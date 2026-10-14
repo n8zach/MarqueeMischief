@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waiting for game</title>
+    <title>Waiting for game — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
-<body style="font-family: Helvetica, sans-serif; font-size: 20px; text-align: center;">
-    <p>Waiting for the game master to start the game.</p>
-    <p id="waitingStatus" aria-live="polite">This page will begin automatically when the game starts.</p>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel center">
+            <h1 class="page-title">The marquee is warming up</h1>
+            <p class="page-lede">Waiting for the game master to start the game.</p>
+            <p id="waitingStatus" aria-live="polite">This page will begin automatically when the game starts.</p>
+        </section>
+    </main>
     <script>
         const statusUrl = {{ url_for('game_status', game_id=game.id)|tojson }};
         async function checkGameStatus() {

@@ -138,8 +138,20 @@ function updateTryItBox(fixCaret) {
     }
 
     document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage());
+    resizeTryItBox();
     updateButtons();
 }
+
+function resizeTryItBox() {
+    const box = document.getElementById("tryItBox");
+    if (!box) {
+        return;
+    }
+    box.style.height = "auto";
+    box.style.height = box.scrollHeight + "px";
+}
+
+window.addEventListener("resize", resizeTryItBox, { passive: true });
 
 function saveAnswer(text) {
     document.getElementById("saveResponse").innerHTML = "Saving...";
@@ -279,8 +291,7 @@ function initializeGameTimer() {
 
 function setGameEnded() {
     document.body.dataset.gameEnded = "true";
-    document.getElementById("gameComplete").hidden = false;
-    document.getElementById("voteHelp").hidden = true;
+    document.getElementById("gameTimer").hidden = true;
     document.getElementById("href_vote").hidden = false;
     document.querySelectorAll(".draftSubmit, .draftRemove").forEach(function (button) { button.hidden = true; });
     document.getElementById("getAiSuggestions").disabled = true;

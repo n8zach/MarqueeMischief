@@ -3,64 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { appearance: none; font-size: 20px; text-align: center; font-family: Helvetica, sans-serif; }
-        #marqee-message { text-align: center; margin: 20px; }
-        .tryItBox {
-            box-sizing: border-box;
-            margin: auto;
-            min-height: 100px;
-            padding: 12px;
-            width: min(75%, 42rem);
-            font-family: "3606-marquee-web", sans-serif;
-            font-size: 32px;
-            font-weight: 900;
-            line-height: 1.1;
-            text-align: center;
-            color: #142327;
-            background-color: #fff;
-            border: 3px solid #8e1717;
-            border-radius: 2px;
-        }
-        .unusedLetters, .suggestions, .helpLabel { text-align: center; }
-        .helpLabel { font-size: .7em; font-family: Helvetica, sans-serif; }
-        .aiWaiting { display: none; opacity: 0; transition: opacity 1s ease-in-out; }
-        #scrollBox { height: 200px; overflow: auto; background-color: #9fc5df; }
-        .drafts { font-size: 15px; }
-        #gameTimer { font-size: 1.25em; font-weight: bold; margin: 12px; }
-    </style>
+    <title>Game in progress — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
 <body data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}">
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel play-layout">
+            <div>
+                <h1 class="page-title">Game on</h1>
+                <p class="player-greeting">Hello {{ current_user.username }} — make every letter count.</p>
+                <div class="game-status">
+                    <p id="gameTimer" aria-live="polite" {% if game_has_ended %}hidden{% endif %}></p>
+                    <a id="href_vote" class="button gold" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>Vote</a>
+                </div>
+            </div>
+            <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
+            <div>
+                <p class="help-label">Unused letters</p>
+                <div id="unusedLetters" class="letter-bank"></div>
+                <div class="letter-actions"><button id="scrambleUnusedLetters" type="button" onclick="clickScrambleUnusedLetters()">Scramble</button></div>
+            </div>
+            <div class="composer">
+                <div id="tryItBox" class="tryItBox" contenteditable="true" role="textbox" aria-label="Your new message" data-game-id="{{ game.id }}" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>
+                <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+            </div>
+            <div class="saved-drafts"><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div><div id="saveResponse" class="help-label"></div></div>
+            <div id="wordSuggestions" class="suggestion-box"></div>
+            <div>
+                <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
+                <div class="aiWaiting" id="aiWaiting"></div>
+                <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
+            </div>
+        </section>
+    </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="/static/JavaScript/cookies.js"></script>
-    <script src="/static/JavaScript/textChangeNFade.js"></script>
-
-    Hello {{ current_user.username }}
-    <div id="gameTimer" aria-live="polite"></div>
-    <div id="gameComplete" class="helpLabel" {% if not game_has_ended %}hidden{% endif %}>Time is up — you can now vote.</div>
-    <br>
-    {{ form_data['OriginalMessageDisplay'] | safe }}
-    <br>
-    <div class="helpLabel">Make your own message here from the letters in the Original Message.</div>
-    <div id="tryItBox" class="tryItBox" contenteditable="true" data-game-id="{{ game.id }}" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div><button id="clearTryItBox" onclick="clearTryItBox()">X</button>
-    <button id="saveDraft" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save Draft</button>
-    <br>
-    Unused Letters: <button id="scrambleUnusedLetters" onclick="clickScrambleUnusedLetters()">scramble</button><div id="unusedLetters" class="unusedLetters"></div>
-    <br>
-    <div id="wordSuggestions" class="suggestions"></div>
-    <br>
-    <button id="getAiSuggestions" onclick="updateAISuggestions()">Get AI Suggestions</button>
-    <div class="aiWaiting" id="aiWaiting"></div>
-    <div id="scrollBox"><div id="aiSuggestions" class="suggestions"></div></div>
-    <p></p>
-    <div>Drafts</div>
-    <div class="drafts" id="drafts"></div>
-    <br>
-    <div id="saveResponse" class="helpLabel"></div>
-    <br>
-    <div class="helpLabel" id="voteHelp" {% if game_has_ended %}hidden{% endif %}>Voting will open when the timer ends.</div>
-    <a id="href_vote" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>VOTE</a>
-
-    <script src="/static/JavaScript/marqueemischief.js"></script>
+    <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/textChangeNFade.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/marqueemischief.js') }}"></script>
 </body>
 </html>
