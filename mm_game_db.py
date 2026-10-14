@@ -128,6 +128,23 @@ def get_all_games():
     )
 
 
+def get_unvoted_ended_games(user_id):
+    games = (
+        db.session.query(Games.id, Games.startTime, Puzzles.text, Games.durationSeconds)
+        .join(Puzzles, Puzzles.id == Games.puzzleId)
+        .outerjoin(Votes, (Votes.gameId == Games.id) & (Votes.userId == user_id))
+        .filter(Votes.id.is_(None))
+        .order_by(Games.id.desc())
+        .all()
+    )
+    now = utc_now()
+    return [
+        game for game in games
+        if game.startTime is not None
+        and utc_datetime(game.startTime) + timedelta(seconds=game.durationSeconds) <= now
+    ]
+
+
 def start_game(game_id):
     game = get_game(game_id)
     if game is None:

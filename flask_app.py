@@ -19,6 +19,7 @@ from mm_game_db import (
     get_or_create_puzzle,
     get_user_from_id,
     get_user_from_name_and_password,
+    get_unvoted_ended_games,
     has_voted_in_game,
     save_answer_for_game,
     start_game,
@@ -189,8 +190,9 @@ def game_status(game_id):
 @app.route("/vote/", methods=["POST", "GET"])
 @login_required
 def vote():
-    games = get_all_games()
-    selected = request.values.get("gameId") or (str(games[0][0]) if games else None)
+    games = get_unvoted_ended_games(current_user.id)
+    requested_game_id = request.values.get("gameId")
+    selected = next((game[0] for game in games if str(game[0]) == requested_game_id), games[0][0] if games else None)
     game = get_game(selected)
     if game is None:
         return render_template("Vote.html", games=games, votes=[], selected=None, can_vote=False)
