@@ -212,7 +212,7 @@ function addDraftItem(draft) {
     draft = draft.trim().replace(/\xA0/g, " ").replace(/\s+/g, " ");
 
     const label = document.createElement("label");
-    label.innerHTML = draft;
+    label.textContent = draft;
     label.id = "label";
 
     const div = document.createElement("div");
