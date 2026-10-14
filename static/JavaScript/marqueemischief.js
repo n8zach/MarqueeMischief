@@ -60,11 +60,22 @@ function formatText(sentence, letters) {
     let output = "";
 
     for (let index = 0; index < upperSentence.length; index++) {
-        if (remainingLetters.includes(upperSentence[index])) {
-            output += upperSentence[index];
-            remainingLetters = remainingLetters.replace(upperSentence[index], "");
+        const character = upperSentence[index];
+        const escapedCharacter = character.replace(/[&<>\"']/g, (match) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '\"': "&quot;",
+            "'": "&#39;"
+        })[match]);
+
+        if (remainingLetters.includes(character)) {
+            output += escapedCharacter;
+            remainingLetters = remainingLetters.replace(character, "");
+        } else if (/[A-Z]/.test(character)) {
+            output += `<span class=\"unavailable-letter\">${escapedCharacter}</span>`;
         } else {
-            output += upperSentence[index].toLowerCase();
+            output += escapedCharacter;
         }
     }
     return output;
@@ -123,15 +134,29 @@ function updateTryItBox(fixCaret) {
     if (fixCaret) {
         selection = window.getSelection();
         if (selection.rangeCount !== 0) {
-            caretOffset = selection.getRangeAt(0).startOffset;
+            const range = selection.getRangeAt(0);
+            const textBeforeCaret = range.cloneRange();
+            textBeforeCaret.selectNodeContents(box);
+            textBeforeCaret.setEnd(range.startContainer, range.startOffset);
+            caretOffset = textBeforeCaret.toString().length;
         }
     }
 
     box.innerHTML = formatText(text, originalMessage());
 
-    if (fixCaret && box.textContent.length !== 0) {
+    if (fixCaret && caretOffset !== undefined) {
         const newRange = document.createRange();
-        newRange.setStart(box.firstChild, caretOffset);
+        const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+        let textNode = walker.nextNode();
+        while (textNode && caretOffset > textNode.length) {
+            caretOffset -= textNode.length;
+            textNode = walker.nextNode();
+        }
+        if (textNode) {
+            newRange.setStart(textNode, Math.min(caretOffset, textNode.length));
+        } else {
+            newRange.setStart(box, 0);
+        }
         newRange.collapse(true);
         selection.removeAllRanges();
         selection.addRange(newRange);
@@ -200,7 +225,7 @@ function addDraftItem(draft) {
     draft = draft.trim().replace(/\xA0/g, " ").replace(/\s+/g, " ");
 
     const label = document.createElement("label");
-    label.innerHTML = draft;
+    label.textContent = draft;
     label.id = "label";
 
     const div = document.createElement("div");
