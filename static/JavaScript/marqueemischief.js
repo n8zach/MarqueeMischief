@@ -73,7 +73,7 @@ function formatText(sentence, letters) {
             output += escapedCharacter;
             remainingLetters = remainingLetters.replace(character, "");
         } else if (/[A-Z]/.test(character)) {
-            output += `<span class="unavailable-letter">${escapedCharacter}</span>`;
+            output += `<span class="unavailable-letter" style="color: #c00 !important">${escapedCharacter}</span>`;
         } else {
             output += escapedCharacter;
         }
