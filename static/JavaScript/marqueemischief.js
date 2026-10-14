@@ -112,8 +112,29 @@ document.addEventListener("keyup", function (event) {
 });
 
 function newMessageIsValid() {
-    const text = document.getElementById("tryItBox").innerText.trim();
-    return text.length > 0 && text.toUpperCase() === text;
+    const text = document.getElementById("tryItBox").textContent.trim();
+    if (text.length === 0 || text.toUpperCase() !== text) {
+        return false;
+    }
+
+    const availableLetters = new Map();
+    for (const letter of originalMessage().toUpperCase()) {
+        if (/[A-Z]/.test(letter)) {
+            availableLetters.set(letter, (availableLetters.get(letter) || 0) + 1);
+        }
+    }
+
+    for (const letter of text) {
+        if (!/[A-Z]/.test(letter)) {
+            continue;
+        }
+        const count = availableLetters.get(letter) || 0;
+        if (count === 0) {
+            return false;
+        }
+        availableLetters.set(letter, count - 1);
+    }
+    return true;
 }
 
 function updateButtons() {
