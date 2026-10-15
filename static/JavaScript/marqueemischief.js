@@ -102,6 +102,45 @@ function changeTryItBox(clickedElement) {
     updateScrabbleSuggestions();
 }
 
+function insertWordSuggestion(clickedElement) {
+    const box = document.getElementById("tryItBox");
+    const selection = window.getSelection();
+    let range = selection.rangeCount ? selection.getRangeAt(0) : null;
+
+    if (!range || !box.contains(range.startContainer) || !box.contains(range.endContainer)) {
+        box.focus();
+        range = document.createRange();
+        range.selectNodeContents(box);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    const caretRange = range.cloneRange();
+    caretRange.selectNodeContents(box);
+    caretRange.setEnd(range.startContainer, range.startOffset);
+    const selectionStart = caretRange.toString().length;
+    const selectionEnd = selectionStart + range.toString().length;
+    const text = box.textContent;
+    const prefix = text.slice(0, selectionStart).replace(/\s+$/, "");
+    const suffix = text.slice(selectionEnd).replace(/^\s+/, "");
+    const word = clickedElement.textContent.trim();
+    const leftSpace = prefix ? " " : "";
+    const rightSpace = suffix ? " " : "";
+
+    box.textContent = prefix + leftSpace + word + rightSpace + suffix;
+    const newCaretOffset = prefix.length + leftSpace.length + word.length;
+    const newRange = document.createRange();
+    const textNode = box.firstChild;
+    newRange.setStart(textNode || box, textNode ? newCaretOffset : 0);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+
+    updateTryItBox(true);
+    updateScrabbleSuggestions();
+}
+
 document.addEventListener("keyup", function (event) {
     event.preventDefault();
     if (event.target.isContentEditable) {
