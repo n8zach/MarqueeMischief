@@ -28,6 +28,13 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
     password = db.Column(db.String(32))
+    registrationCode = db.Column(db.String(128), nullable=True)
+
+
+class RegistrationCodes(db.Model):
+    __tablename__ = "registration_codes"
+    code = db.Column(db.String(128), primary_key=True)
+    description = db.Column(db.String(256))
 
 
 class Puzzles(db.Model):
@@ -79,6 +86,16 @@ def ensure_game_schema():
         db.session.execute(text(statement))
     if statements:
         db.session.commit()
+
+
+def ensure_registration_schema():
+    """Add registration-code tracking to databases created before registration codes."""
+    inspector = inspect(db.engine)
+    if "users" in inspector.get_table_names():
+        columns = {column["name"] for column in inspector.get_columns("users")}
+        if "registrationCode" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN registrationCode VARCHAR(128) NULL"))
+            db.session.commit()
 
 
 def get_or_create_puzzle(puzzle_text):
@@ -291,9 +308,17 @@ def get_user_from_name_and_password(username, password):
     return User(user.id, user.name, user.password) if user else None
 
 
-def add_user(username, password):
+def add_user(username, password, registration_code):
+    authorization_code = RegistrationCodes.query.filter_by(code=registration_code.strip()).first()
+    if authorization_code is None:
+        return False, "Invalid authorization code."
     if Users.query.filter_by(name=username).first() is not None:
         return False, "User already exists. Not adding it."
     db.session.add(Users(name=username, password=password))
+    db.session.commit()
+    Users.query.filter_by(name=username).update(
+        {"registrationCode": authorization_code.code},
+        synchronize_session=False,
+    )
     db.session.commit()
     return True, "success"

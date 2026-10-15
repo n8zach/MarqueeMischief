@@ -8,6 +8,7 @@ from mm_game_db import (
     add_user,
     create_game as create_game_record,
     ensure_game_schema,
+    ensure_registration_schema,
     game_end_time,
     game_has_ended,
     get_all_games,
@@ -52,6 +53,7 @@ with app.app_context():
     db.init_app(app)
     db.create_all()
     ensure_game_schema()
+    ensure_registration_schema()
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -93,7 +95,11 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        result, message = add_user(request.form["username"], request.form["password"])
+        result, message = add_user(
+            request.form.get("username", ""),
+            request.form.get("password", ""),
+            request.form.get("authorization_code", ""),
+        )
         if result:
             flash("Registration successful! Please login.", "success")
             return redirect(url_for("login"))
