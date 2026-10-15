@@ -144,7 +144,7 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
     color: #142327;
     background: #fff;
     font-family: "3606-marquee-web", sans-serif;
-    font-size: clamp(20px, 4vw, 32px);
+    font-size: clamp(28px, 4vw, 32px);
     font-weight: 900;
     line-height: 1.1;
     text-align: center;
