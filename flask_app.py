@@ -1,4 +1,5 @@
 import os
+from html import escape
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
@@ -105,7 +106,11 @@ def register():
 @login_required
 def scrabbler():
     suggestions = suggest_words(request.form["letters"])
-    return "Word Suggestions:<br>" + ", ".join(suggestions) if suggestions else ""
+    clickable_suggestions = ', '.join(
+        f'<span onmousedown="event.preventDefault()" onclick="insertWordSuggestion(this)">{escape(word)}</span>'
+        for word in suggestions
+    )
+    return "Word Suggestions:<br>" + clickable_suggestions if suggestions else ""
 
 
 @app.route("/aisuggestions", methods=["POST"])
