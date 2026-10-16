@@ -3,12 +3,12 @@ from html import escape
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from flask_migrate import Migrate
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
 from mm_game_db import (
     add_user,
     create_game as create_game_record,
-    ensure_game_schema,
     game_end_time,
     game_has_ended,
     get_all_games,
@@ -51,8 +51,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 with app.app_context():
     db.init_app(app)
-    db.create_all()
-    ensure_game_schema()
+Migrate(app, db)
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -77,7 +76,7 @@ def load_user(user_id):
 def login():
     if request.method == "POST":
         user = get_user_from_name_and_password(request.form["username"], request.form["password"])
-        if user:
+        if user and get_user_from_id(user.id):
             login_user(user)
             return redirect(url_for("default"))
         flash("Login failed. Please check your username and password.", "danger")
@@ -94,7 +93,11 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        result, message = add_user(request.form["username"], request.form["password"])
+        result, message = add_user(
+            request.form.get("username", ""),
+            request.form.get("password", ""),
+            request.form.get("authorization_code", ""),
+        )
         if result:
             flash("Registration successful! Please login.", "success")
             return redirect(url_for("login"))

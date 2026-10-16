@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, inspect, text
+from sqlalchemy import func, text
 from db import db
 from flask_login import UserMixin
 
@@ -28,6 +28,13 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
     password = db.Column(db.String(32))
+    authorizationCode = db.Column(db.String(128), nullable=True)
+
+
+class AuthorizationCodes(db.Model):
+    __tablename__ = "authorization_codes"
+    code = db.Column(db.String(128), primary_key=True)
+    description = db.Column(db.String(256))
 
 
 class Puzzles(db.Model):
@@ -60,25 +67,6 @@ class Votes(db.Model):
     userId = db.Column(db.Integer, db.ForeignKey("users.id"))
     answerId = db.Column(db.Integer, db.ForeignKey("answers.id"))
     gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
-
-
-def ensure_game_schema():
-    """Add game references to databases created before the games feature."""
-    inspector = inspect(db.engine)
-    existing_tables = set(inspector.get_table_names())
-    statements = []
-    if "answers" in existing_tables:
-        columns = {column["name"] for column in inspector.get_columns("answers")}
-        if "gameId" not in columns:
-            statements.append("ALTER TABLE answers ADD COLUMN gameId INTEGER NULL")
-    if "votes" in existing_tables:
-        columns = {column["name"] for column in inspector.get_columns("votes")}
-        if "gameId" not in columns:
-            statements.append("ALTER TABLE votes ADD COLUMN gameId INTEGER NULL")
-    for statement in statements:
-        db.session.execute(text(statement))
-    if statements:
-        db.session.commit()
 
 
 def get_or_create_puzzle(puzzle_text):
@@ -282,7 +270,11 @@ def get_game_results_text(game_id):
 
 
 def get_user_from_id(user_id):
-    user = db.session.get(Users, int(user_id))
+    user = (
+        Users.query.join(AuthorizationCodes, Users.authorizationCode == AuthorizationCodes.code)
+        .filter(Users.id == int(user_id))
+        .first()
+    )
     return User(user.id, user.name, user.password) if user else None
 
 
@@ -291,9 +283,17 @@ def get_user_from_name_and_password(username, password):
     return User(user.id, user.name, user.password) if user else None
 
 
-def add_user(username, password):
+def add_user(username, password, authorization_code):
+    authorization_code = AuthorizationCodes.query.filter_by(code=authorization_code.strip()).first()
+    if authorization_code is None:
+        return False, "Invalid authorization code."
     if Users.query.filter_by(name=username).first() is not None:
         return False, "User already exists. Not adding it."
     db.session.add(Users(name=username, password=password))
+    db.session.flush()
+    Users.query.filter_by(name=username).update(
+        {"authorizationCode": authorization_code.code},
+        synchronize_session=False,
+    )
     db.session.commit()
     return True, "success"

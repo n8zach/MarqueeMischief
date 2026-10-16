@@ -1,1 +1,20 @@
-Single-database configuration for Flask.
+Database schema changes use Flask-Migrate/Alembic.
+
+For a new database, apply the complete schema with:
+
+    flask --app flask_app db upgrade
+
+For a database created by the previous application version, mark its current
+schema as the baseline, then apply the authorization-code migration:
+
+    flask --app flask_app db stamp 0001_existing_schema
+    flask --app flask_app db upgrade
+
+When models change, generate a migration, review the generated operations, and
+apply it:
+
+    flask --app flask_app db migrate -m "describe the schema change"
+    flask --app flask_app db upgrade
+
+Autogeneration compares model metadata with the database; it does not update
+the schema when the application starts.
