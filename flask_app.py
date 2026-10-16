@@ -2,13 +2,12 @@ import os
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from flask_migrate import Migrate
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
 from mm_game_db import (
     add_user,
     create_game as create_game_record,
-    ensure_game_schema,
-    migrate_authorization_schema,
     game_end_time,
     game_has_ended,
     get_all_games,
@@ -51,9 +50,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 with app.app_context():
     db.init_app(app)
-    migrate_authorization_schema()
-    db.create_all()
-    ensure_game_schema()
+Migrate(app, db)
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"

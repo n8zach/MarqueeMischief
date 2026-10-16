@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, inspect, text
+from sqlalchemy import func, text
 from db import db
 from flask_login import UserMixin
 
@@ -67,45 +67,6 @@ class Votes(db.Model):
     userId = db.Column(db.Integer, db.ForeignKey("users.id"))
     answerId = db.Column(db.Integer, db.ForeignKey("answers.id"))
     gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
-
-
-def ensure_game_schema():
-    """Add game references to databases created before the games feature."""
-    inspector = inspect(db.engine)
-    existing_tables = set(inspector.get_table_names())
-    statements = []
-    if "answers" in existing_tables:
-        columns = {column["name"] for column in inspector.get_columns("answers")}
-        if "gameId" not in columns:
-            statements.append("ALTER TABLE answers ADD COLUMN gameId INTEGER NULL")
-    if "votes" in existing_tables:
-        columns = {column["name"] for column in inspector.get_columns("votes")}
-        if "gameId" not in columns:
-            statements.append("ALTER TABLE votes ADD COLUMN gameId INTEGER NULL")
-    for statement in statements:
-        db.session.execute(text(statement))
-    if statements:
-        db.session.commit()
-
-
-def migrate_authorization_schema():
-    """Preserve authorization codes stored under the previous schema names."""
-    inspector = inspect(db.engine)
-    tables = set(inspector.get_table_names())
-    if "registration_codes" in tables and "authorization_codes" not in tables:
-        db.session.execute(text("ALTER TABLE registration_codes RENAME TO authorization_codes"))
-        db.session.commit()
-        inspector = inspect(db.engine)
-        tables = set(inspector.get_table_names())
-    if "users" in tables:
-        columns = {column["name"] for column in inspector.get_columns("users")}
-        if "authorizationCode" not in columns:
-            db.session.execute(text("ALTER TABLE users ADD COLUMN authorizationCode VARCHAR(128) NULL"))
-            if "registrationCode" in columns:
-                db.session.execute(text(
-                    "UPDATE users SET authorizationCode = registrationCode WHERE authorizationCode IS NULL"
-                ))
-            db.session.commit()
 
 
 def get_or_create_puzzle(puzzle_text):
