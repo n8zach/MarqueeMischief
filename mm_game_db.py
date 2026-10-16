@@ -28,11 +28,11 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
     password = db.Column(db.String(32))
-    registrationCode = db.Column(db.String(128), nullable=True)
+    authorizationCode = db.Column(db.String(128), nullable=True)
 
 
-class RegistrationCodes(db.Model):
-    __tablename__ = "registration_codes"
+class AuthorizationCodes(db.Model):
+    __tablename__ = "authorization_codes"
     code = db.Column(db.String(128), primary_key=True)
     description = db.Column(db.String(256))
 
@@ -88,13 +88,23 @@ def ensure_game_schema():
         db.session.commit()
 
 
-def ensure_registration_schema():
-    """Add registration-code tracking to databases created before registration codes."""
+def migrate_authorization_schema():
+    """Preserve authorization codes stored under the previous schema names."""
     inspector = inspect(db.engine)
-    if "users" in inspector.get_table_names():
+    tables = set(inspector.get_table_names())
+    if "registration_codes" in tables and "authorization_codes" not in tables:
+        db.session.execute(text("ALTER TABLE registration_codes RENAME TO authorization_codes"))
+        db.session.commit()
+        inspector = inspect(db.engine)
+        tables = set(inspector.get_table_names())
+    if "users" in tables:
         columns = {column["name"] for column in inspector.get_columns("users")}
-        if "registrationCode" not in columns:
-            db.session.execute(text("ALTER TABLE users ADD COLUMN registrationCode VARCHAR(128) NULL"))
+        if "authorizationCode" not in columns:
+            db.session.execute(text("ALTER TABLE users ADD COLUMN authorizationCode VARCHAR(128) NULL"))
+            if "registrationCode" in columns:
+                db.session.execute(text(
+                    "UPDATE users SET authorizationCode = registrationCode WHERE authorizationCode IS NULL"
+                ))
             db.session.commit()
 
 
@@ -299,7 +309,11 @@ def get_game_results_text(game_id):
 
 
 def get_user_from_id(user_id):
-    user = db.session.get(Users, int(user_id))
+    user = (
+        Users.query.join(AuthorizationCodes, Users.authorizationCode == AuthorizationCodes.code)
+        .filter(Users.id == int(user_id))
+        .first()
+    )
     return User(user.id, user.name, user.password) if user else None
 
 
@@ -308,16 +322,16 @@ def get_user_from_name_and_password(username, password):
     return User(user.id, user.name, user.password) if user else None
 
 
-def add_user(username, password, registration_code):
-    authorization_code = RegistrationCodes.query.filter_by(code=registration_code.strip()).first()
+def add_user(username, password, authorization_code):
+    authorization_code = AuthorizationCodes.query.filter_by(code=authorization_code.strip()).first()
     if authorization_code is None:
         return False, "Invalid authorization code."
     if Users.query.filter_by(name=username).first() is not None:
         return False, "User already exists. Not adding it."
     db.session.add(Users(name=username, password=password))
-    db.session.commit()
+    db.session.flush()
     Users.query.filter_by(name=username).update(
-        {"registrationCode": authorization_code.code},
+        {"authorizationCode": authorization_code.code},
         synchronize_session=False,
     )
     db.session.commit()

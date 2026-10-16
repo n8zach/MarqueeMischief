@@ -8,7 +8,7 @@ from mm_game_db import (
     add_user,
     create_game as create_game_record,
     ensure_game_schema,
-    ensure_registration_schema,
+    migrate_authorization_schema,
     game_end_time,
     game_has_ended,
     get_all_games,
@@ -51,9 +51,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 with app.app_context():
     db.init_app(app)
+    migrate_authorization_schema()
     db.create_all()
     ensure_game_schema()
-    ensure_registration_schema()
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -78,7 +78,7 @@ def load_user(user_id):
 def login():
     if request.method == "POST":
         user = get_user_from_name_and_password(request.form["username"], request.form["password"])
-        if user:
+        if user and get_user_from_id(user.id):
             login_user(user)
             return redirect(url_for("default"))
         flash("Login failed. Please check your username and password.", "danger")
