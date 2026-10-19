@@ -277,6 +277,7 @@ function updateAISuggestions() {
         return;
     }
     document.getElementById("aiSuggestions").innerHTML = "";
+    document.getElementById("getAiSuggestions").hidden = true;
     startAnimation();
 
     $.ajax({
@@ -288,6 +289,7 @@ function updateAISuggestions() {
         url: "/aisuggestions"
     }).done(function (data) {
         stopAnimation();
+        document.getElementById("getAiSuggestions").hidden = false;
         document.getElementById("aiSuggestions").innerHTML = data;
         SaveAiSuggestionsCookie(cookieName("suggestions"));
     });
