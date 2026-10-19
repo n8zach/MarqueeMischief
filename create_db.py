@@ -1,3 +1,5 @@
-from flask_app import db
+from flask_app import app
+from flask_migrate import upgrade
 
-db.create_all()
+with app.app_context():
+    upgrade()
