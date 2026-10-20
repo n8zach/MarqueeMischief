@@ -23,7 +23,7 @@
                 <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
 
             </div>
-            <div class="saved-drafts"><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div></div>
+            <div class="saved-drafts" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to select it</i></p><div class="drafts" id="drafts"></div></div>
             <div id="wordSuggestions" class="suggestion-box"></div>
             <div>
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
@@ -31,6 +31,7 @@
                 <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
             </div>
         </section>
+        <p class="reset-help"><a href="#" onclick="resetHelp(); return false;">reset help</a></p>
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>

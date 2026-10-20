@@ -51,6 +51,7 @@ function myInit() {
     updateOriginalMessage(message);
     updateButtons();
     LoadDraftsFromCookie(cookieName("drafts"));
+    updateDraftsSection();
     LoadSuggestionsFromCookie(cookieName("suggestions"));
     initializeGameTimer();
 }
@@ -202,13 +203,44 @@ function updateOriginalMessageDisplay(letters, keepOrder = false) {
     });
 }
 
+function hintSeen(name) {
+    return getCookie("hint-" + name) === "1";
+}
+
+function resetHelp() {
+    ["draft", "word", "ai"].forEach((name) => setCookie("hint-" + name, "", -1));
+    window.location.reload();
+}
+
+function markHintSeen(name) {
+    setCookie("hint-" + name, "1", 3650);
+    document.querySelectorAll('[data-hint="' + name + '"]').forEach((element) => element.remove());
+}
+
+function updateDraftsSection() {
+    const drafts = document.getElementById("drafts");
+    const section = drafts.closest(".saved-drafts");
+    const hasDrafts = drafts.children.length > 0;
+    section.hidden = !hasDrafts;
+    const hint = section.querySelector('[data-hint="draft"]');
+    if (hint) {
+        hint.hidden = !hasDrafts;
+    }
+}
+
 function changeTryItBox(clickedElement) {
+    if (clickedElement.closest("#aiSuggestions")) {
+        markHintSeen("ai");
+    } else {
+        markHintSeen("draft");
+    }
     document.getElementById("tryItBox").innerText = clickedElement.textContent;
     updateTryItBox(true);
     updateScrabbleSuggestions();
 }
 
 function insertWordSuggestion(clickedElement) {
+    markHintSeen("word");
     const box = document.getElementById("tryItBox");
     const selection = window.getSelection();
     let range = selection.rangeCount ? selection.getRangeAt(0) : null;
@@ -369,7 +401,11 @@ function updateScrabbleSuggestions() {
         type: "POST",
         url: "/scrabbler"
     }).done(function (data) {
-        document.getElementById("wordSuggestions").innerHTML = data.trim();
+        let html = data.trim();
+        if (html && !hintSeen("word")) {
+            html = html.replace("Word Suggestions:<br>", 'Word Suggestions:<br><span data-hint="word">click a word to add it to your message<br></span>');
+        }
+        document.getElementById("wordSuggestions").innerHTML = html;
     });
 }
 
@@ -393,6 +429,10 @@ function updateAISuggestions() {
         document.getElementById("getAiSuggestions").hidden = false;
         document.getElementById("aiSuggestions").innerHTML = data;
         SaveAiSuggestionsCookie(cookieName("suggestions"));
+        const aiBox = document.getElementById("aiSuggestions");
+        if (!hintSeen("ai") && aiBox.querySelector("[onclick]")) {
+            aiBox.insertAdjacentHTML("afterbegin", '<div data-hint="ai"><i>click a suggestion to select it</i></div>');
+        }
     });
 }
 
@@ -431,6 +471,7 @@ function addDraftItem(draft) {
     removeButton.addEventListener("click", function () {
         div.remove();
         SaveDraftsCookie(cookieName("drafts"));
+        updateDraftsSection();
     });
 
     if (submitButton) {
@@ -439,9 +480,11 @@ function addDraftItem(draft) {
             saveDraftAsAnswer(this);
             div.remove();
             SaveDraftsCookie(cookieName("drafts"));
+            updateDraftsSection();
         });
     }
 
+    updateDraftsSection();
     clearTryItBox();
     SaveDraftsCookie(cookieName("drafts"));
 }
