@@ -1,5 +1,6 @@
 import os
 from html import escape
+from urllib.parse import urlsplit
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
@@ -72,13 +73,30 @@ def load_user(user_id):
     return get_user_from_id(user_id)
 
 
+def _safe_next_url(next_url):
+    try:
+        parsed_url = urlsplit(next_url)
+    except ValueError:
+        return None
+    if (
+        not next_url.startswith("/")
+        or next_url.startswith("//")
+        or "\\" in next_url
+        or parsed_url.scheme
+        or parsed_url.netloc
+        or any(ord(character) < 32 or ord(character) == 127 for character in next_url)
+    ):
+        return None
+    return next_url
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user = get_user_from_name_and_password(request.form["username"], request.form["password"])
         if user and get_user_from_id(user.id):
             login_user(user)
-            return redirect(url_for("default"))
+            return redirect(_safe_next_url(request.form.get("next_url", "")) or url_for("default"))
         flash("Login failed. Please check your username and password.", "danger")
     return render_template("login.html")
 
