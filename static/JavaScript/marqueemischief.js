@@ -34,6 +34,7 @@ function initTryItHint() {
     hint.id = "tryItHint";
     hint.className = "tryit-hint";
     hint.textContent = "click here to start making your own message";
+    hint.style.whiteSpace = "pre-line";
     hint.addEventListener("click", () => box.focus());
     stage.appendChild(hint);
     ["focus", "blur", "input"].forEach((evt) => box.addEventListener(evt, updateTryItHint));
@@ -48,32 +49,51 @@ function initKeyboardAlignment() {
         return;
     }
     const shell = document.querySelector(".site-shell") || document.body;
+    const KEYBOARD_MIN_SHRINK = 120; // ignores browser URL-bar resizes
     let timer = null;
+    let keyboardOpen = false;
+    let baseline = vv.height;
 
     function align() {
-        if (document.activeElement !== box) {
+        if (document.activeElement !== box || !keyboardOpen) {
             return;
         }
-        const keyboard = Math.max(0, window.innerHeight - vv.height);
-        shell.style.paddingBottom = keyboard + "px";
+        shell.style.paddingBottom = Math.max(0, baseline - vv.height) + "px";
         const target = stage.querySelector(".marquee-message") || stage;
         const top = target.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top: top, behavior: "smooth" });
     }
 
-    function schedule(delay) {
-        clearTimeout(timer);
-        timer = setTimeout(align, delay);
-    }
-
-    vv.addEventListener("resize", () => schedule(100));
-    box.addEventListener("focus", () => {
-        schedule(100);
-        setTimeout(align, 400); // iOS applies its own scroll after the keyboard animates
-    });
-    box.addEventListener("blur", () => {
+    function closeKeyboard() {
+        keyboardOpen = false;
         clearTimeout(timer);
         shell.style.paddingBottom = "";
+    }
+
+    // Aligns only on the closed -> open keyboard transition, never on later resizes or scrolling.
+    vv.addEventListener("resize", () => {
+        if (document.activeElement !== box) {
+            baseline = vv.height;
+            return;
+        }
+        const shrunk = baseline - vv.height > KEYBOARD_MIN_SHRINK;
+        if (shrunk && !keyboardOpen) {
+            keyboardOpen = true;
+            clearTimeout(timer);
+            timer = setTimeout(align, 100);
+            setTimeout(align, 450); // iOS applies its own scroll after the keyboard animates
+        } else if (!shrunk && keyboardOpen) {
+            closeKeyboard();
+        }
+    });
+    box.addEventListener("focus", () => {
+        if (!keyboardOpen) {
+            baseline = vv.height;
+        }
+    });
+    box.addEventListener("blur", () => {
+        closeKeyboard();
+        setTimeout(() => { baseline = vv.height; }, 400);
     });
 }
 
