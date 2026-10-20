@@ -20,7 +20,7 @@ function updateTryItHint() {
     const box = document.getElementById("tryItBox");
     const hint = document.getElementById("tryItHint");
     if (hint) {
-        hint.hidden = box.textContent !== "" || document.activeElement === box;
+        hint.hidden = hintSeen("tryit") || box.textContent !== "" || document.activeElement === box;
     }
 }
 
@@ -33,9 +33,13 @@ function initTryItHint() {
     const hint = document.createElement("div");
     hint.id = "tryItHint";
     hint.className = "tryit-hint";
+    hint.dataset.hint = "tryit";
     hint.textContent = "click here to start making your own message";
     hint.style.whiteSpace = "pre-line";
-    hint.addEventListener("click", () => box.focus());
+    hint.addEventListener("click", () => {
+        markHintSeen("tryit");
+        box.focus();
+    });
     stage.appendChild(hint);
     ["focus", "blur", "input"].forEach((evt) => box.addEventListener(evt, updateTryItHint));
     updateTryItHint();
@@ -266,7 +270,7 @@ function hintSeen(name) {
 }
 
 function resetHelp() {
-    ["draft", "word", "ai"].forEach((name) => setCookie("hint-" + name, "", -1));
+    ["tryit", "draft", "word", "ai"].forEach((name) => setCookie("hint-" + name, "", -1));
     window.location.reload();
 }
 
