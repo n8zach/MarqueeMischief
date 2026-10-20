@@ -1,10 +1,11 @@
 import os
 from html import escape
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_migrate import Migrate
+from werkzeug.routing.exceptions import MethodNotAllowed, NotFound
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
 from mm_game_db import (
@@ -87,7 +88,16 @@ def _safe_next_url(next_url):
         or any(ord(character) < 32 or ord(character) == 127 for character in next_url)
     ):
         return None
-    return next_url
+    try:
+        endpoint, path_values = app.url_map.bind("localhost").match(parsed_url.path, method="GET")
+    except (MethodNotAllowed, NotFound):
+        return None
+    query_values = {
+        key: values
+        for key, values in parse_qs(parsed_url.query, keep_blank_values=True).items()
+        if key not in {"_anchor", "_external", "_method", "_scheme"} and key not in path_values
+    }
+    return url_for(endpoint, **query_values, **path_values)
 
 
 @app.route("/login", methods=["GET", "POST"])
