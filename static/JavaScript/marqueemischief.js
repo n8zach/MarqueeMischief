@@ -468,7 +468,7 @@ function updateScrabbleSuggestions() {
             html = "No word suggestions";
         }
         if (html && !hintSeen("word")) {
-            html = html.replace("Word Suggestions:<br>", 'Word Suggestions:<br><span data-hint="word">click a word to add it to your message<br></span>');
+            html = '<span data-hint="word">click a word to add it to your marquee<br></span>' + html;
         }
         document.getElementById("wordSuggestions").innerHTML = html;
     });
@@ -496,7 +496,7 @@ function updateAISuggestions() {
         SaveAiSuggestionsCookie(cookieName("suggestions"));
         const aiBox = document.getElementById("aiSuggestions");
         if (!hintSeen("ai") && aiBox.querySelector("[onclick]")) {
-            aiBox.insertAdjacentHTML("afterbegin", '<div data-hint="ai"><i>click a suggestion to select it</i></div>');
+            aiBox.insertAdjacentHTML("afterbegin", '<div data-hint="ai"><i>click a suggestion to add it to your marquee</i></div>');
         }
     });
 }

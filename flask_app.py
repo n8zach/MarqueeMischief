@@ -113,7 +113,7 @@ def scrabbler():
         f'<span onmousedown="event.preventDefault()" onclick="insertWordSuggestion(this)">{escape(word)}</span>'
         for word in suggestions
     )
-    return "Word Suggestions:<br>" + clickable_suggestions if suggestions else ""
+    return f"{clickable_suggestions}" if suggestions else "No word suggestions"
 
 
 @app.route("/aisuggestions", methods=["POST"])

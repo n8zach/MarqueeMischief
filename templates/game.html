@@ -23,9 +23,10 @@
                 <div class="letter-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Reset</button><button id="scrambleOriginalMessage" type="button" onclick="clickScrambleOriginalMessage()">Scramble</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
             </div>
             <div class="composer">
-                <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
+                <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
+
             </div>
-            <div class="saved-drafts" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to select it</i></p><div class="drafts" id="drafts"></div></div><div id="saveResponse" class="help-label"></div>
+            <div class="saved-drafts" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to move it to your marquee</i></p><div class="drafts" id="drafts"></div></div><div id="saveResponse" class="help-label"></div>
             <div id="wordSuggestions" class="suggestion-box"></div>
             <div>
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
