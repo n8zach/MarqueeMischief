@@ -16,7 +16,32 @@ function cookieName(name) {
     return gameId() ? "game-" + gameId() + "+" + name : originalMessage() + "+" + name;
 }
 
+function updateTryItHint() {
+    const box = document.getElementById("tryItBox");
+    const hint = document.getElementById("tryItHint");
+    if (hint) {
+        hint.hidden = box.textContent !== "" || document.activeElement === box;
+    }
+}
+
+function initTryItHint() {
+    const box = document.getElementById("tryItBox");
+    const stage = box.closest(".composer-stage");
+    if (!stage || document.getElementById("tryItHint")) {
+        return;
+    }
+    const hint = document.createElement("div");
+    hint.id = "tryItHint";
+    hint.className = "tryit-hint";
+    hint.textContent = "click here to start making your own message";
+    hint.addEventListener("click", () => box.focus());
+    stage.appendChild(hint);
+    ["focus", "blur", "input"].forEach((evt) => box.addEventListener(evt, updateTryItHint));
+    updateTryItHint();
+}
+
 function myInit() {
+    initTryItHint();
     const message = originalMessage();
     const saveResponse = document.getElementById("saveResponse");
 
@@ -311,6 +336,7 @@ function updateTryItBox(fixCaret) {
 
     updateOriginalMessageDisplay(unusedLetters(text, originalMessage()));
     updateButtons();
+    updateTryItHint();
 }
 
 function saveAnswer(text) {

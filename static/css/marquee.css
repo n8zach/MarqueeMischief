@@ -131,6 +131,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .play-layout { display: grid; gap: 1.15rem; }
 .player-greeting { margin: 0; color: var(--muted); text-align: center; }
 .marquee-stage, .composer-stage { padding: .4rem; text-align: center; }
+.composer-stage { position: relative; }
+.tryit-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: 18px; cursor: text; z-index: 1; }
 .help-label { margin: 0; color: var(--muted); font-size: .95rem; text-align: center; }
 .composer { display: grid; gap: .6rem; }
 .marquee-input[contenteditable]:focus { outline: none; }
