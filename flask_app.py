@@ -237,11 +237,26 @@ def results():
     )
 
 
+def _try_it_box_attrs(message, game_id=None):
+    attrs = {
+        "id": "tryItBox",
+        "contenteditable": "true",
+        "spellcheck": "false",
+        "role": "textbox",
+        "aria-label": "Your new message",
+        "data-original-message": message,
+        "data-best": message,
+    }
+    if game_id is not None:
+        attrs["data-game-id"] = game_id
+    return attrs
+
+
 @app.route("/tryit/", methods=["GET"])
 @login_required
 def tryit():
     message = request.args.get("OriginalMessage", "PLEASE WAIT TO BE SEATED").upper()
-    form_data = {"user": current_user.username, "OriginalMessage": message, "Best": message, "OriginalMessageDisplay": message_to_marquee_html(message)}
+    form_data = {"user": current_user.username, "OriginalMessage": message, "Best": message, "OriginalMessageDisplay": message_to_marquee_html(message), "TryItBoxDisplay": message_to_marquee_html(message, input_attrs=_try_it_box_attrs(message))}
     return render_template("tryit.html", form_data=form_data, puzzles=get_all_puzzles())
 
 
@@ -258,7 +273,7 @@ def game():
     game_record, puzzle_text = game_and_puzzle
     if game_record.startTime is None:
         return render_template("game_waiting.html", game=game_record)
-    form_data = {"user": current_user.username, "OriginalMessage": puzzle_text, "Best": puzzle_text, "OriginalMessageDisplay": message_to_marquee_html(puzzle_text)}
+    form_data = {"user": current_user.username, "OriginalMessage": puzzle_text, "Best": puzzle_text, "OriginalMessageDisplay": message_to_marquee_html(puzzle_text), "TryItBoxDisplay": message_to_marquee_html(puzzle_text, input_attrs=_try_it_box_attrs(puzzle_text, game_record.id))}
     return render_template("game.html", form_data=form_data, game=game_record, end_time=utc_datetime(game_end_time(game_record)).isoformat(), game_has_ended=game_has_ended(game_record))
 
 

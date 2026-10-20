@@ -19,7 +19,7 @@
                 <div class="letter-actions"><button type="button" onclick="clickScrambleOriginalMessage()">Scramble</button></div>
             </div>
             <div class="composer">
-                <div id="tryItBox" class="tryItBox" contenteditable="true" spellcheck="false" role="textbox" aria-label="Your new message" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>
+                <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
                 <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()" aria-label="Clear message">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
             </div>
             <div class="saved-drafts"><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div></div>

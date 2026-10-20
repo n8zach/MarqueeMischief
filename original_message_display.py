@@ -33,8 +33,12 @@ class MarqueeSettings:
             raise ValueError("text_align must be left, center, or right")
 
 
-def message_to_marquee_html(message, settings=None):
-    """Return a self-contained, styled HTML block for a marquee-style message."""
+def message_to_marquee_html(message, settings=None, input_attrs=None):
+    """Return a self-contained, styled HTML block for a marquee-style message.
+
+    With input_attrs, the block is sized and styled the same way but holds one
+    editable row carrying those HTML attributes instead of the message text.
+    """
     settings = settings or MarqueeSettings()
     display_message = str(message).upper() if settings.uppercase else str(message)
     display_message = " ".join(display_message.split())
@@ -52,7 +56,7 @@ def message_to_marquee_html(message, settings=None):
         round(settings.font_size_px * settings.wrap_width / render_width),
     )
     style = (
-        f"display:block;box-sizing:border-box;width:fit-content;"
+        f"position:relative;display:block;box-sizing:border-box;width:fit-content;"
         f"max-width:min(100%, {render_width}ch);margin-inline:auto;"
         f"padding:{settings.padding_px}px;background-color:{settings.background_color};"
         f"border:{settings.border_width_px}px solid {settings.border_color};"
@@ -63,82 +67,98 @@ def message_to_marquee_html(message, settings=None):
 
     row_line_height = font_size * settings.line_height + settings.row_spacing_px
     row_style = f"position:relative;line-height:{row_line_height}px"
-    line_html = "".join(
-        f'<div class="marquee-row" style="{escape(row_style, quote=True)}">'
-        f"{escape(line)}</div>"
-        for line in lines
-    )
-    font_face = (
-        '<style>@font-face{font-family:"3606-marquee-web";'
-        'src:url("/static/fonts/3606-marquee-web/3606-marquee-web.woff2") format("woff2");'
-        'font-weight:900;font-style:normal;font-display:swap;}</style>'
-    )
+    if input_attrs is None:
+        line_html = "".join(
+            f'<div class="marquee-row" data-text="{escape(line, quote=True)}" style="{escape(row_style, quote=True)}">'
+            f"{escape(line)}</div>"
+            for line in lines
+        )
+        font_face = (
+            '<style>@font-face{font-family:"3606-marquee-web";'
+            'src:url("/static/fonts/3606-marquee-web/3606-marquee-web.woff2") format("woff2");'
+            'font-weight:900;font-style:normal;font-display:swap;}</style>'
+        )
+    else:
+        attrs = " ".join(f'{name}="{escape(str(value), quote=True)}"' for name, value in input_attrs.items())
+        input_style = f"{row_style};min-height:100%;white-space:pre-wrap"
+        line_html = f'<div class="marquee-row marquee-input" style="{escape(input_style, quote=True)}" {attrs}></div>'
+        font_face = ""
     rule_script = """
 <script>
 (() => {
-    const scheduleRules = (marquee) => {
-        if (marquee.dataset.rulesScheduled) return;
-        marquee.dataset.rulesScheduled = "true";
-        requestAnimationFrame(() => {
-            delete marquee.dataset.rulesScheduled;
-            const color = getComputedStyle(marquee).borderTopColor;
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
+    // Rules are computed from the original message's rows (data-text) and drawn on
+    // every marquee on the page, so they stay put however the letters change.
+    let scheduled = false;
+    const drawRules = () => {
+        scheduled = false;
+        const source = document.querySelector(".marquee-message .marquee-row[data-text]");
+        if (!source) return;
+        const origin = source.closest(".marquee-message");
+        const color = getComputedStyle(origin).borderTopColor;
+        const context = document.createElement("canvas").getContext("2d");
+        const pixelRatio = window.devicePixelRatio || 1;
+        const snap = (value) => Math.round(value * pixelRatio) / pixelRatio;
 
-            marquee.querySelectorAll(".marquee-row").forEach((row) => {
-                row.querySelectorAll(".marquee-row-rule").forEach((rule) => rule.remove());
-                const textNode = row.firstChild;
-                if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
+        // Measure a hidden clone holding the original text, so rows that the
+        // browser wraps onto several visual lines each get their own rules.
+        const clone = origin.cloneNode(true);
+        clone.querySelectorAll(".marquee-row-rule").forEach((rule) => rule.remove());
+        clone.querySelectorAll(".marquee-row[data-text]").forEach((row) => { row.textContent = row.dataset.text; });
+        clone.style.cssText += ";position:absolute;visibility:hidden;pointer-events:none;left:-9999px;top:0";
+        document.body.append(clone);
+        const cloneTop = clone.getBoundingClientRect().top + clone.clientTop;
 
-                const rowStyle = getComputedStyle(row);
-                context.font = `${rowStyle.fontStyle} ${rowStyle.fontWeight} ${rowStyle.fontSize} ${rowStyle.fontFamily}`;
-                const groups = new Map();
-                for (let offset = 0; offset < textNode.length; offset++) {
-                    const range = document.createRange();
-                    range.setStart(textNode, offset);
-                    range.setEnd(textNode, offset + 1);
-                    const rect = range.getBoundingClientRect();
-                    if (rect.width === 0 || rect.height === 0) continue;
-                    const lineTop = Math.round(rect.top * 100) / 100;
-                    const group = groups.get(lineTop) || { top: lineTop, start: offset, end: offset + 1 };
-                    group.start = Math.min(group.start, offset);
-                    group.end = Math.max(group.end, offset + 1);
-                    groups.set(lineTop, group);
-                }
+        const positions = [];
+        clone.querySelectorAll(".marquee-row[data-text]").forEach((row) => {
+            const style = getComputedStyle(row);
+            context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+            const textNode = row.firstChild;
+            if (!textNode) return;
+            const lines = new Map();
+            for (let offset = 0; offset < textNode.length; offset++) {
+                const range = document.createRange();
+                range.setStart(textNode, offset);
+                range.setEnd(textNode, offset + 1);
+                const rect = range.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) continue;
+                const lineTop = Math.round(rect.top * 100) / 100;
+                lines.set(lineTop, (lines.get(lineTop) || "") + textNode.data[offset]);
+            }
+            lines.forEach((text, lineTop) => {
+                const metrics = context.measureText(text.trim());
+                const ascent = metrics.fontBoundingBoxAscent ?? Number.parseFloat(style.fontSize);
+                const baseline = lineTop - cloneTop + ascent;
+                positions.push(baseline - metrics.actualBoundingBoxAscent - 1, baseline + metrics.actualBoundingBoxDescent);
+            });
+        });
+        clone.remove();
 
-                const rowTop = row.getBoundingClientRect().top;
-                const pixelRatio = window.devicePixelRatio || 1;
-                const snap = (value) => Math.round(value * pixelRatio) / pixelRatio;
-                groups.forEach((group) => {
-                    const metrics = context.measureText(textNode.data.slice(group.start, group.end).trim());
-                    const fontAscent = metrics.fontBoundingBoxAscent ?? Number.parseFloat(rowStyle.fontSize);
-                    const inkTop = group.top + fontAscent - metrics.actualBoundingBoxAscent;
-                    const inkBottom = group.top + fontAscent + metrics.actualBoundingBoxDescent;
-
-                    [inkTop - 1, inkBottom].forEach((lineTop) => {
-                        const rule = document.createElement("span");
-                        rule.className = "marquee-row-rule";
-                        rule.setAttribute("aria-hidden", "true");
-                        rule.style.cssText = `position:absolute;left:0;right:0;height:1px;top:${snap(lineTop - rowTop)}px;background-color:${color};pointer-events:none;z-index:1`;
-                        row.append(rule);
-                    });
-                });
+        document.querySelectorAll(".marquee-message").forEach((marquee) => {
+            marquee.querySelectorAll(":scope > .marquee-row-rule").forEach((rule) => rule.remove());
+            positions.forEach((top) => {
+                const rule = document.createElement("span");
+                rule.className = "marquee-row-rule";
+                rule.setAttribute("aria-hidden", "true");
+                rule.style.cssText = `position:absolute;left:0;right:0;height:1px;top:${snap(top)}px;background-color:${color};pointer-events:none;z-index:1`;
+                marquee.append(rule);
             });
         });
     };
+    const schedule = () => {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(drawRules);
+    };
 
-    document.querySelectorAll(".marquee-message").forEach((marquee) => {
-        if (marquee.dataset.rulesInitialized) return;
-        marquee.dataset.rulesInitialized = "true";
-        const schedule = () => scheduleRules(marquee);
-        marquee.addEventListener("marqueecontentchange", schedule);
-        window.addEventListener("resize", schedule, { passive: true });
-        if (window.ResizeObserver) new ResizeObserver(schedule).observe(marquee);
-        if (document.fonts) document.fonts.ready.then(schedule);
-        else schedule();
-    });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("load", schedule);
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.querySelector(".marquee-message"));
+    if (document.fonts) document.fonts.ready.then(schedule);
+    else schedule();
 })();
 </script>
 """
     marquee_html = f'<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
+    if input_attrs is not None:
+        rule_script = ""
     return f"{font_face}{marquee_html}{rule_script}"

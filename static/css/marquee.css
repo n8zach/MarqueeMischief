@@ -130,25 +130,12 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 
 .play-layout { display: grid; gap: 1.15rem; }
 .player-greeting { margin: 0; color: var(--muted); text-align: center; }
-.marquee-stage { padding: .4rem; text-align: center; }
+.marquee-stage, .composer-stage { padding: .4rem; text-align: center; }
 .help-label { margin: 0; color: var(--muted); font-size: .95rem; text-align: center; }
 .composer { display: grid; gap: .6rem; }
-.tryItBox {
-    box-sizing: border-box;
-    min-height: 100px;
-    padding: 12px;
-    width: min(75%, 42rem);
-    margin-inline: auto;
-    border: 3px solid #8e1717;
-    border-radius: 2px;
-    color: #142327;
-    background: #fff;
-    font-family: "3606-marquee-web", sans-serif;
-    font-size: clamp(28px, 4vw, 32px);
-    font-weight: 900;
-    line-height: 1.1;
-    text-align: center;
-}
+.marquee-input[contenteditable]:focus { outline: none; }
+.marquee-input-message:focus-within { border-color: var(--violet) !important; }
+.marquee-row-rule { user-select: none; }
 .unavailable-letter { color: #c00; }
 .composer-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
 .letter-actions { display: flex; justify-content: center; margin-top: .55rem; }

@@ -94,7 +94,7 @@ function unusedLetters(text, letters) {
     return output;
 }
 
-function updateOriginalMessageDisplay(letters) {
+function updateOriginalMessageDisplay(letters, keepOrder = false) {
     const marquee = document.querySelector(".marquee-stage .marquee-message");
     if (!marquee) {
         return;
@@ -123,10 +123,12 @@ function updateOriginalMessageDisplay(letters) {
             }))
         };
         originalMessageLayouts.set(marquee, layout);
-        marquee.style.boxSizing = "border-box";
-        marquee.style.width = `${layout.width}px`;
-        marquee.style.height = `${layout.height}px`;
-        marquee.style.maxWidth = "100%";
+        [marquee, document.getElementById("tryItBox").closest(".marquee-message")].forEach((frame) => {
+            frame.style.boxSizing = "border-box";
+            frame.style.width = `${layout.width}px`;
+            frame.style.height = `${layout.height}px`;
+            frame.style.maxWidth = "100%";
+        });
         layout.rows.forEach(({ element, height }) => {
             element.style.minHeight = `${height}px`;
             element.style.whiteSpace = "pre-wrap";
@@ -151,6 +153,11 @@ function updateOriginalMessageDisplay(letters) {
         return " ";
     });
     // Letters that came back go to their original slot first, then any blank slot.
+    // With every letter back, restore the original order.
+    if (!keepOrder && letters.length === layout.original.filter((c) => c !== " ").length) {
+        layout.current = layout.original.slice();
+        counts.clear();
+    }
     counts.forEach((count, letter) => {
         for (; count > 0; count--) {
             let slot = layout.current.findIndex((c, i) => c === " " && layout.original[i] === letter);
@@ -168,7 +175,6 @@ function updateOriginalMessageDisplay(letters) {
         element.textContent = layout.current.slice(offset, offset + capacity).join("");
         offset += capacity;
     });
-    marquee.dispatchEvent(new Event("marqueecontentchange"));
 }
 
 function changeTryItBox(clickedElement) {
@@ -298,20 +304,8 @@ function updateTryItBox(fixCaret) {
     }
 
     updateOriginalMessageDisplay(unusedLetters(text, originalMessage()));
-    resizeTryItBox();
     updateButtons();
 }
-
-function resizeTryItBox() {
-    const box = document.getElementById("tryItBox");
-    if (!box) {
-        return;
-    }
-    box.style.height = "auto";
-    box.style.height = box.scrollHeight + "px";
-}
-
-window.addEventListener("resize", resizeTryItBox, { passive: true });
 
 function saveAnswer(text) {
     document.getElementById("saveResponse").innerHTML = "Saving...";
@@ -492,7 +486,7 @@ function clickScrambleOriginalMessage() {
         [letters[index], letters[otherIndex]] = [letters[otherIndex], letters[index]];
     }
     slots.forEach((slot, index) => { layout.current[slot] = letters[index]; });
-    updateOriginalMessageDisplay(letters.join(""));
+    updateOriginalMessageDisplay(letters.join(""), true);
 }
 
 function navigateToTryAnotherPuzzle(selector) {
