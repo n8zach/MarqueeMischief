@@ -40,8 +40,45 @@ function initTryItHint() {
     updateTryItHint();
 }
 
+function initKeyboardAlignment() {
+    const box = document.getElementById("tryItBox");
+    const stage = document.querySelector(".marquee-stage");
+    const vv = window.visualViewport;
+    if (!box || !stage || !vv || !window.matchMedia("(pointer: coarse)").matches) {
+        return;
+    }
+    const shell = document.querySelector(".site-shell") || document.body;
+    let timer = null;
+
+    function align() {
+        if (document.activeElement !== box) {
+            return;
+        }
+        const keyboard = Math.max(0, window.innerHeight - vv.height);
+        shell.style.paddingBottom = keyboard + "px";
+        const top = stage.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top, behavior: "smooth" });
+    }
+
+    function schedule(delay) {
+        clearTimeout(timer);
+        timer = setTimeout(align, delay);
+    }
+
+    vv.addEventListener("resize", () => schedule(100));
+    box.addEventListener("focus", () => {
+        schedule(100);
+        setTimeout(align, 400); // iOS applies its own scroll after the keyboard animates
+    });
+    box.addEventListener("blur", () => {
+        clearTimeout(timer);
+        shell.style.paddingBottom = "";
+    });
+}
+
 function myInit() {
     initTryItHint();
+    initKeyboardAlignment();
     const message = originalMessage();
     const saveResponse = document.getElementById("saveResponse");
 
