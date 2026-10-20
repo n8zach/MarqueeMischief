@@ -24,6 +24,7 @@ def message_to_messages(message: str, use_proxy: bool = False):
         f"3. Favor short and funny words.\n"
         f"4. Do not use any punctuation or special characters. Not even a period at the end.\n"
         f"5. Aim for lots of variety in word choices across the sentences.\n"
+        f"6. Do not include any acts of violence or harm to people or animals, even in jest.\n"
         f"The letter multiset is: [{str_letters}]"
     )
 

@@ -464,6 +464,9 @@ function updateScrabbleSuggestions() {
         url: "/scrabbler"
     }).done(function (data) {
         let html = data.trim();
+        if (!html) {
+            html = "No word suggestions";
+        }
         if (html && !hintSeen("word")) {
             html = html.replace("Word Suggestions:<br>", 'Word Suggestions:<br><span data-hint="word">click a word to add it to your message<br></span>');
         }
