@@ -14,11 +14,9 @@
                 <h1 class="page-title">Time to Make Mischief</h1>
                 <p class="player-greeting">Hello {{ current_user.username }} — rearrange the letters and see what mischief appears.</p>
             </div>
-            <div class="marquee-stage">{{ form_data['OriginalMessageDisplay'] | safe }}</div>
-            <div>
-                <p class="help-label">Unused letters</p>
-                <div id="unusedLetters" class="letter-bank"></div>
-                <div class="letter-actions"><button type="button" onclick="clickScrambleUnusedLetters()">Scramble</button></div>
+            <div class="marquee-stage">
+                {{ form_data['OriginalMessageDisplay'] | safe }}
+                <div class="letter-actions"><button type="button" onclick="clickScrambleOriginalMessage()">Scramble</button></div>
             </div>
             <div class="composer">
                 <div id="tryItBox" class="tryItBox" contenteditable="true" spellcheck="false" role="textbox" aria-label="Your new message" data-original-message="{{ form_data['OriginalMessage'] }}" data-best="{{ form_data['Best'] }}"></div>

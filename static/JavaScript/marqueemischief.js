@@ -1,5 +1,7 @@
 window.addEventListener("load", myInit, true);
 
+const originalMessageLayouts = new WeakMap();
+
 function originalMessage() {
     return document.getElementById("tryItBox").dataset.originalMessage;
 }
@@ -18,10 +20,6 @@ function myInit() {
     const message = originalMessage();
     const saveResponse = document.getElementById("saveResponse");
 
-    document.getElementById("unusedLetters").innerHTML = unusedLetters(
-        document.getElementById("tryItBox").dataset.best,
-        message
-    );
     if (saveResponse) {
         saveResponse.innerHTML = "";
     }
@@ -94,6 +92,83 @@ function unusedLetters(text, letters) {
         }
     }
     return output;
+}
+
+function updateOriginalMessageDisplay(letters) {
+    const marquee = document.querySelector(".marquee-stage .marquee-message");
+    if (!marquee) {
+        return;
+    }
+
+    let layout = originalMessageLayouts.get(marquee);
+    if (!layout) {
+        // Measure only after the marquee font loads so the locked size is correct.
+        if (document.fonts && document.fonts.status !== "loaded") {
+            document.fonts.ready.then(() => updateTryItBox(false));
+            return;
+        }
+        const rect = marquee.getBoundingClientRect();
+        const rows = Array.from(marquee.querySelectorAll(".marquee-row"));
+        const rowTexts = rows.map((row) => (row.firstChild ? row.firstChild.textContent : ""));
+        const original = rowTexts.join("").split("");
+        layout = {
+            width: rect.width,
+            height: rect.height,
+            original,
+            current: original.slice(),
+            rows: rows.map((row, index) => ({
+                element: row,
+                capacity: rowTexts[index].length,
+                height: row.getBoundingClientRect().height
+            }))
+        };
+        originalMessageLayouts.set(marquee, layout);
+        marquee.style.boxSizing = "border-box";
+        marquee.style.width = `${layout.width}px`;
+        marquee.style.height = `${layout.height}px`;
+        marquee.style.maxWidth = "100%";
+        layout.rows.forEach(({ element, height }) => {
+            element.style.minHeight = `${height}px`;
+            element.style.whiteSpace = "pre-wrap";
+        });
+    }
+
+    // Keep letters that are still available in their current slots; blank the rest.
+    const counts = new Map();
+    for (const letter of letters) {
+        counts.set(letter, (counts.get(letter) || 0) + 1);
+    }
+    const isLetterSlot = (index) => layout.original[index] !== " ";
+    layout.current = layout.current.map((character, index) => {
+        if (!isLetterSlot(index) || character === " ") {
+            return character;
+        }
+        const count = counts.get(character) || 0;
+        if (count > 0) {
+            counts.set(character, count - 1);
+            return character;
+        }
+        return " ";
+    });
+    // Letters that came back go to their original slot first, then any blank slot.
+    counts.forEach((count, letter) => {
+        for (; count > 0; count--) {
+            let slot = layout.current.findIndex((c, i) => c === " " && layout.original[i] === letter);
+            if (slot === -1) {
+                slot = layout.current.findIndex((c, i) => c === " " && isLetterSlot(i));
+            }
+            if (slot !== -1) {
+                layout.current[slot] = letter;
+            }
+        }
+    });
+
+    let offset = 0;
+    layout.rows.forEach(({ element, capacity }) => {
+        element.textContent = layout.current.slice(offset, offset + capacity).join("");
+        offset += capacity;
+    });
+    marquee.dispatchEvent(new Event("marqueecontentchange"));
 }
 
 function changeTryItBox(clickedElement) {
@@ -222,7 +297,7 @@ function updateTryItBox(fixCaret) {
         selection.addRange(newRange);
     }
 
-    document.getElementById("unusedLetters").innerHTML = unusedLetters(text, originalMessage());
+    updateOriginalMessageDisplay(unusedLetters(text, originalMessage()));
     resizeTryItBox();
     updateButtons();
 }
@@ -384,7 +459,7 @@ function setGameEnded() {
     document.getElementById("getAiSuggestions").disabled = true;
     document.getElementById("saveDraft").disabled = true;
     document.getElementById("clearTryItBox").disabled = true;
-    document.getElementById("scrambleUnusedLetters").disabled = true;
+    document.getElementById("scrambleOriginalMessage").disabled = true;
     document.getElementById("tryItBox").contentEditable = "false";
 }
 
@@ -397,14 +472,27 @@ function clearTryItBox() {
     updateScrabbleSuggestions();
 }
 
-function clickScrambleUnusedLetters() {
-    const letters = document.getElementById("unusedLetters").innerHTML.split("");
+function clickScrambleOriginalMessage() {
+    const marquee = document.querySelector(".marquee-stage .marquee-message");
+    const layout = marquee && originalMessageLayouts.get(marquee);
+    if (!layout) {
+        return;
+    }
 
+    // Shuffle only the slots currently showing letters; blanks and word gaps stay put.
+    const slots = [];
+    layout.current.forEach((character, index) => {
+        if (character !== " ") {
+            slots.push(index);
+        }
+    });
+    const letters = slots.map((index) => layout.current[index]);
     for (let index = letters.length - 1; index > 0; index--) {
         const otherIndex = Math.floor(Math.random() * (index + 1));
         [letters[index], letters[otherIndex]] = [letters[otherIndex], letters[index]];
     }
-    document.getElementById("unusedLetters").innerHTML = letters.join("");
+    slots.forEach((slot, index) => { layout.current[slot] = letters[index]; });
+    updateOriginalMessageDisplay(letters.join(""));
 }
 
 function navigateToTryAnotherPuzzle(selector) {

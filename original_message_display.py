@@ -131,6 +131,7 @@ def message_to_marquee_html(message, settings=None):
         if (marquee.dataset.rulesInitialized) return;
         marquee.dataset.rulesInitialized = "true";
         const schedule = () => scheduleRules(marquee);
+        marquee.addEventListener("marqueecontentchange", schedule);
         window.addEventListener("resize", schedule, { passive: true });
         if (window.ResizeObserver) new ResizeObserver(schedule).observe(marquee);
         if (document.fonts) document.fonts.ready.then(schedule);
