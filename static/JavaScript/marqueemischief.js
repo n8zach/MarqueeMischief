@@ -263,7 +263,13 @@ function updateButtons() {
     }
     document.getElementById("saveDraft").disabled = !newMessageIsValid();
     document.getElementById("clearTryItBox").disabled =
-        document.getElementById("tryItBox").textContent === "";
+        document.getElementById("tryItBox").textContent === "" && !marqueeIsScrambled();
+}
+
+function marqueeIsScrambled() {
+    const marquee = document.querySelector(".marquee-stage .marquee-message");
+    const layout = marquee && originalMessageLayouts.get(marquee);
+    return !!layout && layout.current.some((c, i) => c !== " " && c !== layout.original[i]);
 }
 
 function updateTryItBox(fixCaret) {
@@ -337,7 +343,7 @@ function updateScrabbleSuggestions() {
         type: "POST",
         url: "/scrabbler"
     }).done(function (data) {
-        document.getElementById("wordSuggestions").innerHTML = data;
+        document.getElementById("wordSuggestions").innerHTML = data.trim();
     });
 }
 
@@ -487,6 +493,7 @@ function clickScrambleOriginalMessage() {
     }
     slots.forEach((slot, index) => { layout.current[slot] = letters[index]; });
     updateOriginalMessageDisplay(letters.join(""), true);
+    updateButtons();
 }
 
 function navigateToTryAnotherPuzzle(selector) {

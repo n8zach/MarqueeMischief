@@ -10,17 +10,18 @@
     <main class="site-shell">
         {% include '_site_nav.html' %}
         <section class="panel play-layout">
-            <div>
-                <h1 class="page-title">Time to Make Mischief</h1>
-                <p class="player-greeting">Hello {{ current_user.username }} — rearrange the letters and see what mischief appears.</p>
+            <div class="field">
+                <label for="tryAnotherPuzzleSelect">Choose your original message</label>
+                {% set current = form_data['OriginalMessage'] %}
+                <select id="tryAnotherPuzzleSelect" data-tryit-url="{{ url_for('tryit') }}" onchange="navigateToTryAnotherPuzzle(this)">{% if current not in puzzles | map(attribute=1) | map('upper') | list %}<option value="{{ current }}" selected>{{ current }}</option>{% endif %}{% for puzzle in puzzles %}<option value="{{ puzzle[1] }}"{% if puzzle[1] | upper == current %} selected{% endif %}>{{ puzzle[1] }}</option>{% endfor %}</select>
             </div>
             <div class="marquee-stage">
                 {{ form_data['OriginalMessageDisplay'] | safe }}
-                <div class="letter-actions"><button type="button" onclick="clickScrambleOriginalMessage()">Scramble</button></div>
+                <div class="letter-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()" aria-label="Reset message">Reset</button><button type="button" onclick="clickScrambleOriginalMessage()">Scramble</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
             </div>
             <div class="composer">
                 <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
-                <div class="composer-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()" aria-label="Clear message">Clear</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+
             </div>
             <div class="saved-drafts"><p class="help-label">Saved drafts</p><div class="drafts" id="drafts"></div></div>
             <div id="wordSuggestions" class="suggestion-box"></div>
@@ -28,10 +29,6 @@
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
                 <div class="aiWaiting" id="aiWaiting"></div>
                 <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
-            </div>
-            <div class="field">
-                <label for="tryAnotherPuzzleSelect">Try a different original message</label>
-                <select id="tryAnotherPuzzleSelect" data-tryit-url="{{ url_for('tryit') }}" onchange="navigateToTryAnotherPuzzle(this)"><option value="" selected disabled>Choose an original message</option>{% for puzzle in puzzles %}<option value="{{ puzzle[1] }}">{{ puzzle[1] }}</option>{% endfor %}</select>
             </div>
         </section>
     </main>

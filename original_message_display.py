@@ -94,7 +94,7 @@ def message_to_marquee_html(message, settings=None, input_attrs=None):
         const source = document.querySelector(".marquee-message .marquee-row[data-text]");
         if (!source) return;
         const origin = source.closest(".marquee-message");
-        const color = getComputedStyle(origin).borderTopColor;
+        const color = "#d3d3d3";
         const context = document.createElement("canvas").getContext("2d");
         const pixelRatio = window.devicePixelRatio || 1;
         const snap = (value) => Math.round(value * pixelRatio) / pixelRatio;
