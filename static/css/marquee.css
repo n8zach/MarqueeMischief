@@ -137,6 +137,7 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .tryit-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: .35rem .9rem; border-radius: 8px; background: #fff; text-align: center; white-space: nowrap; max-width: 95%; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: 18px; cursor: text; z-index: 1; }
 .help-label { margin: 0; color: var(--muted); font-size: .95rem; text-align: center; }
 .composer { display: grid; gap: .6rem; }
+.marquee-stage + .composer { margin-top: -.55rem; }
 .marquee-input[contenteditable]:focus { outline: none; }
 .marquee-input-message:focus-within { border-color: var(--violet) !important; }
 .marquee-row-rule { user-select: none; }

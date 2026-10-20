@@ -56,7 +56,8 @@ function initKeyboardAlignment() {
         }
         const keyboard = Math.max(0, window.innerHeight - vv.height);
         shell.style.paddingBottom = keyboard + "px";
-        const top = stage.getBoundingClientRect().top + window.scrollY;
+        const target = stage.querySelector(".marquee-message") || stage;
+        const top = target.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({ top: top, behavior: "smooth" });
     }
 

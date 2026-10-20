@@ -8,17 +8,17 @@ class MarqueeSettings:
     wrap_width: int = 25
     max_lines: int = 4
     font_family: str = '"3606-marquee-web", sans-serif'
-    font_size_px: int = 32
+    font_size_px: int = 28
     min_font_size_px: int = 14
     font_weight: int = 900
     line_height: float = 1.1
-    row_spacing_px: int = 4
+    row_spacing_px: int = 3
     text_color: str = "#142327"
     background_color: str = "#ffffff"
     border_color: str = "#8e1717"
     border_width_px: int = 3
     border_radius_px: int = 2
-    padding_px: int = 12
+    padding_px: int = 9
     text_align: str = "center"
     uppercase: bool = True
 
