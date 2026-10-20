@@ -13,6 +13,8 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
+body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
 
 body {
     min-height: 100vh;
