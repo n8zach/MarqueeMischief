@@ -8,31 +8,30 @@
 </head>
 <body>
     <main class="site-shell">
-        <img class="marquee-banner" src="{{ url_for('static', filename='images/MainBanner.JPG') }}" alt="Marquee Mischief">
-
+        {% include '_site_nav.html' %}
+       <img class="marquee-banner" src="{{ url_for('static', filename='images/MainBanner.JPG') }}" alt="Marquee Mischief">
         <section class="panel home-panel">
             {% if current_user.is_authenticated %}
-                <p class="intro">Welcome back, <strong>{{ current_user.username }}</strong>. What kind of mischief are we making?</p>
                 <nav class="action-list" aria-label="Marquee Mischief activities">
                     <a class="action-card" href="{{ url_for('tryit') }}">
                         <img src="{{ url_for('static', filename='images/friendly.jfif') }}" alt="Friendly face">
-                        <span>Try It<small>Make a marquee message your own.</small></span>
+                        <span>Try It</span>
                     </a>
                     <a class="action-card" href="{{ url_for('create_game') }}">
                         <img src="{{ url_for('static', filename='images/dancing.jfif') }}" alt="Dancing figure">
-                        <span>New Game<small>Start a new round with friends.</small></span>
+                        <span>New Game</span>
                     </a>
                     <a class="action-card" href="{{ url_for('coming_soon') }}">
                         <img src="{{ url_for('static', filename='images/evil.png') }}" alt="Mischievous character">
-                        <span>Today's Mischief<small>Coming soon.</small></span>
+                        <span>Today's Mischief</span>
                     </a>
                     <a class="action-card" href="{{ url_for('coming_soon') }}">
                         <img src="{{ url_for('static', filename='images/laughingcolor.jfif') }}" alt="Laughing face">
-                        <span>Vote On Yesterday's Mischief<small>Coming soon.</small></span>
+                        <span>Vote On Yesterday's Mischief</span>
                     </a>
                     <a class="action-card" href="{{ url_for('coming_soon') }}">
                         <img src="{{ url_for('static', filename='images/Laughing.jfif') }}" alt="Laughing face">
-                        <span>Check out the winners<small>Coming soon.</small></span>
+                        <span>Check out the winners</span>
                     </a>
                 </nav>
             {% else %}
