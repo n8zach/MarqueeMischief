@@ -21,7 +21,7 @@
                 <input type="hidden" name="next_url" value="{{ request.args.get('next', '') }}">
                 <input class="gold" type="submit" value="Log in">
             </form>
-            <p class="center">New here? <a class="text-link" href="{{ url_for('register') }}">Create an account</a>.</p>
+            <p class="center">New here? <a class="text-link" href="{{ url_for('register', next=request.args.get('next', '')) }}">Create an account</a>.</p>
         </section>
     </main>
 </body>

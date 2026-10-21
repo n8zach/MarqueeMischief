@@ -128,7 +128,7 @@ def register():
         )
         if result:
             flash("Registration successful! Please login.", "success")
-            return redirect(url_for("login"))
+            return redirect(url_for("login", next=request.form.get("next", "")))
         flash(f"Registration failed. {message}", "error")
     return render_template("register.html")
 
