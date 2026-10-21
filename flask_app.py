@@ -183,30 +183,36 @@ def create_game():
                 raise ValueError
             if puzzle_text:
                 puzzle = get_or_create_puzzle(puzzle_text)
+                puzzle_marquee = message_to_marquee_html(puzzle_text)
             elif puzzle_id:
                 puzzle = next((p for p in get_all_puzzles() if p[0] == int(puzzle_id)), None)
                 if puzzle is None:
                     raise ValueError
                 puzzle = get_or_create_puzzle(puzzle[1])
+                puzzle_marquee = message_to_marquee_html(puzzle.text)
             else:
                 raise ValueError
         except ValueError:
             flash("Choose an original message (or enter a new one) and a duration greater than zero.", "error")
             return render_template("creategame.html", puzzles=get_all_puzzles(), game=None)
         game = create_game_record(puzzle.id, duration_seconds)
-        return redirect(url_for("create_game", gameId=game.id))
+        return redirect(url_for("create_game", gameId=game.id, puzzle_marquee=puzzle_marquee))
 
     game = get_game_with_puzzle(request.args.get("gameId")) if request.args.get("gameId") else None
     game_url = url_for("game", gameId=game[0].id, _external=True) if game else None
-    return render_template("creategame.html", puzzles=get_all_puzzles(), game=game, game_url=game_url)
+    puzzle_marquee = request.args.get("puzzle_marquee")
+    return render_template("creategame.html", puzzles=get_all_puzzles(), game=game, game_url=game_url, puzzle_marquee=puzzle_marquee)
 
 
 @app.route("/games/<int:game_id>/start", methods=["POST"])
 @login_required
 def start_created_game(game_id):
-    _, error = start_game(game_id)
+    game, error = start_game(game_id)
+    if game is not None and game.startTime is not None and error:
+        flash("Game already started.", "error")
+        return redirect(url_for("create_game", gameId=game_id))
     flash(error or "Game started.", "error" if error else "success")
-    return redirect(url_for("tryit", gameId=game_id))
+    return redirect(url_for("game", gameId=game_id))
 
 
 @app.route("/game-status/<int:game_id>")

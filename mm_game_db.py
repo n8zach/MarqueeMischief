@@ -122,6 +122,7 @@ def get_unvoted_ended_games(user_id):
         .join(Puzzles, Puzzles.id == Games.puzzleId)
         .outerjoin(Votes, (Votes.gameId == Games.id) & (Votes.userId == user_id))
         .filter(Votes.id.is_(None))
+        .filter(Games.id.in_(db.session.query(Answers.gameId).filter(Answers.userId == user_id)))
         .order_by(Games.id.desc())
         .all()
     )
@@ -161,6 +162,8 @@ def vote_for_answers(user_id, answer_ids, game_id):
         return "Game not found."
     if not game_has_ended(game):
         return "Voting opens when this game's timer ends."
+    if Answers.query.filter_by(gameId=game.id, userId=user_id).first() is None:
+        return "This is not a game you have submitted an answer for."
     if has_voted_in_game(user_id, game.id):
         return "You have already voted on this game."
 
