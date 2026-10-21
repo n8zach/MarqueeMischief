@@ -18,7 +18,6 @@
                 <p class="page-lede">{{ game[1] }}</p>
                 {% if can_view_results %}
                     <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
-                    <div class="button-row"><a class="button gold" href="{{ url_for('vote', gameId=selected) }}">Vote for this game</a><a class="button" href="{{ url_for('game', gameId=selected) }}">Return to game</a></div>
                 {% else %}
                     <p class="center">Results will be available after this game’s timer ends.</p>
                     <div class="button-row"><a class="button" href="{{ url_for('game', gameId=selected) }}">Return to game</a></div>
