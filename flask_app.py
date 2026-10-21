@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlsplit
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_migrate import Migrate
-from werkzeug.routing.exceptions import MethodNotAllowed, NotFound
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
 from mm_game_db import (
