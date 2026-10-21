@@ -198,7 +198,10 @@ def get_game_answer_votes(game_id):
             Answers.text,
             func.count(Votes.id).label("count"),
         )
-        .outerjoin(Votes, Votes.answerId == Answers.id)
+        .outerjoin(
+            Votes,
+            (Votes.answerId == Answers.id) & (Votes.gameId == Answers.gameId),
+        )
         .filter(Answers.gameId == int(game_id))
         .group_by(Answers.id, Answers.gameId, Answers.userId, Answers.text)
         .order_by(func.count(Votes.id).desc(), Answers.id)

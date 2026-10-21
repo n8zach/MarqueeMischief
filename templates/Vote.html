@@ -22,10 +22,11 @@
                 {% if can_vote and not has_voted %}
                     <form action="{{ url_for('vote') }}" method="post">
                         <div id="vote" class="choice-list">
-                            {% for vote in votes %}{% if vote[2] != current_user.id %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label></div>{% endif %}{% endfor %}
+                            {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label></div>{% endfor %}
                         </div>
+                        {% if not votes %}<p class="center">No other players have submitted answers for this game yet.</p>{% endif %}
                         <input type="hidden" name="gameId" value="{{ selected }}">
-                        <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>
+                        {% if votes %}<div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>{% endif %}
                     </form>
                 {% elif has_voted %}
                     <p class="center">You have already voted on this game.</p>

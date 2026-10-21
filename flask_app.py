@@ -244,10 +244,15 @@ def vote():
             flash(error, "error")
         else:
             return redirect(url_for("results", gameId=game.id))
+    answers = get_game_answer_votes(game.id)
+    voteable_answers = [
+        answer for answer in answers
+        if answer[2] is None or int(answer[2]) != int(current_user.id)
+    ]
     return render_template(
         "Vote.html",
         games=games,
-        votes=get_game_answer_votes(game.id),
+        votes=voteable_answers,
         selected=game.id,
         can_vote=game_has_ended(game),
         has_voted=has_voted_in_game(current_user.id, game.id),
