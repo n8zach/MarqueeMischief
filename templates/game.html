@@ -35,6 +35,8 @@
             </div>
         </section>
         <p class="reset-help"><a href="#" onclick="resetHelp(); return false;">reset help</a></p>
+        <p class="center">Share this game.</p>
+        <img class="qr-code" alt="QR code for game {{ game.id }}" width="220" height="220" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data={{ game_url|urlencode }}">
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>

@@ -308,7 +308,8 @@ def game():
     if game_record.startTime is None:
         return render_template("game_waiting.html", game=game_record)
     form_data = {"user": current_user.username, "OriginalMessage": puzzle_text, "Best": puzzle_text, "OriginalMessageDisplay": message_to_marquee_html(puzzle_text), "TryItBoxDisplay": message_to_marquee_html(puzzle_text, input_attrs=_try_it_box_attrs(puzzle_text, game_record.id))}
-    return render_template("game.html", form_data=form_data, game=game_record, end_time=utc_datetime(game_end_time(game_record)).isoformat(), game_has_ended=game_has_ended(game_record))
+    game_url = url_for("game", gameId=game_record.id, _external=True)
+    return render_template("game.html", form_data=form_data, game=game_record, end_time=utc_datetime(game_end_time(game_record)).isoformat(), game_has_ended=game_has_ended(game_record), game_url=game_url)
 
 
 @app.route("/save", methods=["POST"])
