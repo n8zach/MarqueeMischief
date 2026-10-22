@@ -170,6 +170,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .choice:nth-child(odd) { background: #fff8e9; }
 .choice input { flex: 0 0 auto; margin-top: .25rem; accent-color: var(--purple); }
 .choice label { color: var(--ink); font-weight: normal; }
+.choice-list .choice { align-items: center; }
+.choice-list .choice label { flex: 1; text-align: center; }
 .results-table { width: min(100%, 42rem); margin: 1rem auto; border-collapse: separate; border-spacing: 0 .55rem; text-align: left; }
 .results-table th { padding: .5rem .75rem; color: white; background: var(--purple); font-weight: 700; }
 .results-table th:first-child { border-radius: 12px 0 0 12px; }
@@ -177,6 +179,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .results-table td { padding: .75rem; background: white; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); }
 .results-table tbody tr:nth-child(odd) td { background: #fff8e9; }
 .results-table td:first-child { border-left: 2px solid var(--line); border-radius: 12px 0 0 12px; }
+.results-table td:has(.marquee-message) { text-align: center; }
+.results-table .marquee-message { margin-inline: auto; }
 .results-table td:last-child { border-right: 2px solid var(--line); border-radius: 0 12px 12px 0; }
 
 @media (max-width: 600px) {

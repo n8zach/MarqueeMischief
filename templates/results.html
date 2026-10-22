@@ -46,6 +46,7 @@
                 if (!status || !body) return;
                 document.getElementById("vote_status").textContent = status.textContent;
                 document.getElementById("results_body").innerHTML = body.innerHTML;
+                window.dispatchEvent(new Event("resize")); // redraw marquee rules
                 if (status.dataset.complete === "true") clearInterval(pollTimer);
             } catch (e) { /* ignore transient errors */ }
         }

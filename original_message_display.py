@@ -33,11 +33,13 @@ class MarqueeSettings:
             raise ValueError("text_align must be left, center, or right")
 
 
-def message_to_marquee_html(message, settings=None, input_attrs=None):
+def message_to_marquee_html(message, settings=None, input_attrs=None, include_assets=True):
     """Return a self-contained, styled HTML block for a marquee-style message.
 
     With input_attrs, the block is sized and styled the same way but holds one
     editable row carrying those HTML attributes instead of the message text.
+    With include_assets=False, only the marquee block is returned; use it for
+    extra marquees on a page that already has the font and rule script.
     """
     settings = settings or MarqueeSettings()
     display_message = str(message).upper() if settings.uppercase else str(message)
@@ -68,6 +70,9 @@ def message_to_marquee_html(message, settings=None, input_attrs=None):
     row_line_height = font_size * settings.line_height + settings.row_spacing_px
     row_style = f"position:relative;line-height:{row_line_height}px"
     if input_attrs is None:
+        # Rows are already wrapped above; keep the browser from wrapping them again.
+        style = style.replace(f"max-width:min(100%, {render_width}ch);", "max-width:100%;")
+        row_style += ";white-space:nowrap"
         line_html = "".join(
             f'<div class="marquee-row" data-text="{escape(line, quote=True)}" style="{escape(row_style, quote=True)}">'
             f"{escape(line)}</div>"
@@ -161,4 +166,6 @@ def message_to_marquee_html(message, settings=None, input_attrs=None):
     marquee_html = f'<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
     if input_attrs is not None:
         rule_script = ""
+    if not include_assets:
+        return marquee_html
     return f"{font_face}{marquee_html}{rule_script}"

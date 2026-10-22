@@ -570,7 +570,7 @@ function renderEndPanel(notice) {
     }
     message.textContent = drafts.length === 1
         ? "You only saved one draft.  That's OK...  click submit to submit it."
-        : "Now it's time to pick your favorite one!";
+        : "Now it's time to submit your favorite one to be judged!";
 
     const inputType = PICK_MODE === "multiple" ? "checkbox" : "radio";
     const list = document.createElement("div");

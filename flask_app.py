@@ -55,6 +55,7 @@ app.config["SECRET_KEY"] = "TraLaLaa"
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.jinja_env.filters["marquee_row"] = lambda message: message_to_marquee_html(message, include_assets=False)
 # Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
 app.config["VOTE_REFRESH_SECONDS"] = int(os.environ.get("VOTE_REFRESH_SECONDS", 30))
 
