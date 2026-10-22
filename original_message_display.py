@@ -59,7 +59,7 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
     )
     style = (
         f"position:relative;display:block;box-sizing:border-box;width:fit-content;"
-        f"max-width:min(100%, {render_width}ch);margin-inline:auto;"
+        f"max-width:min(100%, {render_width}ch);min-width:0;margin-inline:auto;"
         f"padding:{settings.padding_px}px;background-color:{settings.background_color};"
         f"border:{settings.border_width_px}px solid {settings.border_color};"
         f"border-radius:{settings.border_radius_px}px;color:{settings.text_color};"
@@ -72,7 +72,6 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
     if input_attrs is None:
         # Rows are already wrapped above; keep the browser from wrapping them again.
         style = style.replace(f"max-width:min(100%, {render_width}ch);", "max-width:100%;")
-        row_style += ";white-space:nowrap"
         line_html = "".join(
             f'<div class="marquee-row" data-text="{escape(line, quote=True)}" style="{escape(row_style, quote=True)}">'
             f"{escape(line)}</div>"
