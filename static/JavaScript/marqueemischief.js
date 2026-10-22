@@ -6,6 +6,75 @@ function originalMessage() {
     return document.getElementById("tryItBox").dataset.originalMessage;
 }
 
+function setTryItOriginalMessage(message) {
+    const box = document.getElementById("tryItBox");
+    const marquee = document.querySelector(".marquee-stage .marquee-message");
+    const normalizedMessage = message.toUpperCase().split(/\s+/).filter(Boolean).join(" ");
+    const wrap = (text, width) => {
+        const lines = [];
+        let line = "";
+        for (let word of text.split(" ").filter(Boolean)) {
+            while (word.length > width) {
+                if (line) {
+                    lines.push(line);
+                    line = "";
+                }
+                lines.push(word.slice(0, width));
+                word = word.slice(width);
+            }
+            if (!line) {
+                line = word;
+            } else if (line.length + 1 + word.length <= width) {
+                line += " " + word;
+            } else {
+                lines.push(line);
+                line = word;
+            }
+        }
+        if (line) {
+            lines.push(line);
+        }
+        return lines;
+    };
+
+    let width = 25;
+    let lines = wrap(normalizedMessage, width);
+    while (lines.length > 4) {
+        lines = wrap(normalizedMessage, ++width);
+    }
+    if (!lines.length) {
+        lines = [""];
+    }
+
+    const fontSize = Math.max(14, Math.round(28 * 25 / width));
+    const rowLineHeight = `${fontSize * 1.1 + 3}px`;
+    [marquee, box.closest(".marquee-message")].forEach((frame) => {
+        frame.style.boxSizing = "border-box";
+        frame.style.width = "fit-content";
+        frame.style.height = "";
+        frame.style.maxWidth = `min(100%, ${width}ch)`;
+        frame.style.fontSize = `${fontSize}px`;
+    });
+    box.style.lineHeight = rowLineHeight;
+    box.style.minHeight = "";
+
+    marquee.replaceChildren(...lines.map((text) => {
+        const row = document.createElement("div");
+        row.className = "marquee-row";
+        row.dataset.text = text;
+        row.style.position = "relative";
+        row.style.lineHeight = rowLineHeight;
+        row.textContent = text;
+        return row;
+    }));
+
+    box.dataset.originalMessage = normalizedMessage;
+    box.dataset.best = normalizedMessage;
+    originalMessageLayouts.delete(marquee);
+    updateOriginalMessage();
+    window.dispatchEvent(new Event("resize"));
+}
+
 function gameId() {
     return document.getElementById("tryItBox").dataset.gameId;
 }
@@ -628,14 +697,4 @@ function clickScrambleOriginalMessage() {
     slots.forEach((slot, index) => { layout.current[slot] = letters[index]; });
     updateOriginalMessageDisplay(letters.join(""), true);
     updateButtons();
-}
-
-function navigateToTryAnotherPuzzle(selector) {
-    if (!selector.value) {
-        return;
-    }
-
-    const tryItUrl = new URL(selector.dataset.tryitUrl, window.location.origin);
-    tryItUrl.searchParams.set("OriginalMessage", selector.value);
-    window.location.href = tryItUrl.toString();
 }

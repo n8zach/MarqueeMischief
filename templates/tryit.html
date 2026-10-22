@@ -13,8 +13,9 @@
             <div class="field">
                 <label for="tryAnotherPuzzleSelect">Choose your original message</label>
                 {% set current = form_data['OriginalMessage'] %}
-                <select id="tryAnotherPuzzleSelect" data-tryit-url="{{ url_for('tryit') }}" onchange="navigateToTryAnotherPuzzle(this)">{% if current not in puzzles | map(attribute=1) | map('upper') | list %}<option value="{{ current }}" selected>{{ current }}</option>{% endif %}{% for puzzle in puzzles %}<option value="{{ puzzle[1] }}"{% if puzzle[1] | upper == current %} selected{% endif %}>{{ puzzle[1] }}</option>{% endfor %}</select>
+                <select id="tryAnotherPuzzleSelect">{% if current not in puzzles | map(attribute=1) | map('upper') | list %}<option value="{{ current }}" selected>{{ current }}</option>{% endif %}{% for puzzle in puzzles %}<option value="{{ puzzle[1] }}"{% if puzzle[1] | upper == current %} selected{% endif %}>{{ puzzle[1] }}</option>{% endfor %}</select>
             </div>
+            <div class="field"><label for="tryItNewMessage">Or type your own original message</label><input id="tryItNewMessage" maxlength="256" autocomplete="off"></div>
             <div class="marquee-stage">
                 {{ form_data['OriginalMessageDisplay'] | safe }}
                 <div class="letter-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()" aria-label="Reset message">Reset</button><button type="button" onclick="clickScrambleOriginalMessage()">Scramble</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
@@ -37,5 +38,31 @@
     <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/textChangeNFade.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/marqueemischief.js') }}"></script>
+    <script>
+        (() => {
+            const input = document.getElementById("tryItNewMessage");
+            const selector = document.getElementById("tryAnotherPuzzleSelect");
+
+            function applyMessage(message) {
+                if (!message.trim()) return;
+                setTryItOriginalMessage(message);
+                const url = new URL(window.location.href);
+                url.searchParams.set("OriginalMessage", message);
+                window.history.replaceState(null, "", url);
+            }
+
+            function onInput() {
+                applyMessage(input.value.length > 0 ? input.value : selector.value);
+            }
+
+            function onSelectionChange() {
+                input.value = "";
+                applyMessage(selector.value);
+            }
+
+            input.addEventListener("input", onInput);
+            selector.addEventListener("change", onSelectionChange);
+        })();
+    </script>
 </body>
 </html>
