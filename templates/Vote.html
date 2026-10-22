@@ -11,30 +11,24 @@
         {% include '_site_nav.html' %}
         <section class="panel">
             <h1 class="page-title">Cast your vote</h1>
-            <p class="page-lede">Pick a completed game, then choose the message that made you grin widest.</p>
+            <p class="page-lede">Choose the message that made you grin widest.</p>
             {% with messages = get_flashed_messages() %}
                 {% if messages %}<ul class="notice-list">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
             {% endwith %}
-            <form class="form-stack" action="{{ url_for('vote') }}" method="get">
-                <div class="field"><label for="gameId">Game</label><select name="gameId" id="gameId" onchange="this.form.submit()">{% for game in games %}<option value="{{ game[0] }}" {% if game[0] == selected %}selected{% endif %}>Game {{ game[0] }} — {{ game[1] or 'not started' }} — {{ game[2] }}</option>{% endfor %}</select></div>
-            </form>
-            {% if selected %}
-                {% if can_vote and not has_voted %}
-                    <form action="{{ url_for('vote') }}" method="post">
-                        <div id="vote" class="choice-list">
-                            {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label></div>{% endfor %}
-                        </div>
-                        {% if not votes %}<p class="center">No other players have submitted answers for this game yet.</p>{% endif %}
-                        <input type="hidden" name="gameId" value="{{ selected }}">
-                        {% if votes %}<div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>{% endif %}
-                    </form>
-                {% elif has_voted %}
-                    <p class="center">You have already voted on this game.</p>
-                {% else %}
-                    <p class="center">Voting opens when this game’s timer ends.</p>
-                {% endif %}
+            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            {% if block_reason %}
+                <p class="center">{{ block_reason }}</p>
             {% else %}
-                <p class="center">There are no completed games available for you to vote on.</p>
+                <p id="submitted_count" class="center">{{ submitter_count }} player{{ '' if submitter_count == 1 else 's' }} ha{{ 's' if submitter_count == 1 else 've' }} submitted entries (including you)</p>
+                <div class="button-row"><button type="button" onclick="refreshVotes()">Refresh now</button></div>
+                <form action="{{ url_for('vote') }}" method="post">
+                    <div id="vote" class="choice-list">
+                        {% if not votes %}<p class="center">Nobody else has submitted yet, so there's nothing to vote on yet. Page will auto-refresh.</p>{% endif %}
+                        {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">({{ vote[4] }}) : {{ vote[3] }}</label></div>{% endfor %}
+                    </div>
+                    <input type="hidden" name="gameId" value="{{ selected }}">
+                    <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>
+                </form>
             {% endif %}
         </section>
     </main>
@@ -43,6 +37,33 @@
             const voteButton = document.getElementById("vote_button");
             if (voteButton) voteButton.disabled = !document.querySelector("#vote input[type=radio]:checked");
         }
+
+        // Poll periodically, updating only the count and choices so a selection isn't lost.
+        {% if not block_reason %}
+        async function refreshVotes() {
+            try {
+                const response = await fetch(window.location.href, { headers: { "X-Requested-With": "fetch" } });
+                if (!response.ok) return;
+                const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+                const newCount = doc.getElementById("submitted_count");
+                const newVote = doc.getElementById("vote");
+                if (!newCount || !newVote) return;
+                const count = document.getElementById("submitted_count");
+                if (count.textContent !== newCount.textContent) {
+                    count.textContent = newCount.textContent;
+                    const checked = document.querySelector("#vote input[type=radio]:checked");
+                    const checkedValue = checked ? checked.value : null;
+                    document.getElementById("vote").innerHTML = newVote.innerHTML;
+                    if (checkedValue) {
+                        const again = document.querySelector('#vote input[value="' + checkedValue + '"]');
+                        if (again) again.checked = true;
+                    }
+                    handleVoteSelectionChange();
+                }
+            } catch (e) { /* ignore transient errors */ }
+        }
+        setInterval(refreshVotes, {{ refresh_seconds * 1000 }});
+        {% endif %}
     </script>
 </body>
 </html>

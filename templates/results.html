@@ -11,21 +11,46 @@
         {% include '_site_nav.html' %}
         <section class="panel">
             <h1 class="page-title">Game results</h1>
-            <form class="form-stack" method="get" action="{{ url_for('results') }}">
-                <div class="field"><label for="gameId">Game</label><select name="gameId" id="gameId" onchange="this.form.submit()">{% for item in games %}<option value="{{ item[0] }}" {% if item[0] == selected %}selected{% endif %}>Game {{ item[0] }} — {{ item[1] or 'not started' }} — {{ item[2] }}</option>{% endfor %}</select></div>
-            </form>
-            {% if game %}
-                <p class="page-lede">{{ game[1] }}</p>
+            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            {% if notice %}
+                <p class="center">{{ notice }}</p>
+            {% elif game %}
                 {% if can_view_results %}
-                    <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
+                    <p id="vote_status" class="center" data-complete="{{ 'true' if voter_count >= submitter_count else 'false' }}">{{ voter_count }} of {{ submitter_count }} player{{ '' if submitter_count == 1 else 's' }} ha{{ 's' if voter_count == 1 else 've' }} voted</p>
+                    {% if voter_count < submitter_count %}<div class="button-row"><button type="button" onclick="refreshResults()">Refresh now</button></div>{% endif %}
+                    <div id="results_body" class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
                 {% else %}
                     <p class="center">Results will be available after this game’s timer ends.</p>
                     <div class="button-row"><a class="button" href="{{ url_for('game', gameId=selected) }}">Return to game</a></div>
                 {% endif %}
+            {% elif games %}
+                <form class="form-stack" method="get" action="{{ url_for('results') }}">
+                    <div class="field"><label for="gameId">Choose a game you played</label><select name="gameId" id="gameId" onchange="if (this.value) this.form.submit()"><option value="">Select a game…</option>{% for item in games %}<option value="{{ item[0] }}">Game {{ item[0] }} — {{ item[1] or 'not started' }} — {{ item[2] }}</option>{% endfor %}</select></div>
+                </form>
             {% else %}
-                <p class="center">There are no games yet.</p>
+                <p class="center">You haven't participated in any games yet.</p>
             {% endif %}
         </section>
     </main>
+    {% if can_view_results and voter_count < submitter_count %}
+    <script>
+        // Poll until every player who submitted has voted, then stop.
+        let pollTimer;
+        async function refreshResults() {
+            try {
+                const response = await fetch(window.location.href);
+                if (!response.ok) return;
+                const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+                const status = doc.getElementById("vote_status");
+                const body = doc.getElementById("results_body");
+                if (!status || !body) return;
+                document.getElementById("vote_status").textContent = status.textContent;
+                document.getElementById("results_body").innerHTML = body.innerHTML;
+                if (status.dataset.complete === "true") clearInterval(pollTimer);
+            } catch (e) { /* ignore transient errors */ }
+        }
+        pollTimer = setInterval(refreshResults, {{ refresh_seconds * 1000 }});
+    </script>
+    {% endif %}
 </body>
 </html>

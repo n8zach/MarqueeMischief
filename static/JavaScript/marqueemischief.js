@@ -103,7 +103,7 @@ function initTryItHint() {
     hint.id = "tryItHint";
     hint.className = "tryit-hint";
     hint.dataset.hint = "tryit";
-    hint.textContent = "click here to start making your own message";
+    hint.textContent = stage.dataset.hintText || "click here to start making your own message";
     hint.style.whiteSpace = "pre-line";
     hint.addEventListener("click", () => {
         markHintSeen("tryit");
@@ -352,7 +352,7 @@ function updateDraftsSection() {
     const drafts = document.getElementById("drafts");
     const section = drafts.closest(".saved-drafts");
     const hasDrafts = drafts.children.length > 0;
-    section.hidden = !hasDrafts;
+    section.hidden = !hasDrafts || document.body.dataset.gameEnded === "true";
     const hint = section.querySelector('[data-hint="draft"]');
     if (hint) {
         hint.hidden = !hasDrafts;
@@ -503,9 +503,7 @@ function updateTryItBox(fixCaret) {
 }
 
 function saveAnswer(text) {
-    document.getElementById("saveResponse").innerHTML = "Saving...";
-
-    $.ajax({
+    return $.ajax({
         data: {
             answer: text,
             puzzle: originalMessage(),
@@ -513,13 +511,132 @@ function saveAnswer(text) {
         },
         type: "POST",
         url: "/save"
-    }).done(function (data) {
-        document.getElementById("saveResponse").innerHTML = data;
     });
 }
 
-function saveDraftAsAnswer(button) {
-    saveAnswer(button.value);
+// Submits each selected draft in order; stops at the first rejection.
+function submitDrafts(drafts) {
+    return drafts.reduce(function (chain, draft) {
+        return chain.then(function () {
+            return saveAnswer(draft).then(null, function (xhr) {
+                return $.Deferred().reject(xhr, draft).promise();
+            });
+        });
+    }, $.Deferred().resolve().promise());
+}
+
+// "single" = radio buttons, one submission; "multiple" = checkboxes.
+const PICK_MODE = "single";
+
+function currentDrafts() {
+    return Array.from(document.querySelectorAll("#drafts .draft label")).map(function (label) { return label.textContent; });
+}
+
+function removeDraftByText(text) {
+    const label = Array.from(document.querySelectorAll("#drafts .draft label")).find(function (item) { return item.textContent === text; });
+    if (label) {
+        label.parentElement.remove();
+        SaveDraftsCookie(cookieName("drafts"));
+        updateDraftsSection();
+    }
+}
+
+function renderEndPanel(notice) {
+    const panel = document.getElementById("endPanel");
+    const drafts = currentDrafts();
+    panel.innerHTML = "";
+
+    const title = document.createElement("h1");
+    title.className = "page-title";
+    title.textContent = "Times Up!";
+    panel.appendChild(title);
+
+    if (notice) {
+        const noticeLine = document.createElement("p");
+        noticeLine.className = "notice-list";
+        noticeLine.textContent = notice;
+        panel.appendChild(noticeLine);
+    }
+
+    const message = document.createElement("p");
+    message.className = "page-lede";
+    panel.appendChild(message);
+
+    if (drafts.length === 0) {
+        message.textContent = notice
+            ? "Oh snap!  Now you don't have any to submit.  Maybe next time."
+            : "Oh no!  You didn't save any drafts!  Sorry, but you have to save at least one draft in a game to vote on a winner.";
+        return;
+    }
+    message.textContent = drafts.length === 1
+        ? "You only saved one draft.  That's OK...  click submit to submit it."
+        : "Now it's time to pick your favorite one!";
+
+    const inputType = PICK_MODE === "multiple" ? "checkbox" : "radio";
+    const list = document.createElement("div");
+    list.className = "choice-list";
+    drafts.forEach(function (draft, index) {
+        const row = document.createElement("div");
+        row.className = "choice";
+        const input = document.createElement("input");
+        input.type = inputType;
+        input.name = "pick";
+        input.id = "pick-" + index;
+        input.value = draft;
+        input.checked = drafts.length === 1;
+        input.addEventListener("change", updateSubmitState);
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        label.textContent = draft;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "draftRemove";
+        remove.textContent = "x";
+        remove.addEventListener("click", function () {
+            removeDraftByText(draft);
+            renderEndPanel();
+        });
+        row.append(input, label, remove);
+        list.appendChild(row);
+    });
+    panel.appendChild(list);
+
+    const status = document.createElement("div");
+    status.id = "endStatus";
+    status.className = "help-label";
+    const submit = document.createElement("button");
+    submit.id = "submitPick";
+    submit.type = "button";
+    submit.className = "gold";
+    submit.textContent = "Submit";
+    submit.addEventListener("click", function () {
+        const picked = Array.from(document.querySelectorAll("#endPanel input[name=pick]:checked")).map(function (input) { return input.value; });
+        submit.disabled = true;
+        status.textContent = "Submitting...";
+        submitDrafts(picked).done(function () {
+            window.location.href = "/vote/?gameId=" + encodeURIComponent(gameId());
+        }).fail(function (xhr, draft) {
+            if (xhr.status === 409) {
+                removeDraftByText(draft);
+                renderEndPanel("Someone beat you to that one!");
+                return;
+            }
+            status.textContent = xhr.responseText || "Something went wrong submitting your draft.";
+            updateSubmitState();
+        });
+    });
+    const row = document.createElement("div");
+    row.className = "button-row";
+    row.appendChild(submit);
+    panel.append(row, status);
+    updateSubmitState();
+}
+
+function updateSubmitState() {
+    const submit = document.getElementById("submitPick");
+    if (submit) {
+        submit.disabled = !document.querySelector("#endPanel input[name=pick]:checked");
+    }
 }
 
 function updateScrabbleSuggestions() {
@@ -573,6 +690,17 @@ function updateAISuggestions() {
 function addDraftItem(draft) {
     draft = draft.trim().replace(/\xA0/g, " ").replace(/\s+/g, " ");
 
+    const saveResponse = document.getElementById("saveResponse");
+    if (currentDrafts().some(function (existing) { return existing.toUpperCase() === draft.toUpperCase(); })) {
+        if (saveResponse) {
+            saveResponse.textContent = "That draft is already in your list, so it was not added.";
+        }
+        return;
+    }
+    if (saveResponse) {
+        saveResponse.textContent = "";
+    }
+
     const label = document.createElement("label");
     label.textContent = draft;
     label.id = "label";
@@ -581,16 +709,6 @@ function addDraftItem(draft) {
     div.className = "draft";
     div.appendChild(label);
     div.append("  ");
-
-    const saveResponse = document.getElementById("saveResponse");
-    let submitButton;
-    if (saveResponse) {
-        submitButton = document.createElement("button");
-        submitButton.innerHTML = "submit";
-        submitButton.value = draft;
-        div.appendChild(submitButton);
-        div.append("  ");
-    }
 
     const removeButton = document.createElement("button");
     removeButton.innerHTML = "x";
@@ -608,19 +726,44 @@ function addDraftItem(draft) {
         updateDraftsSection();
     });
 
-    if (submitButton) {
-        submitButton.className = "draftSubmit";
-        submitButton.addEventListener("click", function () {
-            saveDraftAsAnswer(this);
-            div.remove();
-            SaveDraftsCookie(cookieName("drafts"));
-            updateDraftsSection();
-        });
-    }
-
     updateDraftsSection();
     clearTryItBox();
     SaveDraftsCookie(cookieName("drafts"));
+}
+
+// Countdown warning settings, in seconds remaining.
+const TIMER_WARNING_SECONDS = 60;
+const TIMER_BEEP_SECONDS = 30;
+
+let beepContext = null;
+let lastBeepSecond = null;
+
+// Browsers only allow audio after a user gesture, so prepare the context on first interaction.
+function prepareBeepContext() {
+    if (!beepContext && (window.AudioContext || window.webkitAudioContext)) {
+        beepContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (beepContext && beepContext.state === "suspended") {
+        beepContext.resume();
+    }
+}
+["pointerdown", "keydown", "touchstart"].forEach(function (name) {
+    document.addEventListener(name, prepareBeepContext, { passive: true });
+});
+
+function playBeep() {
+    if (!beepContext || beepContext.state !== "running") {
+        return;
+    }
+    const oscillator = beepContext.createOscillator();
+    const gain = beepContext.createGain();
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.08, beepContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, beepContext.currentTime + 0.12);
+    oscillator.connect(gain);
+    gain.connect(beepContext.destination);
+    oscillator.start();
+    oscillator.stop(beepContext.currentTime + 0.12);
 }
 
 function initializeGameTimer() {
@@ -642,6 +785,11 @@ function initializeGameTimer() {
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
         timer.textContent = "Time remaining: " + (hours ? hours + ":" + String(minutes).padStart(2, "0") : minutes) + ":" + String(seconds).padStart(2, "0");
+        timer.classList.toggle("timer-low", totalSeconds <= TIMER_WARNING_SECONDS);
+        if (totalSeconds <= TIMER_BEEP_SECONDS && totalSeconds !== lastBeepSecond) {
+            lastBeepSecond = totalSeconds;
+            playBeep();
+        }
         return false;
     };
     if (updateTimer()) {
@@ -656,14 +804,10 @@ function initializeGameTimer() {
 
 function setGameEnded() {
     document.body.dataset.gameEnded = "true";
-    document.getElementById("gameTimer").hidden = true;
-    document.getElementById("href_vote").hidden = false;
-    document.querySelectorAll(".draftSubmit, .draftRemove").forEach(function (button) { button.hidden = true; });
-    document.getElementById("getAiSuggestions").disabled = true;
-    document.getElementById("saveDraft").disabled = true;
-    document.getElementById("clearTryItBox").disabled = true;
-    document.getElementById("scrambleOriginalMessage").disabled = true;
+    document.querySelectorAll(".in-game-only").forEach(function (element) { element.hidden = true; });
     document.getElementById("tryItBox").contentEditable = "false";
+    renderEndPanel();
+    document.getElementById("endPanel").hidden = false;
 }
 
 function clearTryItBox() {

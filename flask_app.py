@@ -9,6 +9,8 @@ from werkzeug.exceptions import MethodNotAllowed, NotFound
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
 from mm_game_db import (
+    ANSWER_ADDED_MESSAGE,
+    ANSWER_EXISTS_MESSAGE,
     add_user,
     create_game as create_game_record,
     game_end_time,
@@ -18,11 +20,14 @@ from mm_game_db import (
     get_game,
     get_game_answer_votes,
     get_game_results_text,
+    get_game_submitter_and_voter_counts,
+    get_games_participated,
     get_game_with_puzzle,
     get_or_create_puzzle,
     get_user_from_id,
     get_user_from_name_and_password,
     get_unvoted_ended_games,
+    has_submitted_in_game,
     has_voted_in_game,
     save_answer_for_game,
     start_game,
@@ -50,6 +55,8 @@ app.config["SECRET_KEY"] = "TraLaLaa"
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
+app.config["VOTE_REFRESH_SECONDS"] = int(os.environ.get("VOTE_REFRESH_SECONDS", 30))
 
 with app.app_context():
     db.init_app(app)
@@ -183,24 +190,22 @@ def create_game():
                 raise ValueError
             if puzzle_text:
                 puzzle = get_or_create_puzzle(puzzle_text)
-                puzzle_marquee = message_to_marquee_html(puzzle_text)
             elif puzzle_id:
                 puzzle = next((p for p in get_all_puzzles() if p[0] == int(puzzle_id)), None)
                 if puzzle is None:
                     raise ValueError
                 puzzle = get_or_create_puzzle(puzzle[1])
-                puzzle_marquee = message_to_marquee_html(puzzle.text)
             else:
                 raise ValueError
         except ValueError:
             flash("Choose an original message (or enter a new one) and a duration greater than zero.", "error")
             return render_template("creategame.html", puzzles=get_all_puzzles(), game=None)
         game = create_game_record(puzzle.id, duration_seconds)
-        return redirect(url_for("create_game", gameId=game.id, puzzle_marquee=puzzle_marquee))
+        return redirect(url_for("create_game", gameId=game.id))
 
     game = get_game_with_puzzle(request.args.get("gameId")) if request.args.get("gameId") else None
     game_url = url_for("game", gameId=game[0].id, _external=True) if game else None
-    puzzle_marquee = request.args.get("puzzle_marquee")
+    puzzle_marquee = message_to_marquee_html(game[1]) if game else None
     return render_template("creategame.html", puzzles=get_all_puzzles(), game=game, game_url=game_url, puzzle_marquee=puzzle_marquee)
 
 
@@ -229,15 +234,37 @@ def game_status(game_id):
     })
 
 
+def vote_block_reason(game, user_id):
+    if game is None:
+        return "Game not found."
+    if game.startTime is None:
+        return "This game hasn't started yet."
+    if not game_has_ended(game):
+        return "Voting opens when this game's timer ends."
+    if not has_submitted_in_game(user_id, game.id):
+        return "You didn't submit an answer in this game, so you can't vote on it."
+    if has_voted_in_game(user_id, game.id):
+        return "You have already voted on this game."
+    return None
+
+
 @app.route("/vote/", methods=["POST", "GET"])
 @login_required
 def vote():
-    games = get_unvoted_ended_games(current_user.id)
     requested_game_id = request.values.get("gameId")
-    selected = next((game[0] for game in games if str(game[0]) == requested_game_id), games[0][0] if games else None)
-    game = get_game(selected)
+    if not requested_game_id:
+        return render_template("Vote.html", votes=[], selected=None, block_reason="No game specified.")
+    game = get_game(requested_game_id) if requested_game_id.isdigit() else None
     if game is None:
-        return render_template("Vote.html", games=games, votes=[], selected=None, can_vote=False)
+        return render_template("Vote.html", votes=[], selected=None, block_reason="Game not found.")
+    original_message_html = ""
+    game_and_puzzle = get_game_with_puzzle(game.id)
+    if game_and_puzzle:
+        original_message_html = message_to_marquee_html(game_and_puzzle[1])
+    block_reason = vote_block_reason(game, current_user.id)
+    if block_reason:
+        return render_template("Vote.html", votes=[], selected=game.id, original_message_html=original_message_html, block_reason=block_reason)
+
     if request.method == "POST" and request.form.getlist("vote[]"):
         error = vote_for_answers(current_user.id, request.form.getlist("vote[]"), game.id)
         if error:
@@ -249,30 +276,45 @@ def vote():
         answer for answer in answers
         if answer[2] is None or int(answer[2]) != int(current_user.id)
     ]
+    submitter_count = len({answer[2] for answer in answers if answer[2] is not None})
     return render_template(
         "Vote.html",
-        games=games,
         votes=voteable_answers,
+        submitter_count=submitter_count,
+        refresh_seconds=app.config["VOTE_REFRESH_SECONDS"],
         selected=game.id,
-        can_vote=game_has_ended(game),
-        has_voted=has_voted_in_game(current_user.id, game.id),
+        original_message_html=original_message_html,
+        block_reason=None,
     )
 
 
 @app.route("/results", methods=["GET"])
 @login_required
 def results():
-    games = get_all_games()
-    requested_id = request.args.get("gameId") or (str(games[0][0]) if games else None)
-    game_and_puzzle = get_game_with_puzzle(requested_id) if requested_id else None
-    selected = game_and_puzzle[0].id if game_and_puzzle else None
+    requested_id = request.args.get("gameId")
+    if not requested_id:
+        return render_template("results.html", games=get_games_participated(current_user.id), selected=None, game=None, notice=None)
+    game_and_puzzle = get_game_with_puzzle(requested_id) if requested_id.isdigit() else None
+    if game_and_puzzle is None:
+        return render_template("results.html", games=None, selected=None, game=None, notice="Game not found.")
+    game_record = game_and_puzzle[0]
+    original_message_html = message_to_marquee_html(game_and_puzzle[1])
+    if not has_submitted_in_game(current_user.id, game_record.id):
+        return render_template("results.html", games=None, selected=game_record.id, game=None, original_message_html=original_message_html, notice="You did not participate in this game.")
+    can_view = game_has_ended(game_record)
+    submitter_count, voter_count = get_game_submitter_and_voter_counts(game_record.id)
     return render_template(
         "results.html",
-        games=games,
-        selected=int(selected) if selected else None,
+        games=None,
+        selected=game_record.id,
         game=game_and_puzzle,
-        can_view_results=game_has_ended(game_and_puzzle[0]) if game_and_puzzle else False,
-        text=get_game_results_text(selected) if game_and_puzzle and game_has_ended(game_and_puzzle[0]) else "",
+        original_message_html=original_message_html,
+        can_view_results=can_view,
+        submitter_count=submitter_count,
+        voter_count=voter_count,
+        refresh_seconds=app.config["VOTE_REFRESH_SECONDS"],
+        text=get_game_results_text(game_record.id) if can_view else "",
+        notice=None,
     )
 
 
@@ -320,7 +362,10 @@ def game():
 @app.route("/save", methods=["POST"])
 @login_required
 def save():
-    return save_answer_for_game(request.form.get("answer", ""), request.form.get("gameId"), current_user.id)
+    message = save_answer_for_game(request.form.get("answer", ""), request.form.get("gameId"), current_user.id)
+    if message == ANSWER_ADDED_MESSAGE:
+        return message, 200
+    return message, (409 if message == ANSWER_EXISTS_MESSAGE else 400)
 
 
 @app.route("/", methods=["GET"])

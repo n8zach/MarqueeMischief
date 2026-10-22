@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from html import escape
 
 from sqlalchemy import func, text
 from db import db
@@ -116,6 +117,16 @@ def get_all_games():
     )
 
 
+def get_games_participated(user_id):
+    return (
+        db.session.query(Games.id, Games.startTime, Puzzles.text, Games.durationSeconds)
+        .join(Puzzles, Puzzles.id == Games.puzzleId)
+        .filter(Games.id.in_(db.session.query(Answers.gameId).filter(Answers.userId == user_id)))
+        .order_by(Games.id.desc())
+        .all()
+    )
+
+
 def get_unvoted_ended_games(user_id):
     games = (
         db.session.query(Games.id, Games.startTime, Puzzles.text, Games.durationSeconds)
@@ -189,6 +200,10 @@ def has_voted_in_game(user_id, game_id):
     return db.session.query(Votes.id).filter_by(userId=user_id, gameId=game_id).first() is not None
 
 
+def has_submitted_in_game(user_id, game_id):
+    return Answers.query.filter_by(gameId=game_id, userId=user_id).first() is not None
+
+
 def get_game_answer_votes(game_id):
     return (
         db.session.query(
@@ -209,6 +224,24 @@ def get_game_answer_votes(game_id):
     )
 
 
+def get_game_submitter_and_voter_counts(game_id):
+    submitters = db.session.query(func.count(func.distinct(Answers.userId))).filter(Answers.gameId == int(game_id)).scalar()
+    voters = db.session.query(func.count(func.distinct(Votes.userId))).filter(Votes.gameId == int(game_id)).scalar()
+    return submitters or 0, voters or 0
+
+
+ANSWER_ADDED_MESSAGE = "New message added!"
+ANSWER_EXISTS_MESSAGE = "Answer already exists in this game. Not adding it."
+# Raise (or set to None) to let players submit more than one answer per game.
+MAX_SUBMISSIONS_PER_USER = 1
+
+
+def user_submission_limit_reached(game_id, user_id):
+    if MAX_SUBMISSIONS_PER_USER is None:
+        return False
+    return Answers.query.filter_by(gameId=game_id, userId=user_id).count() >= MAX_SUBMISSIONS_PER_USER
+
+
 def save_answer_for_game(answer_text, game_id, user_id):
     game_and_puzzle = get_game_with_puzzle(game_id)
     if game_and_puzzle is None:
@@ -216,8 +249,10 @@ def save_answer_for_game(answer_text, game_id, user_id):
     game, puzzle_text = game_and_puzzle
     if game.startTime is None:
         return "Waiting for the game master to start the game."
-    if game_has_ended(game):
-        return "The game has ended; answers can no longer be submitted."
+    if not game_has_ended(game):
+        return "Answers can only be submitted once time is up."
+    if user_submission_limit_reached(game.id, user_id):
+        return "You have already submitted an answer for this game."
 
     answer_text = " ".join(answer_text.replace("\xa0", " ").split()).upper()
     if not answer_text:
@@ -228,11 +263,11 @@ def save_answer_for_game(answer_text, game_id, user_id):
         if letter != " " and letter not in puzzle_text:
             return "Not a valid message... it has letters not in the original message."
     if Answers.query.filter_by(gameId=game.id, text=answer_text).first() is not None:
-        return "Answer already exists in this game. Not adding it."
+        return ANSWER_EXISTS_MESSAGE
 
     db.session.add(Answers(userId=user_id, puzzleId=game.puzzleId, gameId=game.id, text=answer_text))
     db.session.commit()
-    return "New message added!"
+    return ANSWER_ADDED_MESSAGE
 
 
 def get_all_puzzles():
@@ -248,7 +283,7 @@ def get_game_user_votes(game_id):
         LEFT JOIN votes ON votes.answerId = answers.id AND votes.gameId = answers.gameId
         WHERE answers.gameId = :game_id
         GROUP BY answers.gameId, users.name, puzzles.text
-        ORDER BY users.name, votes DESC
+        ORDER BY votes DESC, users.name
     """), {"game_id": int(game_id)}).all()
 
 
@@ -268,10 +303,10 @@ def get_game_user_answer_votes(game_id):
 def get_game_results_text(game_id):
     text_out = '<table class="results-table"><thead><tr><th>Player</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_votes(game_id):
-        text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td></tr>"
+        text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{row[2]}</td></tr>"
     text_out += '</tbody></table><table class="results-table"><thead><tr><th>Player</th><th>Message</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_answer_votes(game_id):
-        text_out += f"<tr><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>"
+        text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{escape(str(row[2]))}</td><td>{row[3]}</td></tr>"
     return text_out + "</tbody></table>"
 
 

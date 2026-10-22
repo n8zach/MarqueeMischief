@@ -11,32 +11,32 @@
         {% include '_site_nav.html' %}
         <section class="panel play-layout">
             <div>
-                <h1 class="page-title">Game on</h1>
-                <p class="player-greeting">Hello {{ current_user.username }} — make every letter count.</p>
-                <div class="game-status">
-                    <p id="gameTimer" aria-live="polite" {% if game_has_ended %}hidden{% endif %}></p>
-                    <a id="href_vote" class="button gold" href="{{ url_for('vote', gameId=game.id) }}" {% if not game_has_ended %}hidden{% endif %}>Vote</a>
-                </div>
+                <h1 class="page-title in-game-only">Game on</h1>
+                <p class="player-greeting in-game-only">Hello {{ current_user.username }} — let's make some mischief.</p>
             </div>
             <div class="marquee-stage">
                 {{ form_data['OriginalMessageDisplay'] | safe }}
-                <div class="letter-actions"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Reset</button><button id="scrambleOriginalMessage" type="button" onclick="clickScrambleOriginalMessage()">Scramble</button><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+                <div class="letter-actions in-game-only"><button id="clearTryItBox" type="button" onclick="clearTryItBox()">Reset</button><button id="scrambleOriginalMessage" type="button" onclick="clickScrambleOriginalMessage()">Scramble</button></div>
             </div>
-            <div class="composer">
-                <div class="composer-stage">{{ form_data['TryItBoxDisplay'] | safe }}</div>
-
+            <div class="game-status in-game-only">
+                <p id="gameTimer" aria-live="polite" {% if game_has_ended %}hidden{% endif %}></p>
             </div>
-            <div class="saved-drafts" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to move it to your marquee</i></p><div class="drafts" id="drafts"></div></div><div id="saveResponse" class="help-label"></div>
-            <div id="wordSuggestions" class="suggestion-box"></div>
-            <div>
+            <div id="endPanel" class="end-panel" hidden></div>
+            <div class="composer in-game-only">
+                <div class="composer-stage" data-hint-text="Type your mischief here.  You can save as many drafts as you like, but you will have to pick one when time is up.">{{ form_data['TryItBoxDisplay'] | safe }}</div>
+                <div class="button-row"><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
+            </div>
+            <div class="saved-drafts in-game-only" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to move it to your marquee</i></p><div class="drafts" id="drafts"></div></div><div id="saveResponse" class="help-label in-game-only"></div>
+            <div id="wordSuggestions" class="suggestion-box in-game-only"></div>
+            <div class="in-game-only">
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>
                 <div class="aiWaiting" id="aiWaiting"></div>
                 <div id="scrollBox" class="suggestion-box"><div id="aiSuggestions"></div></div>
             </div>
         </section>
-        <p class="reset-help"><a href="#" onclick="resetHelp(); return false;">reset help</a></p>
-        <p class="center">Share this game.</p>
-        <img class="qr-code" alt="QR code for game {{ game.id }}" width="220" height="220" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data={{ game_url|urlencode }}">
+        <p class="reset-help in-game-only"><a href="#" onclick="resetHelp(); return false;">reset help</a></p>
+        <p class="center in-game-only">Share this game.</p>
+        <img class="qr-code in-game-only" alt="QR code for game {{ game.id }}" width="220" height="220" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data={{ game_url|urlencode }}">
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>

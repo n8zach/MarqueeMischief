@@ -136,7 +136,10 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .composer-stage { position: relative; }
 .reset-help { margin: .75rem 0 0; text-align: center; font-size: .8rem; }
 .reset-help a { color: #fff; }
-.tryit-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: .35rem .9rem; border-radius: 8px; background: #fff; text-align: center; white-space: nowrap; max-width: 95%; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: 18px; cursor: text; z-index: 1; }
+.tryit-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: .35rem .9rem; border-radius: 8px; background: #fff; text-align: center; white-space: normal; width: max-content; max-width: 95%; color: var(--ink); font-family: Georgia, "Times New Roman", serif; font-size: 18px; cursor: text; z-index: 1; }
+.end-panel { text-align: center; }
+.end-panel .choice label { flex: 1; text-align: left; font-family: "3606-marquee-web", sans-serif; font-size: 1.1rem; }
+.end-panel .choice button { margin: 0; padding: .05rem .5rem; min-height: 0; font-size: .8rem; }
 .help-label { margin: 0; color: var(--muted); font-size: .95rem; text-align: center; }
 .composer { display: grid; gap: .6rem; }
 .marquee-stage + .composer { margin-top: -.55rem; }
@@ -158,7 +161,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .draftSubmit { grid-column: 2; }
 .draftRemove { grid-column: 3; }
 #gameTimer { margin: 0; color: var(--purple); font-size: 1.35rem; font-weight: 700; text-align: center; }
-.game-status { min-height: 2.8rem; display: grid; place-items: center; }
+#gameTimer.timer-low { color: #d00000; }
+.game-status { min-height: 0; display: grid; place-items: center; margin: -.6rem 0; }
 .aiWaiting { display: none; min-height: 1.5rem; color: var(--muted); font-style: italic; text-align: center; opacity: 0; transition: opacity 1s ease-in-out; }
 
 .choice-list { display: grid; gap: .7rem; width: min(100%, 40rem); margin: 1.2rem auto; }
