@@ -197,4 +197,10 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
     .action-card img { min-height: 105px; }
     .action-card span { padding: .7rem 1rem; }
     .inline-fields { align-items: flex-start; flex-direction: column; }
+    .answers-table thead { display: none; }
+    .answers-table, .answers-table tbody { display: block; width: 100%; }
+    .answers-table tr { display: grid; grid-template-columns: 1fr auto; margin-bottom: .55rem; background: white; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .answers-table td { border: 0 !important; border-radius: 0 !important; background: transparent !important; padding: .5rem .75rem; }
+    .answers-table td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; padding: .25rem; }
+    .answers-table td:nth-child(3) { text-align: right; }
 }

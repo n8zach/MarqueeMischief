@@ -305,7 +305,7 @@ def get_game_results_text(game_id):
     text_out = '<table class="results-table"><thead><tr><th>Player</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_votes(game_id):
         text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{row[2]}</td></tr>"
-    text_out += '</tbody></table><table class="results-table"><thead><tr><th>Player</th><th>Message</th><th>Votes</th></tr></thead><tbody>'
+    text_out += '</tbody></table><table class="results-table answers-table"><thead><tr><th>Player</th><th>Message</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_answer_votes(game_id):
         text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{message_to_marquee_html(row[2], include_assets=False, like=row[0])}</td><td>{row[3]}</td></tr>"
     return text_out + "</tbody></table>"

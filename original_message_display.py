@@ -162,6 +162,7 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
             if (marquee !== origin && !marquee.querySelector(".marquee-input") && originWidth) {
                 marquee.style.width = `${originWidth}px`;
                 marquee.style.maxWidth = "100%";
+                marquee.querySelectorAll(".marquee-row").forEach((row) => { row.style.whiteSpace = "normal"; });
             }
             marquee.querySelectorAll(":scope > .marquee-row-rule").forEach((rule) => rule.remove());
             positions.forEach((top) => {
