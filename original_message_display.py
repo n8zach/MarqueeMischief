@@ -33,25 +33,42 @@ class MarqueeSettings:
             raise ValueError("text_align must be left, center, or right")
 
 
-def message_to_marquee_html(message, settings=None, input_attrs=None, include_assets=True):
+def _normalize(message, settings):
+    text = str(message).upper() if settings.uppercase else str(message)
+    return " ".join(text.split())
+
+
+def _wrap(text, settings):
+    render_width = settings.wrap_width
+    lines = textwrap.wrap(text, width=render_width, break_long_words=True)
+    while len(lines) > settings.max_lines:
+        render_width += 1
+        lines = textwrap.wrap(text, width=render_width, break_long_words=True)
+    return lines or [""], render_width
+
+
+def message_to_marquee_html(message, settings=None, input_attrs=None, include_assets=True, like=None):
     """Return a self-contained, styled HTML block for a marquee-style message.
 
     With input_attrs, the block is sized and styled the same way but holds one
     editable row carrying those HTML attributes instead of the message text.
     With include_assets=False, only the marquee block is returned; use it for
     extra marquees on a page that already has the font and rule script.
+    With like (the original message), the message is laid out with that
+    message's wrap width, font size and row count so the two line up.
     """
     settings = settings or MarqueeSettings()
-    display_message = str(message).upper() if settings.uppercase else str(message)
-    display_message = " ".join(display_message.split())
-
-    render_width = settings.wrap_width
-    lines = textwrap.wrap(display_message, width=render_width, break_long_words=True)
-    while len(lines) > settings.max_lines:
-        render_width += 1
-        lines = textwrap.wrap(display_message, width=render_width, break_long_words=True)
-    if not lines:
-        lines = [""]
+    display_message = _normalize(message, settings)
+    lines, render_width = _wrap(display_message, settings)
+    if like is not None:
+        like_lines, render_width = _wrap(_normalize(like, settings), settings)
+        # Wrap at the original's widest actual row, which is what sets its box width.
+        row_width = max(len(line) for line in like_lines)
+        lines = textwrap.wrap(display_message, width=row_width, break_long_words=True) or [""]
+        while len(lines) > len(like_lines):
+            row_width += 1
+            lines = textwrap.wrap(display_message, width=row_width, break_long_words=True)
+        lines += [""] * (len(like_lines) - len(lines))
 
     font_size = max(
         settings.min_font_size_px,
@@ -68,7 +85,9 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
     )
 
     row_line_height = font_size * settings.line_height + settings.row_spacing_px
-    row_style = f"position:relative;line-height:{row_line_height}px"
+    row_style = f"position:relative;line-height:{row_line_height}px;min-height:{row_line_height}px"
+    if like is not None:
+        row_style += ";white-space:nowrap"
     if input_attrs is None:
         # Rows are already wrapped above; keep the browser from wrapping them again.
         style = style.replace(f"max-width:min(100%, {render_width}ch);", "max-width:100%;")
@@ -137,7 +156,13 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
         });
         clone.remove();
 
+        // Other marquees on the page (vote/results lists) match the original's width.
+        const originWidth = origin.getBoundingClientRect().width;
         document.querySelectorAll(".marquee-message").forEach((marquee) => {
+            if (marquee !== origin && !marquee.querySelector(".marquee-input") && originWidth) {
+                marquee.style.width = `${originWidth}px`;
+                marquee.style.maxWidth = "100%";
+            }
             marquee.querySelectorAll(":scope > .marquee-row-rule").forEach((rule) => rule.remove());
             positions.forEach((top) => {
                 const rule = document.createElement("span");

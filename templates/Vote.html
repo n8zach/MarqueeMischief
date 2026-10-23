@@ -24,7 +24,7 @@
                 <form action="{{ url_for('vote') }}" method="post">
                     <div id="vote" class="choice-list">
                         {% if not votes %}<p class="center">Nobody else has submitted yet, so there's nothing to vote on yet. Page will auto-refresh.</p>{% endif %}
-                        {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">{{ vote[3] | marquee_row | safe }}</label></div>{% endfor %}
+                        {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">{{ vote[3] | marquee_row(original_message) | safe }}</label></div>{% endfor %}
                     </div>
                     <input type="hidden" name="gameId" value="{{ selected }}">
                     <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>

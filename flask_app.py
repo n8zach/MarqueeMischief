@@ -55,7 +55,7 @@ app.config["SECRET_KEY"] = "TraLaLaa"
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.jinja_env.filters["marquee_row"] = lambda message: message_to_marquee_html(message, include_assets=False)
+app.jinja_env.filters["marquee_row"] = lambda message, original=None: message_to_marquee_html(message, include_assets=False, like=original)
 # Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
 app.config["VOTE_REFRESH_SECONDS"] = int(os.environ.get("VOTE_REFRESH_SECONDS", 30))
 
@@ -260,6 +260,7 @@ def vote():
         return render_template("Vote.html", votes=[], selected=None, block_reason="Game not found.")
     original_message_html = ""
     game_and_puzzle = get_game_with_puzzle(game.id)
+    original_message = game_and_puzzle[1] if game_and_puzzle else ""
     if game_and_puzzle:
         original_message_html = message_to_marquee_html(game_and_puzzle[1])
     block_reason = vote_block_reason(game, current_user.id)
@@ -285,6 +286,7 @@ def vote():
         refresh_seconds=app.config["VOTE_REFRESH_SECONDS"],
         selected=game.id,
         original_message_html=original_message_html,
+        original_message=original_message,
         block_reason=None,
     )
 
