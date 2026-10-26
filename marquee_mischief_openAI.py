@@ -11,6 +11,10 @@ class GeneratedSentence(BaseModel):
 class MarqueeGameResponse(BaseModel):
     sentences: List[GeneratedSentence] = Field(description="A list of generated sentences.")
 
+def generate_new_original_Message(use_proxy: bool = False):
+    prompt = (
+        "Creat a new "
+
 def message_to_messages(message: str, use_proxy: bool = False):
     letters = message_to_letters(message)
     str_letters = ', '.join(letters)
