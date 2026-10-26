@@ -1,8 +1,11 @@
+import calendar
 import os
+from datetime import date, datetime, timedelta, timezone
 from html import escape
+from zoneinfo import ZoneInfo
 from urllib.parse import parse_qs, urlsplit
 
-from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_migrate import Migrate
 from werkzeug.exceptions import MethodNotAllowed, NotFound
@@ -17,10 +20,14 @@ from mm_game_db import (
     game_has_ended,
     get_all_games,
     get_all_puzzles,
+    get_daily_answers,
+    get_daily_game,
+    get_daily_game_dates,
     get_game,
     get_game_answer_votes,
     get_game_results_text,
     get_game_submitter_and_voter_counts,
+    get_game_user_answer_votes,
     get_games_participated,
     get_game_with_puzzle,
     get_or_create_puzzle,
@@ -30,9 +37,11 @@ from mm_game_db import (
     has_submitted_in_game,
     has_voted_in_game,
     save_answer_for_game,
+    save_daily_answer,
     start_game,
     utc_datetime,
     vote_for_answers,
+    vote_for_daily_answer,
 )
 from db import db
 from original_message_display import message_to_marquee_html
@@ -65,6 +74,7 @@ Migrate(app, db)
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+DAILY_TIMEZONE = ZoneInfo("America/Los_Angeles")
 
 
 @app.errorhandler(404)
@@ -106,6 +116,53 @@ def _safe_next_url(next_url):
         if key not in {"_anchor", "_external", "_method", "_scheme"} and key not in path_values
     }
     return url_for(endpoint, **query_values, **path_values)
+
+
+def _daily_today(now=None):
+    return (now or datetime.now(timezone.utc)).astimezone(DAILY_TIMEZONE).date()
+
+
+def _daily_window(day):
+    start = datetime.combine(day, datetime.min.time(), tzinfo=DAILY_TIMEZONE)
+    end = datetime.combine(day + timedelta(days=1), datetime.min.time(), tzinfo=DAILY_TIMEZONE)
+    return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+
+
+def _daily_calendar(month, today, selected_day):
+    available_dates = get_daily_game_dates()
+    weeks = []
+    for week in calendar.Calendar(firstweekday=6).monthdatescalendar(month.year, month.month):
+        weeks.append([
+            {
+                "date": day.isoformat(),
+                "day": day.day,
+                "in_month": day.month == month.month,
+                "available": day <= today and day in available_dates,
+                "selected": day == selected_day,
+            }
+            for day in week
+        ])
+    return weeks
+
+
+def _daily_calendar_context(selected_day, today):
+    month = date(selected_day.year, selected_day.month, 1)
+    previous_month = (month - timedelta(days=1)).replace(day=1)
+    next_month = (month.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return {
+        "calendar_weeks": _daily_calendar(month, today, selected_day),
+        "calendar_month": month,
+        "previous_month": previous_month.strftime("%Y-%m"),
+        "next_month": next_month.strftime("%Y-%m"),
+    }
+
+
+def _parse_calendar_month(value, fallback):
+    try:
+        parsed = date.fromisoformat(f"{value}-01")
+        return date(parsed.year, parsed.month, 1)
+    except (TypeError, ValueError):
+        return date(fallback.year, fallback.month, 1)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -319,6 +376,135 @@ def results():
         text=get_game_results_text(game_record.id) if can_view else "",
         notice=None,
     )
+
+
+@app.route("/daily/", methods=["GET", "POST"])
+@login_required
+def daily_game():
+    today = _daily_today()
+    game_and_puzzle = get_daily_game(today)
+    if game_and_puzzle is None:
+        return render_template("daily_game.html", game=None, entries=[], notice=None)
+
+    puzzle_text = get_game_with_puzzle(game_and_puzzle.id)[1]
+    notice = None
+    if request.method == "POST":
+        if request.form.get("gameId") != str(game_and_puzzle.id):
+            notice = "The daily game changed. Please refresh and try again."
+        else:
+            notice = save_daily_answer(request.form.get("answer", ""), game_and_puzzle.id, current_user.id)
+            if notice == ANSWER_ADDED_MESSAGE:
+                flash(notice, "success")
+                return redirect(url_for("daily_game"))
+            flash(notice, "error")
+
+    game_ended = game_has_ended(game_and_puzzle)
+    return render_template(
+        "daily_game.html",
+        game=game_and_puzzle,
+        puzzle_text=puzzle_text,
+        original_message_html=message_to_marquee_html(puzzle_text),
+        entries=[entry for entry in get_daily_answers(game_and_puzzle.id) if entry.userId == current_user.id],
+        game_ended=game_ended,
+        end_time=utc_datetime(game_end_time(game_and_puzzle)).isoformat(),
+        notice=notice,
+    )
+
+
+@app.route("/daily/vote/", methods=["GET", "POST"])
+@login_required
+def daily_vote():
+    today = _daily_today()
+    voting_day = today - timedelta(days=1)
+    game = get_daily_game(voting_day)
+    if game is None:
+        return render_template(
+            "daily_vote.html", game=None, answers=[], block_reason="Yesterday's daily game is not available yet.",
+            time_left_end=_daily_window(today)[1].isoformat(),
+        )
+
+    if request.method == "POST":
+        if request.form.get("gameId") != str(game.id):
+            flash("The daily game changed. Please refresh and try again.", "error")
+        else:
+            error = vote_for_daily_answer(current_user.id, request.form.get("answerId"), game.id)
+            if error:
+                flash(error, "error")
+            else:
+                flash("Your vote has been recorded.", "success")
+
+    answers = get_daily_answers(game.id)
+    voteable_answers = [answer for answer in answers if answer.userId != current_user.id]
+    block_reason = None
+    if not answers:
+        block_reason = "No entries were submitted yesterday, so there is nothing to vote on."
+    elif has_voted_in_game(current_user.id, game.id):
+        block_reason = "You have already voted on yesterday's daily game."
+    elif not voteable_answers:
+        block_reason = "There are no entries from other players to vote on."
+
+    game_and_puzzle = get_game_with_puzzle(game.id)
+    puzzle_text = game_and_puzzle[1] if game_and_puzzle else ""
+    return render_template(
+        "daily_vote.html",
+        game=game,
+        answers=voteable_answers,
+        block_reason=block_reason,
+        original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
+        original_message=puzzle_text,
+        time_left_end=_daily_window(today)[1].isoformat(),
+        flash_messages=get_flashed_messages(),
+    )
+
+
+@app.route("/daily/results/", methods=["GET"])
+@login_required
+def daily_results():
+    today = _daily_today()
+    selected_day = today - timedelta(days=3)
+    requested_day = request.args.get("date")
+    if requested_day:
+        try:
+            selected_day = date.fromisoformat(requested_day)
+        except ValueError:
+            pass
+    if selected_day >= today - timedelta(days=1):
+        return redirect(url_for("daily_date", day_text=selected_day.isoformat()))
+
+    month_value = request.args.get("month", selected_day.strftime("%Y-%m"))
+    selected_month = _parse_calendar_month(month_value, selected_day)
+    game = get_daily_game(selected_day)
+    game_and_puzzle = get_game_with_puzzle(game.id) if game else None
+    answers = get_game_user_answer_votes(game.id) if game else []
+    puzzle_text = game_and_puzzle[1] if game_and_puzzle else ""
+    return render_template(
+        "daily_results.html",
+        selected_day=selected_day,
+        game=game,
+        answers=answers,
+        original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
+        notice=None if game else "No daily game was available on this date.",
+        no_votes=bool(answers) and not any(row[3] for row in answers),
+        **_daily_calendar_context(selected_day, today),
+    )
+
+
+@app.route("/daily/date/<day_text>", methods=["GET"])
+@login_required
+def daily_date(day_text):
+    try:
+        selected_day = date.fromisoformat(day_text)
+    except ValueError:
+        return render_template("error.html", message="Invalid daily game date."), 404
+
+    today = _daily_today()
+    if selected_day > today:
+        return render_template("error.html", message="That daily game has not happened yet."), 404
+    if selected_day == today:
+        return redirect(url_for("daily_game"))
+    if selected_day == today - timedelta(days=1):
+        return redirect(url_for("daily_vote"))
+    return redirect(url_for("daily_results", date=selected_day.isoformat()))
 
 
 def _try_it_box_attrs(message, game_id=None):

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Mischief — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+</head>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Today's Mischief</h1>
+            <p class="page-lede">Submit as many entries as you like before midnight Pacific time.</p>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}<ul class="notice-list">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+            {% endwith %}
+            {% if not game %}
+                <p class="center">Today's daily game has not been created yet. Please check back shortly.</p>
+            {% elif game_ended %}
+                <p class="center">Today's game has ended. Voting is now open.</p>
+                <div class="button-row"><a class="button gold" href="{{ url_for('daily_vote') }}">Vote on yesterday's mischief</a></div>
+            {% else %}
+                <div class="marquee-stage">{{ original_message_html | safe }}</div>
+                <p id="dailyTimer" class="center" data-end-time="{{ end_time }}" aria-live="polite"></p>
+                <form class="form-stack" method="post">
+                    <label for="answer">Your entry</label>
+                    <textarea id="answer" name="answer" maxlength="256" rows="3" required></textarea>
+                    <input type="hidden" name="gameId" value="{{ game.id }}">
+                    <button class="gold" type="submit">Submit entry</button>
+                </form>
+                <h2 class="page-title daily-submissions-title">Your submitted entries</h2>
+                {% if entries %}
+                    <ul class="daily-entry-list">{% for entry in entries %}<li>{{ entry.text }}</li>{% endfor %}</ul>
+                {% else %}
+                    <p class="center">You have not submitted an entry yet.</p>
+                {% endif %}
+            {% endif %}
+        </section>
+    </main>
+    {% if game and not game_ended %}
+    <script>
+        const timer = document.getElementById("dailyTimer");
+        const endTime = new Date(timer.dataset.endTime).getTime();
+        function updateDailyTimer() {
+            const remaining = Math.max(0, endTime - Date.now());
+            if (remaining === 0) {
+                window.location.replace("{{ url_for('daily_vote') }}");
+                return;
+            }
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            timer.textContent = `Voting opens in ${hours}h ${minutes}m ${seconds}s`;
+        }
+        updateDailyTimer();
+        setInterval(updateDailyTimer, 1000);
+    </script>
+    {% endif %}
+</body>
+</html>

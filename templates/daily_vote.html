@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote on Yesterday's Mischief — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+</head>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Vote on Yesterday's Mischief</h1>
+            <p class="page-lede">Anyone can vote for one entry they did not submit. Voting switches to the newest game at midnight Pacific time.</p>
+            {% if flash_messages %}<ul class="notice-list">{% for message in flash_messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            <p id="dailyVoteTimer" class="center" data-end-time="{{ time_left_end }}" aria-live="polite"></p>
+            {% if block_reason %}
+                <p class="center">{{ block_reason }}</p>
+            {% else %}
+                <form class="choice-list" method="post">
+                    {% for answer in answers %}
+                        <div class="choice">
+                            <input type="radio" id="daily-answer-{{ answer.id }}" name="answerId" value="{{ answer.id }}" required>
+                            <label for="daily-answer-{{ answer.id }}">{{ answer.text | marquee_row(original_message) | safe }}</label>
+                        </div>
+                    {% endfor %}
+                    <input type="hidden" name="gameId" value="{{ game.id }}">
+                    <div class="button-row"><button class="gold" type="submit">Vote</button></div>
+                </form>
+            {% endif %}
+        </section>
+    </main>
+    <script>
+        const timer = document.getElementById("dailyVoteTimer");
+        const endTime = new Date(timer.dataset.endTime).getTime();
+        function updateVoteTimer() {
+            const remaining = Math.max(0, endTime - Date.now());
+            if (remaining === 0) {
+                window.location.reload();
+                return;
+            }
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            timer.textContent = `Voting switches in ${hours}h ${minutes}m ${seconds}s`;
+        }
+        updateVoteTimer();
+        setInterval(updateVoteTimer, 1000);
+    </script>
+</body>
+</html>

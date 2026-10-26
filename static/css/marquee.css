@@ -182,6 +182,19 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .results-table td:has(.marquee-message) { text-align: center; }
 .results-table .marquee-message { margin-inline: auto; }
 .results-table td:last-child { border-right: 2px solid var(--line); border-radius: 0 12px 12px 0; }
+.daily-submissions-title, .daily-calendar-title { margin-top: 2rem; font-size: clamp(1.35rem, 4vw, 1.8rem); }
+.daily-entry-list { width: min(100%, 36rem); margin: 1rem auto; padding-left: 1.5rem; }
+.daily-entry-list li { margin: .35rem 0; }
+.daily-calendar-navigation { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .75rem; margin: 1rem 0 .5rem; }
+.daily-calendar-navigation .button { min-height: 2.3rem; padding: .35rem .7rem; font-size: .9rem; }
+.daily-calendar { width: min(100%, 34rem); margin: .5rem auto; border-collapse: collapse; table-layout: fixed; text-align: center; }
+.daily-calendar th, .daily-calendar td { padding: .45rem .2rem; border: 1px solid var(--line); }
+.daily-calendar th { color: white; background: var(--purple); }
+.daily-calendar td { height: 2.8rem; }
+.daily-calendar td a { color: var(--purple); }
+.daily-calendar .outside-month { color: #a99baa; background: #f7f2f8; }
+.daily-calendar .selected-date { outline: 2px solid var(--gold-deep); outline-offset: -2px; }
+.daily-calendar-key { color: var(--muted); font-size: .9rem; text-align: center; }
 
 @media (max-width: 600px) {
     body { font-size: 16px; }

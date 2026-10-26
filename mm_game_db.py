@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from html import escape
 
 from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
 from db import db
 from original_message_display import message_to_marquee_html
 from flask_login import UserMixin
@@ -52,6 +53,7 @@ class Games(db.Model):
     durationSeconds = db.Column(db.Integer, nullable=False)
     createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     startTime = db.Column(db.DateTime(timezone=True), nullable=True)
+    dailyDate = db.Column(db.Date, unique=True, nullable=True)
 
 
 class Answers(db.Model):
@@ -86,6 +88,108 @@ def create_game(puzzle_id, duration_seconds):
     db.session.add(game)
     db.session.commit()
     return game
+
+
+def get_daily_game(day):
+    if day is None:
+        return None
+    if isinstance(day, str):
+        try:
+            day = date.fromisoformat(day)
+        except ValueError:
+            return None
+    return Games.query.filter_by(dailyDate=day).first()
+
+
+def get_daily_game_dates():
+    return {
+        row[0] for row in db.session.query(Games.dailyDate)
+        .filter(Games.dailyDate.is_not(None))
+        .all()
+    }
+
+
+def create_daily_game(day, puzzle_id, start_time, end_time):
+    existing = get_daily_game(day)
+    if existing is not None:
+        return existing
+
+    game = Games(
+        puzzleId=int(puzzle_id),
+        durationSeconds=int((end_time - start_time).total_seconds()),
+        startTime=start_time,
+        dailyDate=day,
+    )
+    db.session.add(game)
+    try:
+        db.session.commit()
+        return game
+    except IntegrityError:
+        db.session.rollback()
+        existing = get_daily_game(day)
+        if existing is None:
+            raise
+        return existing
+
+
+def get_daily_answers(game_id):
+    return (
+        Answers.query.filter_by(gameId=int(game_id))
+        .order_by(Answers.id)
+        .all()
+    )
+
+
+def save_daily_answer(answer_text, game_id, user_id):
+    game_and_puzzle = get_game_with_puzzle(game_id)
+    if game_and_puzzle is None:
+        return "Daily game not found."
+    game, puzzle_text = game_and_puzzle
+    if game.dailyDate is None:
+        return "This is not a daily game."
+    if game.startTime is None:
+        return "This daily game has not started yet."
+    if game_has_ended(game):
+        return "This daily game has ended."
+
+    answer_text = " ".join(answer_text.replace("\xa0", " ").split()).upper()
+    if not answer_text:
+        return "New message is blank... nothing saved."
+    if answer_text == puzzle_text:
+        return "That's the same as the original message! Not adding it."
+    for letter in answer_text:
+        if letter != " " and letter not in puzzle_text:
+            return "Not a valid message... it has letters not in the original message."
+    if Answers.query.filter_by(gameId=game.id, text=answer_text).first() is not None:
+        return ANSWER_EXISTS_MESSAGE
+
+    db.session.add(Answers(userId=user_id, puzzleId=game.puzzleId, gameId=game.id, text=answer_text))
+    db.session.commit()
+    return ANSWER_ADDED_MESSAGE
+
+
+def vote_for_daily_answer(user_id, answer_id, game_id):
+    game = get_game(game_id)
+    if game is None or game.dailyDate is None:
+        return "Daily game not found."
+    if not game_has_ended(game):
+        return "Voting opens when this daily game ends."
+    if has_voted_in_game(user_id, game.id):
+        return "You have already voted on this daily game."
+
+    try:
+        answer_id = int(answer_id)
+    except (TypeError, ValueError):
+        return "Choose a valid entry."
+    answer = Answers.query.filter_by(id=answer_id, gameId=game.id).first()
+    if answer is None:
+        return "That entry does not belong to this daily game."
+    if answer.userId == user_id:
+        return "You cannot vote for your own entry."
+
+    db.session.add(Votes(userId=user_id, answerId=answer.id, gameId=game.id))
+    db.session.commit()
+    return None
 
 
 def get_game(game_id):

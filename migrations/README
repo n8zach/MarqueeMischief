@@ -18,3 +18,8 @@ apply it:
 
 Autogeneration compares model metadata with the database; it does not update
 the schema when the application starts.
+
+Daily games require the daily-date migration. After upgrading, configure the
+PythonAnywhere scheduled task to run `python /path/to/create_daily_game.py`
+once at midnight in the `America/Los_Angeles` timezone. The script is safe to
+retry for the same date; the database permits at most one daily game per date.

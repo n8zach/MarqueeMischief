@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Results — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+</head>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Daily Mischief Results</h1>
+            <p class="page-lede">{{ selected_day.strftime("%B %-d, %Y") }}</p>
+            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            {% if notice %}
+                <p class="center">{{ notice }}</p>
+            {% elif not answers %}
+                <p class="center">No entries were submitted on this date.</p>
+            {% else %}
+                {% if no_votes %}<p class="center">No votes were cast on this date.</p>{% endif %}
+                <table class="results-table answers-table">
+                    <thead><tr><th>Player</th><th>Entry</th><th>Votes</th></tr></thead>
+                    <tbody>{% for row in answers %}<tr><td>{{ row[1] }}</td><td>{{ row[2] | marquee_row(row[0]) | safe }}</td><td>{{ row[3] }}</td></tr>{% endfor %}</tbody>
+                </table>
+            {% endif %}
+
+            <h2 class="page-title daily-calendar-title">Choose a date</h2>
+            <nav class="daily-calendar-navigation" aria-label="Calendar month">
+                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=previous_month) }}">Previous month</a>
+                <strong>{{ calendar_month.strftime("%B %Y") }}</strong>
+                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=next_month) }}">Next month</a>
+            </nav>
+            <table class="daily-calendar" aria-label="Daily games calendar">
+                <thead><tr>{% for name in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] %}<th scope="col">{{ name }}</th>{% endfor %}</tr></thead>
+                <tbody>
+                    {% for week in calendar_weeks %}
+                    <tr>{% for cell in week %}
+                        <td class="{{ 'outside-month' if not cell.in_month else '' }} {{ 'selected-date' if cell.selected else '' }}">
+                            {% if cell.available %}<a href="{{ url_for('daily_date', day_text=cell.date) }}"><strong>{{ cell.day }}</strong></a>
+                            {% else %}<span>{{ cell.day }}</span>{% endif %}
+                        </td>
+                    {% endfor %}</tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="daily-calendar-key"><strong>Bold dates</strong> have a daily game and can be opened. Other dates have no game.</p>
+        </section>
+    </main>
+</body>
+</html>
