@@ -19,10 +19,7 @@
                 <p class="center">No entries were submitted on this date.</p>
             {% else %}
                 {% if no_votes %}<p class="center">No votes were cast on this date.</p>{% endif %}
-                <table class="results-table answers-table">
-                    <thead><tr><th>Player</th><th>Entry</th><th>Votes</th></tr></thead>
-                    <tbody>{% for row in answers %}<tr><td>{{ row[1] }}</td><td>{{ row[2] | marquee_row(row[0]) | safe }}</td><td>{{ row[3] }}</td></tr>{% endfor %}</tbody>
-                </table>
+                <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
             {% endif %}
 
             <h2 class="page-title daily-calendar-title">Choose a date</h2>

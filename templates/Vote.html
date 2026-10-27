@@ -10,24 +10,27 @@
     <main class="site-shell">
         {% include '_site_nav.html' %}
         <section class="panel">
-            <h1 class="page-title">Cast your vote</h1>
-            <p class="page-lede">Choose the message that made you grin widest.</p>
+            <h1 class="page-title">{% if daily_mode %}Vote on Yesterday's Mischief{% else %}Cast your vote{% endif %}</h1>
+            <p class="page-lede">{% if daily_mode %}Anyone can vote for one entry they did not submit. Voting switches to the newest game at midnight Pacific time.{% else %}Choose the message that made you grin widest.{% endif %}</p>
             {% with messages = get_flashed_messages() %}
                 {% if messages %}<ul class="notice-list">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
             {% endwith %}
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            {% if daily_mode %}<p id="dailyVoteTimer" class="center" data-end-time="{{ time_left_end }}" aria-live="polite"></p>{% endif %}
             {% if block_reason %}
                 <p class="center">{{ block_reason }}</p>
             {% else %}
-                <p id="submitted_count" class="center">{{ submitter_count }} player{{ '' if submitter_count == 1 else 's' }} ha{{ 's' if submitter_count == 1 else 've' }} submitted entries (including you)</p>
-                <div class="button-row"><button type="button" onclick="refreshVotes()">Refresh now</button></div>
-                <form action="{{ url_for('vote') }}" method="post">
+                {% if not daily_mode %}
+                    <p id="submitted_count" class="center">{{ submitter_count }} player{{ '' if submitter_count == 1 else 's' }} ha{{ 's' if submitter_count == 1 else 've' }} submitted entries (including you)</p>
+                    <div class="button-row"><button type="button" onclick="refreshVotes()">Refresh now</button></div>
+                {% endif %}
+                <form action="{{ url_for('daily_vote' if daily_mode else 'vote') }}" method="post">
                     <div id="vote" class="choice-list">
-                        {% if not votes %}<p class="center">Nobody else has submitted yet, so there's nothing to vote on yet. Page will auto-refresh.</p>{% endif %}
-                        {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="vote[]" value="{{ vote[1] }}"><label for="answer-{{ vote[1] }}">{{ vote[3] | marquee_row(original_message) | safe }}</label></div>{% endfor %}
+                        {% if not votes %}<p class="center">{% if daily_mode %}There are no entries from other players to vote on.{% else %}Nobody else has submitted yet, so there's nothing to vote on yet. Page will auto-refresh.{% endif %}</p>{% endif %}
+                        {% for vote in votes %}<div class="choice"><input type="radio" onchange="handleVoteSelectionChange()" id="answer-{{ vote[1] }}" name="{{ 'answerId' if daily_mode else 'vote[]' }}" value="{{ vote[1] }}" {% if daily_mode %}required{% endif %}><label for="answer-{{ vote[1] }}">{{ vote[3] | marquee_row(original_message) | safe }}</label></div>{% endfor %}
                     </div>
                     <input type="hidden" name="gameId" value="{{ selected }}">
-                    <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" disabled></div>
+                    <div class="button-row"><input id="vote_button" class="gold" type="submit" value="Vote" {% if not daily_mode %}disabled{% endif %}></div>
                 </form>
             {% endif %}
         </section>
@@ -39,6 +42,25 @@
         }
 
     </script>
+    {% if daily_mode %}
+    <script>
+        const timer = document.getElementById("dailyVoteTimer");
+        const endTime = new Date(timer.dataset.endTime).getTime();
+        function updateDailyVoteTimer() {
+            const remaining = Math.max(0, endTime - Date.now());
+            if (remaining === 0) {
+                window.location.reload();
+                return;
+            }
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            timer.textContent = `Voting switches in ${hours}h ${minutes}m ${seconds}s`;
+        }
+        updateDailyVoteTimer();
+        setInterval(updateDailyVoteTimer, 1000);
+    </script>
+    {% endif %}
     {% if not block_reason %}
     <script>
         // Poll periodically, updating only the count and choices so a selection isn't lost.

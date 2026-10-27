@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
-    <title>Game in progress — Marquee Mischief</title>
+    <title>{% if daily_mode %}Today's Mischief{% else %}Game in progress{% endif %} — Marquee Mischief</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
-<body data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}">
+<body data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}" data-daily-mode="{{ 'true' if daily_mode else 'false' }}" data-daily-vote-url="{{ url_for('daily_vote') }}">
     <main class="site-shell">
         {% include '_site_nav.html' %}
         <section class="panel play-layout">
             <div>
-                <h1 class="page-title in-game-only">Game on</h1>
+                <h1 class="page-title in-game-only">{% if daily_mode %}Today's Mischief{% else %}Game on{% endif %}</h1>
                 <p class="player-greeting in-game-only">Hello {{ current_user.username }} — let's make some mischief.</p>
             </div>
             <div class="marquee-stage">
@@ -23,10 +23,16 @@
             </div>
             <div id="endPanel" class="end-panel" hidden></div>
             <div class="composer in-game-only">
-                <div class="composer-stage" data-hint-text="Type your mischief here.  You can save as many drafts as you like, but you will have to pick one when time is up.">{{ form_data['TryItBoxDisplay'] | safe }}</div>
+                <div class="composer-stage" data-hint-text="{% if daily_mode %}Type your mischief here. Save drafts and submit each one any time before midnight.{% else %}Type your mischief here.  You can save as many drafts as you like, but you will have to pick one when time is up.{% endif %}">{{ form_data['TryItBoxDisplay'] | safe }}</div>
                 <div class="button-row"><button id="saveDraft" class="gold" type="button" onclick="addDraftItem(document.getElementById('tryItBox').textContent)">Save draft</button></div>
             </div>
             <div class="saved-drafts in-game-only" hidden><p class="help-label">Saved drafts</p><p class="help-label" data-hint="draft"><i>click a draft to move it to your marquee</i></p><div class="drafts" id="drafts"></div></div><div id="saveResponse" class="help-label in-game-only"></div>
+            {% if daily_mode %}
+                <div class="submitted-entries in-game-only" {% if not submitted_entries %}hidden{% endif %}>
+                    <p class="help-label">Your submitted entries</p>
+                    <ul class="daily-entry-list" id="submittedEntries">{% for entry in submitted_entries %}<li>{{ entry.text }}</li>{% endfor %}</ul>
+                </div>
+            {% endif %}
             <div id="wordSuggestions" class="suggestion-box in-game-only"></div>
             <div class="in-game-only">
                 <div class="button-row"><button id="getAiSuggestions" type="button" onclick="updateAISuggestions()">Get AI suggestions</button></div>

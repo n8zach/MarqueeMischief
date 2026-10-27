@@ -137,7 +137,7 @@ def _daily_calendar(month, today, selected_day):
                 "date": day.isoformat(),
                 "day": day.day,
                 "in_month": day.month == month.month,
-                "available": day <= today and day in available_dates,
+                "available": day < today - timedelta(days=1) and day in available_dates,
                 "selected": day == selected_day,
             }
             for day in week
@@ -145,8 +145,8 @@ def _daily_calendar(month, today, selected_day):
     return weeks
 
 
-def _daily_calendar_context(selected_day, today):
-    month = date(selected_day.year, selected_day.month, 1)
+def _daily_calendar_context(selected_day, today, month=None):
+    month = month or date(selected_day.year, selected_day.month, 1)
     previous_month = (month - timedelta(days=1)).replace(day=1)
     next_month = (month.replace(day=28) + timedelta(days=4)).replace(day=1)
     return {
@@ -378,7 +378,7 @@ def results():
     )
 
 
-@app.route("/daily/", methods=["GET", "POST"])
+@app.route("/daily/", methods=["GET"])
 @login_required
 def daily_game():
     today = _daily_today()
@@ -387,27 +387,33 @@ def daily_game():
         return render_template("daily_game.html", game=None, entries=[], notice=None)
 
     puzzle_text = get_game_with_puzzle(game_and_puzzle.id)[1]
-    notice = None
-    if request.method == "POST":
-        if request.form.get("gameId") != str(game_and_puzzle.id):
-            notice = "The daily game changed. Please refresh and try again."
-        else:
-            notice = save_daily_answer(request.form.get("answer", ""), game_and_puzzle.id, current_user.id)
-            if notice == ANSWER_ADDED_MESSAGE:
-                flash(notice, "success")
-                return redirect(url_for("daily_game"))
-            flash(notice, "error")
-
     game_ended = game_has_ended(game_and_puzzle)
+    if game_ended:
+        return redirect(url_for("daily_vote"))
+
+    form_data = {
+        "user": current_user.username,
+        "OriginalMessage": puzzle_text,
+        "Best": puzzle_text,
+        "OriginalMessageDisplay": message_to_marquee_html(puzzle_text),
+        "TryItBoxDisplay": message_to_marquee_html(
+            puzzle_text,
+            input_attrs=_try_it_box_attrs(puzzle_text, game_and_puzzle.id),
+        ),
+    }
+    game_url = url_for("daily_game", _external=True)
     return render_template(
-        "daily_game.html",
+        "game.html",
+        form_data=form_data,
         game=game_and_puzzle,
-        puzzle_text=puzzle_text,
-        original_message_html=message_to_marquee_html(puzzle_text),
-        entries=[entry for entry in get_daily_answers(game_and_puzzle.id) if entry.userId == current_user.id],
+        game_url=game_url,
         game_ended=game_ended,
         end_time=utc_datetime(game_end_time(game_and_puzzle)).isoformat(),
-        notice=notice,
+        daily_mode=True,
+        submitted_entries=[
+            entry for entry in get_daily_answers(game_and_puzzle.id)
+            if entry.userId == current_user.id
+        ],
     )
 
 
@@ -419,7 +425,8 @@ def daily_vote():
     game = get_daily_game(voting_day)
     if game is None:
         return render_template(
-            "daily_vote.html", game=None, answers=[], block_reason="Yesterday's daily game is not available yet.",
+            "Vote.html", game=None, votes=[], daily_mode=True,
+            block_reason="Yesterday's daily game is not available yet.",
             time_left_end=_daily_window(today)[1].isoformat(),
         )
 
@@ -432,9 +439,14 @@ def daily_vote():
                 flash(error, "error")
             else:
                 flash("Your vote has been recorded.", "success")
+                return redirect(url_for("daily_vote"))
 
     answers = get_daily_answers(game.id)
-    voteable_answers = [answer for answer in answers if answer.userId != current_user.id]
+    answer_votes = get_game_answer_votes(game.id)
+    voteable_answers = [
+        answer for answer in answer_votes
+        if answer[2] is None or int(answer[2]) != int(current_user.id)
+    ]
     block_reason = None
     if not answers:
         block_reason = "No entries were submitted yesterday, so there is nothing to vote on."
@@ -446,14 +458,17 @@ def daily_vote():
     game_and_puzzle = get_game_with_puzzle(game.id)
     puzzle_text = game_and_puzzle[1] if game_and_puzzle else ""
     return render_template(
-        "daily_vote.html",
+        "Vote.html",
         game=game,
-        answers=voteable_answers,
+        votes=voteable_answers,
+        selected=game.id,
+        submitter_count=len({answer[2] for answer in answer_votes if answer[2] is not None}),
+        refresh_seconds=app.config["VOTE_REFRESH_SECONDS"],
+        daily_mode=True,
         block_reason=block_reason,
         original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
         original_message=puzzle_text,
         time_left_end=_daily_window(today)[1].isoformat(),
-        flash_messages=get_flashed_messages(),
     )
 
 
@@ -482,10 +497,11 @@ def daily_results():
         selected_day=selected_day,
         game=game,
         answers=answers,
+        text=get_game_results_text(game.id) if game else "",
         original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
         notice=None if game else "No daily game was available on this date.",
         no_votes=bool(answers) and not any(row[3] for row in answers),
-        **_daily_calendar_context(selected_day, today),
+        **_daily_calendar_context(selected_day, today, selected_month),
     )
 
 
@@ -551,7 +567,11 @@ def game():
 @app.route("/save", methods=["POST"])
 @login_required
 def save():
-    message = save_answer_for_game(request.form.get("answer", ""), request.form.get("gameId"), current_user.id)
+    game = get_game(request.form.get("gameId"))
+    if game is not None and game.dailyDate is not None:
+        message = save_daily_answer(request.form.get("answer", ""), game.id, current_user.id)
+    else:
+        message = save_answer_for_game(request.form.get("answer", ""), request.form.get("gameId"), current_user.id)
     if message == ANSWER_ADDED_MESSAGE:
         return message, 200
     return message, (409 if message == ANSWER_EXISTS_MESSAGE else 400)

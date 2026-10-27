@@ -79,6 +79,10 @@ function gameId() {
     return document.getElementById("tryItBox").dataset.gameId;
 }
 
+function isDailyGame() {
+    return document.body.dataset.dailyMode === "true";
+}
+
 function cookieName(name) {
     // TryIt retains its original cookie names, so existing saved drafts and
     // suggestions still load. A game uses its id to isolate reused puzzles.
@@ -710,6 +714,37 @@ function addDraftItem(draft) {
     div.appendChild(label);
     div.append("  ");
 
+    if (isDailyGame()) {
+        const submitButton = document.createElement("button");
+        submitButton.type = "button";
+        submitButton.className = "draftSubmit gold";
+        submitButton.textContent = "Submit";
+        submitButton.addEventListener("click", function () {
+            submitButton.disabled = true;
+            saveAnswer(draft).done(function () {
+                removeDraftByText(draft);
+                const submittedEntries = document.getElementById("submittedEntries");
+                if (submittedEntries) {
+                    const item = document.createElement("li");
+                    item.textContent = draft;
+                    submittedEntries.appendChild(item);
+                    submittedEntries.parentElement.hidden = false;
+                }
+                const saveResponse = document.getElementById("saveResponse");
+                if (saveResponse) {
+                    saveResponse.textContent = "Entry submitted.";
+                }
+            }).fail(function (xhr) {
+                const saveResponse = document.getElementById("saveResponse");
+                if (saveResponse) {
+                    saveResponse.textContent = xhr.responseText || "Something went wrong submitting your draft.";
+                }
+                submitButton.disabled = false;
+            });
+        });
+        div.appendChild(submitButton);
+    }
+
     const removeButton = document.createElement("button");
     removeButton.innerHTML = "x";
     removeButton.className = "draftRemove";
@@ -803,6 +838,10 @@ function initializeGameTimer() {
 }
 
 function setGameEnded() {
+    if (isDailyGame()) {
+        window.location.replace(document.body.dataset.dailyVoteUrl);
+        return;
+    }
     document.body.dataset.gameEnded = "true";
     document.querySelectorAll(".in-game-only").forEach(function (element) { element.hidden = true; });
     document.getElementById("tryItBox").contentEditable = "false";
