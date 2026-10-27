@@ -53,7 +53,10 @@ else:
 app = Flask(__name__, template_folder="templates", static_url_path="/static")
 app.config["SECRET_KEY"] = "TraLaLaa"
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
-app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280,
+}
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.jinja_env.filters["marquee_row"] = lambda message, original=None: message_to_marquee_html(message, include_assets=False, like=original)
 # Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
