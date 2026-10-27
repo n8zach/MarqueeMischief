@@ -2,7 +2,11 @@ import calendar
 import os
 from datetime import date, datetime, timedelta, timezone
 from html import escape
-from zoneinfo import ZoneInfo
+import sys
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:
+    from backports.zoneinfo import ZoneInfo
 from urllib.parse import parse_qs, urlsplit
 
 from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, url_for

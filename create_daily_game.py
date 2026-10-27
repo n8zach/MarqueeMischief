@@ -1,7 +1,11 @@
 """Create today's daily game; intended for a once-daily scheduled task."""
 import argparse
 from datetime import date, datetime, time, timedelta, timezone
-from zoneinfo import ZoneInfo
+import sys
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:
+    from backports.zoneinfo import ZoneInfo
 
 from flask_app import app
 from mm_game_db import create_daily_game, get_daily_game, get_or_create_puzzle
