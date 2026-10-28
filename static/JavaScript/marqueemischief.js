@@ -536,6 +536,19 @@ function currentDrafts() {
     return Array.from(document.querySelectorAll("#drafts .draft label")).map(function (label) { return label.textContent; });
 }
 
+function rejectionMessage(xhr) {
+    const result = xhr && xhr.status === 422 ? xhr.responseJSON : null;
+    if (!result || !result.rejected) {
+        return null;
+    }
+    const percent = Math.round(result.rejection_probability * 100);
+    return "Hey friend,\n\n" +
+        "I'm " + percent + "% sure that the message you just submitted didn't meet the rating, or didn't meet this site's community guidelines. " +
+        "Because the daily game is visible to anyone I unfortunately had to block it... I know.. rude.\n\n" +
+        "When you create your own game or join someone else's there's no screening so you can speak freely there.\n" +
+        "Sorry... I bet it was really freaking funny too : /";
+}
+
 function removeDraftByText(text) {
     const label = Array.from(document.querySelectorAll("#drafts .draft label")).find(function (item) { return item.textContent === text; });
     if (label) {
@@ -620,6 +633,13 @@ function renderEndPanel(notice) {
         submitDrafts(picked).done(function () {
             window.location.href = "/vote/?gameId=" + encodeURIComponent(gameId());
         }).fail(function (xhr, draft) {
+            const rejection = rejectionMessage(xhr);
+            if (rejection) {
+                removeDraftByText(draft);
+                renderEndPanel();
+                window.alert(rejection);
+                return;
+            }
             if (xhr.status === 409) {
                 removeDraftByText(draft);
                 renderEndPanel("Someone beat you to that one!");
@@ -735,6 +755,12 @@ function addDraftItem(draft) {
                     saveResponse.textContent = "Entry submitted.";
                 }
             }).fail(function (xhr) {
+                const rejection = rejectionMessage(xhr);
+                if (rejection) {
+                    removeDraftByText(draft);
+                    window.alert(rejection);
+                    return;
+                }
                 const saveResponse = document.getElementById("saveResponse");
                 if (saveResponse) {
                     saveResponse.textContent = xhr.responseText || "Something went wrong submitting your draft.";
