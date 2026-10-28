@@ -1,4 +1,7 @@
 """Create today's daily game; intended for a once-daily scheduled task."""
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 import argparse
 from datetime import date, datetime, time, timedelta, timezone
 import sys
@@ -6,13 +9,11 @@ if sys.version_info >= (3, 9):
     from zoneinfo import ZoneInfo
 else:
     from backports.zoneinfo import ZoneInfo
-
 from flask_app import app
 from mm_game_db import create_daily_game, get_daily_game, get_or_create_puzzle
 from marquee_mischief_openAI import generate_new_original_message
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
-
 
 def create_game_for_day(day):
     existing = get_daily_game(day)
@@ -36,6 +37,12 @@ def create_game_for_day(day):
 
 
 def main():
+    script_dir = Path(__file__).resolve().parent
+    env_path = script_dir / '.env'
+
+    # Force load_dotenv to use the absolute path
+    load_dotenv(dotenv_path=env_path)
+
     parser = argparse.ArgumentParser(description="Create today's daily Marquee Mischief game.")
     parser.add_argument("--date", type=date.fromisoformat, help="Local game date in YYYY-MM-DD format (defaults to today in PST).")
     args = parser.parse_args()
