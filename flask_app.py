@@ -1,5 +1,6 @@
 import calendar
 import os
+import random
 from datetime import date, datetime, timedelta, timezone
 from html import escape
 import sys
@@ -338,6 +339,7 @@ def vote():
         else:
             return redirect(url_for("results", gameId=game.id))
     answers = get_game_answer_votes(game.id)
+    random.shuffle(answers)
     voteable_answers = [
         answer for answer in answers
         if answer[2] is None or int(answer[2]) != int(current_user.id)
