@@ -541,7 +541,7 @@ function rejectionMessage(xhr) {
     if (!result || !result.rejected) {
         return null;
     }
-    const percent = Math.round(result.rejection_probability * 100);
+    const percent = Math.round(result.rejection_probability);
     return "Hey friend,\n\n" +
         "I'm " + percent + "% sure that the message you just submitted didn't meet the rating, or didn't meet this site's community guidelines. " +
         "Because the daily game is visible to anyone I unfortunately had to block it... I know.. rude.\n\n" +
