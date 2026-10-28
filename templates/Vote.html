@@ -35,7 +35,7 @@
             {% endif %}
         </section>
     </main>
-    <script data-refresh-seconds="{{ refresh_seconds }}">
+    <script>
         function handleVoteSelectionChange() {
             const voteButton = document.getElementById("vote_button");
             if (voteButton) voteButton.disabled = !document.querySelector("#vote input[type=radio]:checked");
@@ -62,7 +62,7 @@
     </script>
     {% endif %}
     {% if not block_reason %}
-    <script>
+    <script data-refresh-seconds="{{ refresh_seconds }}">
         // Poll periodically, updating only the count and choices so a selection isn't lost.
         async function refreshVotes() {
             try {
