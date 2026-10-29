@@ -98,7 +98,7 @@ class _BetterProfanityAdapter:
                 "`pip install better-profanity`."
             ) from exc
         #profanity.load_censor_words()
-        profanity.load_censor_words_from_file('/home/MarqueeMischief/data/profanity_wordlist.txt')
+        profanity.load_censor_words_from_file('/home/mischi3f/MarqueeMischief/data/profanity_wordlist.txt')
         self._profanity = profanity
 
     def contains_profanity(self, text: str) -> bool:
