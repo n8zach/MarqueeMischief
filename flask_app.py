@@ -631,7 +631,7 @@ def test():
     return render_template("GridTest.html")
 
 
-if os.environ.get("PRELOAD_PROFANITY_MODEL", "1") == "1":
+if os.environ.get("PRELOAD_PROFANITY_MODEL", "0") == "1":
     start_background_warm_up()
 
 
