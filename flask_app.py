@@ -16,6 +16,7 @@ from flask_migrate import Migrate
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
+from profanity_filter import screen_message
 from mm_game_db import (
     ANSWER_ADDED_MESSAGE,
     ANSWER_EXISTS_MESSAGE,
@@ -573,11 +574,25 @@ def game():
     return render_template("game.html", form_data=form_data, game=game_record, end_time=utc_datetime(game_end_time(game_record)).isoformat(), game_has_ended=game_has_ended(game_record), game_url=game_url)
 
 
+def _screen_daily_answer(answer_text):
+    answer_text = " ".join(answer_text.replace("\xa0", " ").split())
+    if not answer_text:
+        return None
+    try:
+        return screen_message(answer_text)
+    except Exception:
+        app.logger.exception("Profanity screening failed; allowing answer.")
+        return None
+
+
 @app.route("/save", methods=["POST"])
 @login_required
 def save():
     game = get_game(request.form.get("gameId"))
     if game is not None and game.dailyDate is not None:
+        screening = _screen_daily_answer(request.form.get("answer", ""))
+        if screening is not None and screening.rejected:
+            return jsonify(screening.to_dict()), 422
         message = save_daily_answer(request.form.get("answer", ""), game.id, current_user.id)
     else:
         message = save_answer_for_game(request.form.get("answer", ""), request.form.get("gameId"), current_user.id)
