@@ -97,8 +97,8 @@ class _BetterProfanityAdapter:
                 "The deterministic tier requires better-profanity. Install it with "
                 "`pip install better-profanity`."
             ) from exc
-        # Explicitly load the library's built-in list. No custom list is supplied.
-        profanity.load_censor_words()
+        #profanity.load_censor_words()
+        profanity.load_censor_words_from_file('/home/MarqueeMischief/data/profanity_wordlist.txt')
         self._profanity = profanity
 
     def contains_profanity(self, text: str) -> bool:
