@@ -546,7 +546,13 @@ function rejectionMessage(xhr) {
         "I'm " + percent + "% sure that the message you just submitted didn't meet the rating, or didn't meet this site's community guidelines. " +
         "\nBecause the daily game is visible to anyone I unfortunately had to block it... I know... rude." +
         "\n\nWhen you create your own game or join someone else's there's no screening so you can speak freely there.\n" +
-        "\nSorry... I bet it was really freaking funny too :/";
+        "\nSorry... I bet it was really freaking funny too :/" +
+        "\n\n----- screening details -----\n" + screeningDetails(result);
+}
+
+function screeningDetails(result) {
+    return JSON.stringify(result, null, 2) + "\n" +
+        "-> REJECTED (" + Number(result.rejection_probability).toFixed(1) + "% vs " + result.threshold + "% threshold)";
 }
 
 function removeDraftByText(text) {

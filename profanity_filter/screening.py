@@ -9,7 +9,7 @@ from .rejection_scorer import RejectionScorer
 logger = logging.getLogger(__name__)
 
 DEFAULT_RATING = "PG-13"
-DEFAULT_THRESHOLD = 90.0
+DEFAULT_THRESHOLD = 50.0
 
 _scorers = {}
 _lock = Lock()
@@ -22,6 +22,13 @@ class ScreeningResult:
     rejection_probability: float
     score: float
     reason: str
+    tier: str = ""
+    threshold: float = DEFAULT_THRESHOLD
+
+    @property
+    def word_match(self):
+        """True when the built-in word detector flagged the text (not the ML model)."""
+        return self.tier == "deterministic"
 
     def to_dict(self):
         return {
@@ -30,6 +37,9 @@ class ScreeningResult:
             "rejection_probability": self.rejection_probability,
             "score": self.score,
             "reason": self.reason,
+            "tier": self.tier,
+            "word_match": self.word_match,
+            "threshold": self.threshold,
         }
 
 
@@ -108,4 +118,6 @@ def screen_message(text, rating=DEFAULT_RATING, threshold=DEFAULT_THRESHOLD, sco
         rejection_probability=probability,
         score=result.score or 0.0,
         reason=result.reason,
+        tier=result.tier,
+        threshold=threshold,
     )
