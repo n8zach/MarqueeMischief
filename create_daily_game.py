@@ -2,6 +2,12 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+
+# --- Load env variables FIRST, before importing local modules ---
+script_dir = Path(__file__).resolve().parent
+env_path = script_dir / '.env'
+load_dotenv(dotenv_path=env_path)   
+
 import argparse
 from datetime import date, datetime, time, timedelta, timezone
 import sys
@@ -37,12 +43,6 @@ def create_game_for_day(day):
 
 
 def main():
-    script_dir = Path(__file__).resolve().parent
-    env_path = script_dir / '.env'
-
-    # Force load_dotenv to use the absolute path
-    load_dotenv(dotenv_path=env_path)
-
     parser = argparse.ArgumentParser(description="Create today's daily Marquee Mischief game.")
     parser.add_argument("--date", type=date.fromisoformat, help="Local game date in YYYY-MM-DD format (defaults to today in PST).")
     args = parser.parse_args()
