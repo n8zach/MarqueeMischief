@@ -544,9 +544,9 @@ function rejectionMessage(xhr) {
     const percent = Math.round(result.rejection_probability);
     return "Hey friend,\n\n" +
         "I'm " + percent + "% sure that the message you just submitted didn't meet the rating, or didn't meet this site's community guidelines. " +
-        "Because the daily game is visible to anyone I unfortunately had to block it... I know.. rude.\n\n" +
-        "When you create your own game or join someone else's there's no screening so you can speak freely there.\n" +
-        "Sorry... I bet it was really freaking funny too : /";
+        "\nBecause the daily game is visible to anyone I unfortunately had to block it... I know... rude." +
+        "\n\nWhen you create your own game or join someone else's there's no screening so you can speak freely there.\n" +
+        "\nSorry... I bet it was really freaking funny too :/";
 }
 
 function removeDraftByText(text) {

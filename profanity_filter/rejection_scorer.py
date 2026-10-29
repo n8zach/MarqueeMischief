@@ -8,7 +8,10 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 import math
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Protocol, Sequence
+
+PROFANITY_WORDLIST_PATH = Path(__file__).resolve().parent.parent / "data" / "profanity_wordlist.txt"
 
 
 # These are starting policy thresholds for the model's raw offensive-language
@@ -98,7 +101,9 @@ class _BetterProfanityAdapter:
                 "`pip install better-profanity`."
             ) from exc
         #profanity.load_censor_words()
-        profanity.load_censor_words_from_file('/home/mischi3f/MarqueeMischief/data/profanity_wordlist.txt')
+        if not PROFANITY_WORDLIST_PATH.is_file():
+            raise FileNotFoundError(f"Profanity wordlist not found at {PROFANITY_WORDLIST_PATH}")
+        profanity.load_censor_words_from_file(str(PROFANITY_WORDLIST_PATH))
         self._profanity = profanity
 
     def contains_profanity(self, text: str) -> bool:

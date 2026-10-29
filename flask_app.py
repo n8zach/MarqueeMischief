@@ -16,7 +16,7 @@ from flask_migrate import Migrate
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 from marquee_helper import remove_punctuation
 from marquee_mischief_openAI import message_to_messages
-from profanity_filter import screen_message
+from profanity_filter import ensure_ready, screen_message, start_background_warm_up
 from mm_game_db import (
     ANSWER_ADDED_MESSAGE,
     ANSWER_EXISTS_MESSAGE,
@@ -52,6 +52,13 @@ from mm_game_db import (
 from db import db
 from original_message_display import message_to_marquee_html
 from scrabble import suggest_words
+
+SCREENER_UNAVAILABLE_MESSAGE = "We are having technical difficulties and working to resolve them. Please try back later."
+
+
+class ScreenerUnavailable(Exception):
+    pass
+
 
 USE_PROXY = True
 LOCAL = os.environ.get("PYTHONANYWHERE_SITE") is None
@@ -400,6 +407,8 @@ def daily_game():
     game_ended = game_has_ended(game_and_puzzle)
     if game_ended:
         return redirect(url_for("daily_vote"))
+    if not ensure_ready():
+        return render_template("error.html", message=SCREENER_UNAVAILABLE_MESSAGE), 503
 
     form_data = {
         "user": current_user.username,
@@ -575,14 +584,17 @@ def game():
 
 
 def _screen_daily_answer(answer_text):
+    """Return a ScreeningResult, None for empty text, or raise ScreenerUnavailable."""
     answer_text = " ".join(answer_text.replace("\xa0", " ").split())
     if not answer_text:
         return None
+    if not ensure_ready():
+        raise ScreenerUnavailable()
     try:
         return screen_message(answer_text)
     except Exception:
-        app.logger.exception("Profanity screening failed; allowing answer.")
-        return None
+        app.logger.critical("PROFANITY SCREENER FAILED while screening a daily answer; rejecting submission.", exc_info=True)
+        raise ScreenerUnavailable()
 
 
 @app.route("/save", methods=["POST"])
@@ -590,7 +602,10 @@ def _screen_daily_answer(answer_text):
 def save():
     game = get_game(request.form.get("gameId"))
     if game is not None and game.dailyDate is not None:
-        screening = _screen_daily_answer(request.form.get("answer", ""))
+        try:
+            screening = _screen_daily_answer(request.form.get("answer", ""))
+        except ScreenerUnavailable:
+            return SCREENER_UNAVAILABLE_MESSAGE, 503
         if screening is not None and screening.rejected:
             return jsonify(screening.to_dict()), 422
         message = save_daily_answer(request.form.get("answer", ""), game.id, current_user.id)
@@ -614,6 +629,10 @@ def coming_soon():
 @app.route("/test/", methods=["POST", "GET"])
 def test():
     return render_template("GridTest.html")
+
+
+if os.environ.get("PRELOAD_PROFANITY_MODEL", "1") == "1":
+    start_background_warm_up()
 
 
 if __name__ == "__main__":
