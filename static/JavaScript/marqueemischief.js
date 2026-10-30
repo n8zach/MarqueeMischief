@@ -543,7 +543,7 @@ function rejectionMessage(xhr) {
     }
     const percent = Math.round(result.rejection_probability);
     return "Hey friend,\n\n" +
-        "I'm " + percent + "% sure that the message you just submitted didn't meet the rating, or didn't meet this site's community guidelines. " +
+        "I'm pretty sure that the message you just submitted didn't meet this site's community guidelines." +
         "\nBecause the daily game is visible to anyone I unfortunately had to block it... I know... rude." +
         "\n\nWhen you create your own game or join someone else's there's no screening so you can speak freely there.\n" +
         "\nSorry... I bet it was really freaking funny too :/" +
@@ -669,16 +669,32 @@ function updateSubmitState() {
     }
 }
 
+const SCRABBLE_DEBOUNCE_MS = 1000;
+let scrabbleDebounceTimer = null;
+let scrabbleRequest = null;
+
+// Waits for a pause in typing before requesting new word suggestions.
 function updateScrabbleSuggestions() {
+    clearTimeout(scrabbleDebounceTimer);
+    scrabbleDebounceTimer = setTimeout(fetchScrabbleSuggestions, SCRABBLE_DEBOUNCE_MS);
+}
+
+function fetchScrabbleSuggestions() {
     const text = document.getElementById("tryItBox").textContent;
 
-    $.ajax({
+    if (scrabbleRequest) {
+        scrabbleRequest.abort();
+    }
+    const request = $.ajax({
         data: {
             letters: unusedLetters(text, originalMessage())
         },
         type: "POST",
         url: "/scrabbler"
-    }).done(function (data) {
+    });
+    scrabbleRequest = request;
+
+    request.done(function (data) {
         let html = data.trim();
         if (!html) {
             html = "No word suggestions";
@@ -687,6 +703,15 @@ function updateScrabbleSuggestions() {
             html = '<span data-hint="word">click a word to add it to your marquee<br></span>' + html;
         }
         document.getElementById("wordSuggestions").innerHTML = html;
+    }).fail(function (jqXHR, textStatus) {
+        if (textStatus !== "abort") {
+            console.error("Word suggestions failed:", textStatus);
+        }
+    }).always(function () {
+        // Only clear if a newer request hasn't replaced this one.
+        if (scrabbleRequest === request) {
+            scrabbleRequest = null;
+        }
     });
 }
 
