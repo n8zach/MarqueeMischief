@@ -10,6 +10,7 @@
             <a href="{{ url_for('tryit') }}">Try It</a>
             <a href="{{ url_for('create_game') }}">New Game</a>
             <a href="{{ url_for('results') }}">Results</a>
+            {% if current_user.isAdministrator %}<a href="{{ url_for('admin') }}">Admin</a>{% endif %}
             <a href="{{ url_for('logout') }}">Log out</a>
         {% else %}
             <a href="{{ url_for('login') }}">Log in</a>

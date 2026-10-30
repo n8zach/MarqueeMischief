@@ -19,25 +19,25 @@ def utc_datetime(value):
     return value
 
 
-class User(UserMixin):
-    def __init__(self, id, username, password):
-        self.id = id
-        self.username = username
-        self.password = password
-
-
-class Users(db.Model):
-    __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256))
-    password = db.Column(db.String(32))
-    authorizationCode = db.Column(db.String(128), nullable=True)
-
-
 class AuthorizationCodes(db.Model):
     __tablename__ = "authorization_codes"
     code = db.Column(db.String(128), primary_key=True)
     description = db.Column(db.String(256))
+
+
+class Users(UserMixin, db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256))
+    password = db.Column(db.String(32))
+    authorizationCode = db.Column(
+        db.String(128), db.ForeignKey("authorization_codes.code", ondelete="SET NULL"), nullable=True
+    )
+    isAdministrator = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+
+    @property
+    def username(self):
+        return self.name
 
 
 class Puzzles(db.Model):
@@ -49,7 +49,7 @@ class Puzzles(db.Model):
 class Games(db.Model):
     __tablename__ = "games"
     id = db.Column(db.Integer, primary_key=True)
-    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id"), nullable=False)
+    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id", ondelete="CASCADE"), nullable=False)
     durationSeconds = db.Column(db.Integer, nullable=False)
     createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     startTime = db.Column(db.DateTime(timezone=True), nullable=True)
@@ -59,18 +59,18 @@ class Games(db.Model):
 class Answers(db.Model):
     __tablename__ = "answers"
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey("users.id"))
-    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id"))
-    gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
+    userId = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    puzzleId = db.Column(db.Integer, db.ForeignKey("puzzles.id", ondelete="CASCADE"))
+    gameId = db.Column(db.Integer, db.ForeignKey("games.id", ondelete="CASCADE"), nullable=True)
     text = db.Column(db.String(256))
 
 
 class Votes(db.Model):
     __tablename__ = "votes"
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey("users.id"))
-    answerId = db.Column(db.Integer, db.ForeignKey("answers.id"))
-    gameId = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=True)
+    userId = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    answerId = db.Column(db.Integer, db.ForeignKey("answers.id", ondelete="CASCADE"))
+    gameId = db.Column(db.Integer, db.ForeignKey("games.id", ondelete="CASCADE"), nullable=True)
 
 
 def get_or_create_puzzle(puzzle_text):
@@ -421,12 +421,12 @@ def get_user_from_id(user_id):
         .filter(Users.id == int(user_id))
         .first()
     )
-    return User(user.id, user.name, user.password) if user else None
+    return user
 
 
 def get_user_from_name_and_password(username, password):
     user = Users.query.filter_by(name=username, password=password).first()
-    return User(user.id, user.name, user.password) if user else None
+    return user
 
 
 def add_user(username, password, authorization_code):

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+</head>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            <h1 class="page-title">Administration</h1>
+            {% for message in get_flashed_messages() %}<p class="center">{{ message }}</p>{% endfor %}
+            <p class="center"><small>Deleting a row also deletes everything that depends on it.</small></p>
+        </section>
+        {% for section in sections %}
+        <section class="panel">
+            <h2>{{ section.title }} ({{ section.rows|length }}{{ '+' if section.truncated }})</h2>
+            {% if section.truncated %}<p><small>Showing the newest {{ section.rows|length }} rows.</small></p>{% endif %}
+            <table class="admin-table">
+                <thead><tr>{% for column in section.columns %}<th>{{ column }}</th>{% endfor %}<th></th></tr></thead>
+                <tbody>
+                {% for row in section.rows %}
+                    {% set key = row._mapping[section.pk] %}
+                    <tr>
+                        {% for column in section.columns %}<td data-label="{{ column }}">{{ row._mapping[column] if row._mapping[column] is not none else '' }}</td>{% endfor %}
+                        <td class="admin-actions"><button type="button" class="admin-delete" data-table="{{ section.name }}" data-key="{{ key }}">Delete</button></td>
+                    </tr>
+                {% else %}
+                    <tr><td class="admin-empty">None</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endfor %}
+    </main>
+
+    <dialog id="confirm-dialog" class="admin-dialog">
+        <form method="post" id="confirm-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <h2>Confirm delete</h2>
+            <div id="confirm-body"></div>
+            <div class="button-row">
+                <button type="button" id="confirm-cancel">Cancel</button>
+                <button type="submit" id="confirm-ok" class="gold">Delete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+    (function () {
+        const dialog = document.getElementById("confirm-dialog");
+        const form = document.getElementById("confirm-form");
+        const body = document.getElementById("confirm-body");
+        const ok = document.getElementById("confirm-ok");
+        document.getElementById("confirm-cancel").addEventListener("click", () => dialog.close());
+
+        function line(text) { const p = document.createElement("p"); p.textContent = text; return p; }
+
+        document.querySelectorAll(".admin-delete").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const table = button.dataset.table, key = button.dataset.key;
+                const base = "/admin/" + encodeURIComponent(table) + "/" + encodeURIComponent(key);
+                body.replaceChildren(line("Checking what will be deleted…"));
+                ok.disabled = true;
+                form.action = base + "/delete";
+                dialog.showModal();
+                try {
+                    const response = await fetch(base + "/impact", { credentials: "same-origin" });
+                    if (!response.ok) throw new Error();
+                    const data = await response.json();
+                    const nodes = [line("Delete " + table.replace("_", " ") + " " + key + "?")];
+                    const entries = Object.entries(data.cascade);
+                    if (entries.length) {
+                        nodes.push(line("This will also permanently delete:"));
+                        const list = document.createElement("ul");
+                        entries.forEach(([name, ids]) => {
+                            const item = document.createElement("li");
+                            item.textContent = ids.length + " " + name.replace("_", " ") + " (" + ids.join(", ") + ")";
+                            list.appendChild(item);
+                        });
+                        nodes.push(list);
+                    }
+                    const locked = Object.entries(data.lockedOut || {});
+                    locked.forEach(([name, ids]) => {
+                        nodes.push(line(ids.length + " " + name.replace("_", " ") + " (" + ids.join(", ") + ") will be locked out but not deleted."));
+                    });
+                    if (!entries.length && !locked.length) nodes.push(line("Nothing else depends on it."));
+                    if (data.blocked) nodes.push(line(data.blocked));
+                    body.replaceChildren(...nodes);
+                    ok.disabled = Boolean(data.blocked);
+                } catch (error) {
+                    body.replaceChildren(line("Could not load the delete preview. Reload and try again."));
+                }
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

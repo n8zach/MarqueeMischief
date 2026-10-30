@@ -1,6 +1,8 @@
 import calendar
 import os
 import random
+import secrets
+from functools import wraps
 from datetime import date, datetime, timedelta, timezone
 from html import escape
 import sys
@@ -10,7 +12,7 @@ else:
     from backports.zoneinfo import ZoneInfo
 from urllib.parse import parse_qs, urlsplit
 
-from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, get_flashed_messages, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_migrate import Migrate
 from werkzeug.exceptions import MethodNotAllowed, NotFound
@@ -50,6 +52,7 @@ from mm_game_db import (
     vote_for_daily_answer,
 )
 from db import db
+from admin_helper import cascade_preview, delete_row, lockout_preview, section_rows
 from original_message_display import message_to_marquee_html
 from scrabble import suggest_words
 
@@ -614,6 +617,67 @@ def save():
     if message == ANSWER_ADDED_MESSAGE:
         return message, 200
     return message, (409 if message == ANSWER_EXISTS_MESSAGE else 400)
+
+
+def admin_required(view):
+    @wraps(view)
+    @login_required
+    def wrapper(*args, **kwargs):
+        if not current_user.isAdministrator:
+            abort(404)
+        return view(*args, **kwargs)
+    return wrapper
+
+
+def _admin_csrf_token():
+    if "admin_csrf" not in session:
+        session["admin_csrf"] = secrets.token_urlsafe(32)
+    return session["admin_csrf"]
+
+
+def _admin_delete_block_reason(table, key, preview):
+    own_id = int(current_user.id)
+    if (table == "users" and str(own_id) == key) or own_id in preview.get("users", []):
+        return "This would delete your own account."
+    if table == "authorization_codes" and own_id in lockout_preview(table, key).get("users", []):
+        return "This would lock you out of your own account."
+    return None
+
+
+@app.route("/admin/", methods=["GET"])
+@admin_required
+def admin():
+    return render_template("admin.html", sections=section_rows(), csrf_token=_admin_csrf_token())
+
+
+@app.route("/admin/<table>/<key>/impact", methods=["GET"])
+@admin_required
+def admin_impact(table, key):
+    preview = cascade_preview(table, key)
+    if preview is None:
+        abort(404)
+    return jsonify({
+        "cascade": preview,
+        "lockedOut": lockout_preview(table, key),
+        "blocked": _admin_delete_block_reason(table, key, preview),
+    })
+
+
+@app.route("/admin/<table>/<key>/delete", methods=["POST"])
+@admin_required
+def admin_delete(table, key):
+    if not secrets.compare_digest(request.form.get("csrf_token", ""), session.get("admin_csrf", "")):
+        abort(400)
+    preview = cascade_preview(table, key)
+    if preview is None:
+        abort(404)
+    block = _admin_delete_block_reason(table, key, preview)
+    if block:
+        flash(block)
+        return redirect(url_for("admin"))
+    delete_row(table, key)
+    flash(f"Deleted {table} {key}.")
+    return redirect(url_for("admin"))
 
 
 @app.route("/", methods=["GET"])

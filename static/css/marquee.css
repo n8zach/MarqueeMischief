@@ -197,6 +197,19 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .daily-calendar .selected-date { outline: 2px solid var(--gold-deep); outline-offset: -2px; }
 .daily-calendar-key { color: var(--muted); font-size: .9rem; text-align: center; }
 
+.admin-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.admin-table th, .admin-table td { padding: .4rem .5rem; border-bottom: 1px solid var(--line); text-align: left; overflow-wrap: anywhere; }
+.admin-dialog { max-width: min(30rem, calc(100% - 1.5rem)); border: 3px solid var(--purple); border-radius: 14px; background: var(--paper); color: var(--ink); }
+.admin-dialog ul { padding-left: 1.2rem; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+    .admin-table thead { display: none; }
+    .admin-table tr { margin-bottom: .75rem; padding: .4rem; border: 1px solid var(--line); border-radius: 10px; }
+    .admin-table td { display: flex; gap: .5rem; border-bottom: 0; }
+    .admin-table td[data-label]::before { content: attr(data-label); flex: 0 0 8rem; font-weight: bold; color: var(--muted); }
+    .admin-table .admin-actions button { width: 100%; min-height: 44px; }
+}
+
 @media (max-width: 600px) {
     body { font-size: 16px; }
     .site-shell { width: min(100% - 1rem, 900px); padding-top: .6rem; }
