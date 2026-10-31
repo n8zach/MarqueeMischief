@@ -1,3 +1,4 @@
 *.pyc
 .env
 /TestImages/*
+data/original_message_history.json
