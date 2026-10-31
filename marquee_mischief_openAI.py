@@ -33,7 +33,7 @@ def generate_new_original_message(use_proxy: bool = False):
         "**Reasoning:**  \n"
         "Before producing your answer, reason step by step to ensure:\n"
         "- The sign message fits a plausible business or educational context.\n"
-        "- The sign message is a realistic, standard, or generic phrase commonly used on such signs.\n"
+        "- The sign message is a realistic, standard, or generic phrase one might find on such signs.\n"
         "- The sign message is under 40 characters, contains absolutely no punctuation, and is public-appropriate.\n"
         "- The caption is personable, unique, and *always* self-promotional (as described above), never a generic introductory line.\n"
         "- The caption does not repeat or paraphrase the sign message.\n\n"
@@ -48,10 +48,11 @@ def generate_new_original_message(use_proxy: bool = False):
 
         "1. Choose a type of business or educational venue (no real or trademarked names).\n"
         "2. Think of a simple, realistic, generic sign message appropriate for that context (examples: spring savings are here, parent teacher meeting this thursday).\n"
-        "3. Confirm the sign message is under 40 characters, uses NO punctuation or special symbols, and is suitable for a public audience.\n"
-        "4. Write a brief, self-promotional, friendly caption in which you (the AI) take credit and share the sign message enthusiastically, using the required style.\n"
-        "5. Double-check both the sign and caption for compliance with all rules.\n"
-        "6. Output only the specified JSON object.\n\n"
+        "3. Feel free to be quirky, silly or funny and to play on words (examples: Espresso yourself, Better latte than never, Fancy meeting you hair, Life isnt perfect but your coffee can be).\n"
+        "4. Confirm the sign message is under 40 characters, uses NO punctuation or special symbols, and is suitable for a public audience.\n"
+        "5. Write a brief, self-promotional, friendly caption in which you (the AI) take credit and share the sign message enthusiastically, using the required style.\n"
+        "6. Double-check both the sign and caption for compliance with all rules.\n"
+        "7. Output only the specified JSON object.\n\n"
 
         "# Output Format\n\n"
 
