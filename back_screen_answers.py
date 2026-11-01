@@ -39,7 +39,6 @@ def main():
         return 2
 
     passed = failed = skipped = 0
-    screened = []
     with app.app_context():
         for answer in Answers.query.order_by(Answers.id).all():
             text = normalize(answer.text)
@@ -51,15 +50,12 @@ def main():
                 failed += 1
             else:
                 passed += 1
-            screened.append((answer, text, result))
-
-    for answer, text, result in screened:
-        if result.rejected or not args.failures_only:
-            status = "FAIL" if result.rejected else "PASS"
-            print(
-                f"{status}  id={answer.id} tier={result.tier or '-'} | {text}"
-                f"\n  Reason: {result.reason}"
-            )
+            if result.rejected or not args.failures_only:
+                status = "FAIL" if result.rejected else "PASS"
+                print(
+                    f"{status}  id={answer.id} tier={result.tier or '-'} | {text} | Reason: {result.reason}",
+                    flush=True,
+                )
 
     print(f"\n{passed} passed, {failed} failed, {skipped} empty skipped "
           f"(rating={DEFAULT_RATING})")
