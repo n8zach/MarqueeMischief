@@ -538,10 +538,9 @@ function currentDrafts() {
 
 function rejectionMessage(xhr) {
     const result = xhr && xhr.status === 422 ? xhr.responseJSON : null;
-    if (!result || !result.rejected) {
+    if (!result || result.verdict !== "FAIL") {
         return null;
     }
-    const percent = Math.round(result.rejection_probability);
     return "Hey friend,\n\n" +
         "I'm pretty sure that the message you just submitted didn't meet this site's community guidelines." +
         "\nBecause the daily game is visible to anyone I unfortunately had to block it... I know... rude." +
@@ -552,7 +551,7 @@ function rejectionMessage(xhr) {
 
 function screeningDetails(result) {
     return JSON.stringify(result, null, 2) + "\n" +
-        "-> REJECTED (" + Number(result.rejection_probability).toFixed(1) + "% vs " + result.threshold + "% threshold)";
+        "-> " + result.verdict;
 }
 
 function removeDraftByText(text) {

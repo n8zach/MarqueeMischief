@@ -1,4 +1,4 @@
-"""Screens text against a content rating without calling an external service."""
+"""Screens text against a content rating using local and OpenAI checks."""
 from dataclasses import dataclass
 import logging
 import time
@@ -9,7 +9,6 @@ from .rejection_scorer import RejectionScorer
 logger = logging.getLogger(__name__)
 
 DEFAULT_RATING = "PG-13"
-DEFAULT_THRESHOLD = 50.0
 
 _scorers = {}
 _lock = Lock()
@@ -19,11 +18,8 @@ _lock = Lock()
 class ScreeningResult:
     rejected: bool
     rating: str
-    rejection_probability: float
-    score: float
     reason: str
     tier: str = ""
-    threshold: float = DEFAULT_THRESHOLD
 
     @property
     def word_match(self):
@@ -32,14 +28,11 @@ class ScreeningResult:
 
     def to_dict(self):
         return {
-            "rejected": self.rejected,
+            "verdict": "FAIL" if self.rejected else "PASS",
             "rating": self.rating,
-            "rejection_probability": self.rejection_probability,
-            "score": self.score,
             "reason": self.reason,
             "tier": self.tier,
             "word_match": self.word_match,
-            "threshold": self.threshold,
         }
 
 
@@ -64,10 +57,10 @@ def _say(message):
 
 
 def ensure_ready(rating=DEFAULT_RATING):
-    """Load the scorer and run one prediction. Returns True when screening is usable.
+    """Initialize the local detector and OpenAI client without making an API call.
 
     Failures are logged and retried at most every RETRY_SECONDS so a broken
-    install doesn't make every request pay the load cost.
+    install doesn't make every request pay the initialization cost.
     """
     if rating in _ready:
         return True
@@ -81,7 +74,6 @@ def ensure_ready(rating=DEFAULT_RATING):
         _say(f"Profanity screener: loading (rating={rating})...")
         try:
             _scorers.setdefault(rating, RejectionScorer(rating=rating))
-            _scorers[rating].score("warm up")
         except Exception as exc:
             _scorers.pop(rating, None)
             _failed_at[rating] = time.monotonic()
@@ -108,16 +100,12 @@ def start_background_warm_up(rating=DEFAULT_RATING):
     return thread
 
 
-def screen_message(text, rating=DEFAULT_RATING, threshold=DEFAULT_THRESHOLD, scorer=None):
-    """Return a ScreeningResult; rejected when rejection_probability (percent) >= threshold."""
+def screen_message(text, rating=DEFAULT_RATING, scorer=None):
+    """Return the PASS/FAIL screening result."""
     result = (scorer or _get_scorer(rating)).score(text)
-    probability = result.rejection_probability or 0.0
     return ScreeningResult(
-        rejected=probability >= threshold,
+        rejected=result.rejected,
         rating=result.rating,
-        rejection_probability=probability,
-        score=result.score or 0.0,
         reason=result.reason,
         tier=result.tier,
-        threshold=threshold,
     )

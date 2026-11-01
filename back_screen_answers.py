@@ -1,7 +1,7 @@
 """Run every stored answer through the profanity screener and print PASS/FAIL.
 
-Uses the same database config, text normalization, and screener defaults
-(rating/threshold) as the Flask app's daily-answer check.
+Uses the same database config, text normalization, and rating as the Flask
+app's daily-answer check.
 
 Usage: python screen_all_answers.py [--failures-only]
 Exit code: 0 if all pass, 1 if any fail, 2 if the screener is unavailable.
@@ -20,7 +20,7 @@ load_dotenv(dotenv_path=env_path)
 from flask_app import app
 from mm_game_db import Answers
 from profanity_filter import (
-    DEFAULT_RATING, DEFAULT_THRESHOLD, ensure_ready, screen_message,
+    DEFAULT_RATING, ensure_ready, screen_message,
 )
 
 
@@ -53,18 +53,16 @@ def main():
                 passed += 1
             screened.append((answer, text, result))
 
-    screened.sort(key=lambda item: item[2].rejection_probability, reverse=True)
     for answer, text, result in screened:
         if result.rejected or not args.failures_only:
             status = "FAIL" if result.rejected else "PASS"
             print(
-                #f"{status}  id={answer.id} "
-                #f"p={result.rejection_probability:.1f}% tier={result.tier or '-'} | {text}"
-                f"{text}"
+                f"{status}  id={answer.id} tier={result.tier or '-'} | {text}"
+                f"\n  Reason: {result.reason}"
             )
 
     print(f"\n{passed} passed, {failed} failed, {skipped} empty skipped "
-          f"(rating={DEFAULT_RATING}, threshold={DEFAULT_THRESHOLD})")
+          f"(rating={DEFAULT_RATING})")
     return 1 if failed else 0
 
 
