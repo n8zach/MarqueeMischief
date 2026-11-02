@@ -55,7 +55,7 @@ class Games(db.Model):
     createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     startTime = db.Column(db.DateTime(timezone=True), nullable=True)
     dailyDate = db.Column(db.Date, unique=True, nullable=True)
-    code = db.Column(db.String(64), unique=True, nullable=False)
+    code = db.Column(db.String(64), unique=True, nullable=True)
 
 
 class Answers(db.Model):
@@ -141,7 +141,6 @@ def create_daily_game(day, puzzle_id, start_time, end_time):
         durationSeconds=int((end_time - start_time).total_seconds()),
         startTime=start_time,
         dailyDate=day,
-        code=new_game_code(),
     )
     db.session.add(game)
     try:

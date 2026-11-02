@@ -283,6 +283,8 @@ def create_game():
         return redirect(url_for("create_game", gameId=game.id))
 
     game = get_game_with_puzzle(request.args.get("gameId")) if request.args.get("gameId") else None
+    if game and game[0].code is None:
+        game = None
     game_url = url_for("game", code=game[0].code, _external=True) if game else None
     puzzle_marquee = message_to_marquee_html(game[1]) if game else None
     return render_template("creategame.html", puzzles=get_all_puzzles(), game=game, game_url=game_url, puzzle_marquee=puzzle_marquee)
@@ -296,7 +298,7 @@ def start_created_game(game_id):
         flash("Game already started.", "error")
         return redirect(url_for("create_game", gameId=game_id))
     flash(error or "Game started.", "error" if error else "success")
-    if game is None:
+    if game is None or game.code is None:
         return redirect(url_for("create_game"))
     return redirect(url_for("game", code=game.code))
 

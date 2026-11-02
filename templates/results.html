@@ -21,7 +21,7 @@
                     <div id="results_body" class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
                 {% else %}
                     <p class="center">Results will be available after this game’s timer ends.</p>
-                    <div class="button-row"><a class="button" href="{{ url_for('game', code=game_code) }}">Return to game</a></div>
+                    {% if game_code %}<div class="button-row"><a class="button" href="{{ url_for('game', code=game_code) }}">Return to game</a></div>{% else %}<div class="button-row"><a class="button" href="{{ url_for('daily_game') }}">Return to daily game</a></div>{% endif %}
                 {% endif %}
             {% elif games %}
                 <form class="form-stack" method="get" action="{{ url_for('results') }}">
