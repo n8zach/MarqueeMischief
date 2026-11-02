@@ -1,4 +1,4 @@
-"""Give every non-daily game a shareable two-word code.
+"""Give every game a shareable two-word code.
 
 Revision ID: 0005_game_codes
 Revises: 0004_cascade_deletes_admin
@@ -21,10 +21,14 @@ def upgrade():
     games = sa.table("games", sa.column("id", sa.Integer), sa.column("code", sa.String), sa.column("dailyDate", sa.Date))
     words = load_words()
     used = set()
-    for (game_id,) in connection.execute(sa.select(games.c.id).where(games.c.dailyDate.is_(None))).fetchall():
-        code = generate_game_code(words, used)
-        used.add(code)
+    for game_id, daily_date in connection.execute(sa.select(games.c.id, games.c.dailyDate)).fetchall():
+        if daily_date is not None:
+            code = f"DAILY{game_id}"
+        else:
+            code = generate_game_code(words, used)
+            used.add(code)
         connection.execute(games.update().where(games.c.id == game_id).values(code=code))
+    op.alter_column("games", "code", existing_type=sa.String(length=64), nullable=False)
     op.create_unique_constraint("uq_games_code", "games", ["code"])
 
 

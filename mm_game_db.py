@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 from html import escape
+import secrets
 
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
@@ -55,7 +56,7 @@ class Games(db.Model):
     createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     startTime = db.Column(db.DateTime(timezone=True), nullable=True)
     dailyDate = db.Column(db.Date, unique=True, nullable=True)
-    code = db.Column(db.String(64), unique=True, nullable=True)
+    code = db.Column(db.String(64), unique=True, nullable=False)
 
 
 class Answers(db.Model):
@@ -141,9 +142,12 @@ def create_daily_game(day, puzzle_id, start_time, end_time):
         durationSeconds=int((end_time - start_time).total_seconds()),
         startTime=start_time,
         dailyDate=day,
+        code=f"DAILY-PENDING-{secrets.token_hex(8)}",
     )
     db.session.add(game)
     try:
+        db.session.flush()
+        game.code = f"DAILY{game.id}"
         db.session.commit()
         return game
     except IntegrityError:
