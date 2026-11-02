@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join a game — Marquee Mischief</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
+</head>
+<body>
+    <main class="site-shell">
+        {% include '_site_nav.html' %}
+        <section class="panel">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}<ul class="notice-list">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+            {% endwith %}
+            <h1 class="page-title">Join a game</h1>
+            <p class="page-lede">Enter the game code shared by the game master.</p>
+            <form class="form-stack" method="post" action="{{ url_for('join_game') }}">
+                <div class="field"><label for="code">Game code</label><input id="code" name="code" maxlength="64" placeholder="WORD-WORD" autocomplete="off" required autofocus></div>
+                <button class="gold" type="submit">Join game</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

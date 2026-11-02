@@ -4,6 +4,7 @@ from html import escape
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from db import db
+from game_codes import generate_game_code, load_words, normalize_game_code
 from original_message_display import message_to_marquee_html
 from flask_login import UserMixin
 
@@ -54,6 +55,7 @@ class Games(db.Model):
     createdAt = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
     startTime = db.Column(db.DateTime(timezone=True), nullable=True)
     dailyDate = db.Column(db.Date, unique=True, nullable=True)
+    code = db.Column(db.String(64), unique=True, nullable=False)
 
 
 class Answers(db.Model):
@@ -83,11 +85,31 @@ def get_or_create_puzzle(puzzle_text):
     return puzzle
 
 
+def new_game_code():
+    words = load_words()
+    while True:
+        code = generate_game_code(words)
+        if Games.query.filter_by(code=code).first() is None:
+            return code
+
+
 def create_game(puzzle_id, duration_seconds):
-    game = Games(puzzleId=int(puzzle_id), durationSeconds=int(duration_seconds))
+    game = Games(puzzleId=int(puzzle_id), durationSeconds=int(duration_seconds), code=new_game_code())
     db.session.add(game)
     db.session.commit()
     return game
+
+
+def get_game_by_code(code):
+    code = normalize_game_code(code)
+    if not code:
+        return None
+    return Games.query.filter_by(code=code).first()
+
+
+def get_game_with_puzzle_by_code(code):
+    game = get_game_by_code(code)
+    return get_game_with_puzzle(game.id) if game is not None else None
 
 
 def get_daily_game(day):
@@ -119,6 +141,7 @@ def create_daily_game(day, puzzle_id, start_time, end_time):
         durationSeconds=int((end_time - start_time).total_seconds()),
         startTime=start_time,
         dailyDate=day,
+        code=new_game_code(),
     )
     db.session.add(game)
     try:
