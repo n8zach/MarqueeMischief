@@ -105,7 +105,7 @@ def get_game_by_code(code):
     code = normalize_game_code(code)
     if not code:
         return None
-    return Games.query.filter_by(code=code).first()
+    return Games.query.filter_by(code=code).order_by(Games.id.desc()).first()
 
 
 def get_game_with_puzzle_by_code(code):
