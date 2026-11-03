@@ -377,6 +377,25 @@ function updateDraftsSection() {
     }
 }
 
+// Brings the composer into view after a suggestion click. Does nothing when it is already fully
+// visible, so it never causes the aggressive scrolling of earlier versions.
+function scrollToComposer() {
+    const stage = document.querySelector(".marquee-stage");
+    const target = (stage && stage.querySelector(".marquee-message")) || document.getElementById("tryItBox");
+    if (!target) {
+        return;
+    }
+    const vv = window.visualViewport;
+    const viewHeight = vv ? vv.height : window.innerHeight;
+    const rect = target.getBoundingClientRect();
+    const margin = 8;
+    if (rect.top >= 0 && rect.bottom <= viewHeight) {
+        return;
+    }
+    const top = rect.top + window.scrollY - margin;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
 function changeTryItBox(clickedElement) {
     if (clickedElement.closest("#aiSuggestions")) {
         markHintSeen("ai");
@@ -386,6 +405,7 @@ function changeTryItBox(clickedElement) {
     document.getElementById("tryItBox").innerText = clickedElement.textContent;
     updateTryItBox(true);
     updateScrabbleSuggestions();
+    requestAnimationFrame(scrollToComposer);
 }
 
 function insertWordSuggestion(clickedElement) {
@@ -426,6 +446,7 @@ function insertWordSuggestion(clickedElement) {
 
     updateTryItBox(true);
     updateScrabbleSuggestions();
+    requestAnimationFrame(scrollToComposer);
 }
 
 document.addEventListener("keyup", function (event) {
