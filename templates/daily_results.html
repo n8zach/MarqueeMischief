@@ -11,7 +11,7 @@
         {% include '_site_nav.html' %}
         <section class="panel">
             <h1 class="page-title">Daily Mischief Results</h1>
-            <p class="page-lede">{{ selected_day.strftime("%B %-d, %Y") }}</p>
+            <p class="page-lede">{{ selected_day.strftime("%B") }} {{ selected_day.day }}, {{ selected_day.year }}</p>
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
             {% if notice %}
                 <p class="center">{{ notice }}</p>

@@ -503,7 +503,7 @@ def daily_vote():
 @login_required
 def daily_results():
     today = _daily_today()
-    selected_day = today - timedelta(days=3)
+    selected_day = today - timedelta(days=2)
     requested_day = request.args.get("date")
     if requested_day:
         try:
