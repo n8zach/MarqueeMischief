@@ -15,6 +15,7 @@
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
             {% if notice %}
                 <p class="center">{{ notice }}</p>
+                {% if vote_url %}<div class="button-row"><a class="button" href="{{ vote_url }}">Vote now</a></div>{% endif %}
             {% elif not answers %}
                 <p class="center">No entries were submitted on this date.</p>
             {% else %}

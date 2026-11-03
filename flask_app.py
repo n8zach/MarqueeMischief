@@ -385,6 +385,16 @@ def results():
     original_message_html = message_to_marquee_html(game_and_puzzle[1])
     if not has_submitted_in_game(current_user.id, game_record.id):
         return render_template("results.html", games=None, selected=game_record.id, game=None, original_message_html=original_message_html, notice="You did not participate in this game.")
+    if not has_voted_in_game(current_user.id, game_record.id):
+        return render_template(
+            "results.html",
+            games=None,
+            selected=game_record.id,
+            game=None,
+            original_message_html=original_message_html,
+            notice="You must vote on this game before viewing the results.",
+            vote_url=url_for("vote", gameId=game_record.id),
+        )
     can_view = game_has_ended(game_record)
     submitter_count, voter_count = get_game_submitter_and_voter_counts(game_record.id)
     return render_template(
@@ -516,17 +526,24 @@ def daily_results():
     month_value = request.args.get("month", selected_day.strftime("%Y-%m"))
     selected_month = _parse_calendar_month(month_value, selected_day)
     game = get_daily_game(selected_day)
+    if game is not None and not has_voted_in_game(current_user.id, game.id):
+        notice = "You must vote on this game before viewing the results."
+        vote_url = url_for("daily_vote")
+    else:
+        notice = None if game else "No daily game was available on this date."
+        vote_url = None
     game_and_puzzle = get_game_with_puzzle(game.id) if game else None
-    answers = get_game_user_answer_votes(game.id) if game else []
+    answers = get_game_user_answer_votes(game.id) if game and vote_url is None else []
     puzzle_text = game_and_puzzle[1] if game_and_puzzle else ""
     return render_template(
         "daily_results.html",
         selected_day=selected_day,
         game=game,
         answers=answers,
-        text=get_game_results_text(game.id) if game else "",
+        text=get_game_results_text(game.id) if game and vote_url is None else "",
         original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
-        notice=None if game else "No daily game was available on this date.",
+        notice=notice,
+        vote_url=vote_url,
         no_votes=bool(answers) and not any(row[3] for row in answers),
         **_daily_calendar_context(selected_day, today, selected_month),
     )

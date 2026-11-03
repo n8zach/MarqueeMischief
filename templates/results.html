@@ -14,6 +14,7 @@
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
             {% if notice %}
                 <p class="center">{{ notice }}</p>
+                {% if vote_url %}<div class="button-row"><a class="button" href="{{ vote_url }}">Vote now</a></div>{% endif %}
             {% elif game %}
                 {% if can_view_results %}
                     <p id="vote_status" class="center" data-complete="{{ 'true' if voter_count >= submitter_count else 'false' }}">{{ voter_count }} of {{ submitter_count }} player{{ '' if submitter_count == 1 else 's' }} ha{{ 's' if voter_count == 1 else 've' }} voted</p>
