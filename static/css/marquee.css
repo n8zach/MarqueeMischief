@@ -121,6 +121,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .intro strong { color: var(--purple); }
 .account-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
 .account-actions a { min-width: 150px; }
+.home-panel .account-actions .button,
+.daily-calendar-navigation .button { display: inline-flex; align-items: center; justify-content: center; }
 .action-list { display: grid; gap: 1rem; }
 .action-card { display: grid; grid-template-columns: 145px 1fr; min-height: 125px; overflow: hidden; border: 2px solid var(--line); border-radius: 17px; color: var(--ink); background: white; box-shadow: none; text-decoration: none; transition: none; }
 .action-card:hover, .action-card:focus-visible { border-color: var(--gold-deep); outline: none; }
