@@ -6,7 +6,7 @@
     <title>Try It — Marquee Mischief</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
-<body>
+<body data-user-id="{{ current_user.id }}">
     <main class="site-shell">
         {% include '_site_nav.html' %}
         <section class="panel play-layout">
@@ -35,7 +35,7 @@
         <p class="reset-help"><a href="#" onclick="resetHelp(); return false;">reset help</a></p>
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/storage.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/textChangeNFade.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/marqueemischief.js') }}"></script>
     <script>

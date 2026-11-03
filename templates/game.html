@@ -6,7 +6,7 @@
     <title>{% if daily_mode %}Today's Mischief{% else %}Game in progress{% endif %} — Marquee Mischief</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/marquee.css') }}">
 </head>
-<body data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}" data-daily-mode="{{ 'true' if daily_mode else 'false' }}" data-daily-vote-url="{{ url_for('daily_vote') }}">
+<body data-user-id="{{ current_user.id }}" data-game-id="{{ game.id }}" data-game-end-time="{{ end_time }}" data-game-ended="{{ 'true' if game_has_ended else 'false' }}" data-daily-mode="{{ 'true' if daily_mode else 'false' }}" data-daily-vote-url="{{ url_for('daily_vote') }}">
     <main class="site-shell">
         {% include '_site_nav.html' %}
         <section class="panel play-layout">
@@ -45,7 +45,7 @@
         <img class="qr-code in-game-only" alt="QR code for game {{ game.id }}" width="220" height="220" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data={{ game_url|urlencode }}">
     </main>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{{ url_for('static', filename='JavaScript/cookies.js') }}"></script>
+    <script src="{{ url_for('static', filename='JavaScript/storage.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/textChangeNFade.js') }}"></script>
     <script src="{{ url_for('static', filename='JavaScript/marqueemischief.js') }}"></script>
 </body>

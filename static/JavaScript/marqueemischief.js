@@ -72,6 +72,7 @@ function setTryItOriginalMessage(message) {
     box.dataset.best = normalizedMessage;
     originalMessageLayouts.delete(marquee);
     updateOriginalMessage();
+    reloadMessageStorage();
     window.dispatchEvent(new Event("resize"));
 }
 
@@ -83,10 +84,23 @@ function isDailyGame() {
     return document.body.dataset.dailyMode === "true";
 }
 
-function cookieName(name) {
-    // TryIt retains its original cookie names, so existing saved drafts and
-    // suggestions still load. A game uses its id to isolate reused puzzles.
-    return gameId() ? "game-" + gameId() + "+" + name : originalMessage() + "+" + name;
+function storageKey(name) {
+    // Prefixed with the user id so users sharing a browser keep separate data.
+    // A game uses its id to isolate reused puzzles; TryIt uses the message.
+    const scope = gameId() ? "game-" + gameId() : encodeURIComponent(originalMessage());
+    return userStoragePrefix() + scope + "+" + name;
+}
+
+function userStoragePrefix() {
+    return "u" + (document.body.dataset.userId || "anon") + "-";
+}
+
+function reloadMessageStorage() {
+    document.getElementById("drafts").replaceChildren();
+    document.getElementById("aiSuggestions").innerHTML = "";
+    loadDrafts(storageKey("drafts"));
+    updateDraftsSection();
+    loadSuggestions(storageKey("suggestions"));
 }
 
 function updateTryItHint() {
@@ -185,9 +199,9 @@ function myInit() {
     }
     updateOriginalMessage(message);
     updateButtons();
-    LoadDraftsFromCookie(cookieName("drafts"));
+    loadDrafts(storageKey("drafts"));
     updateDraftsSection();
-    LoadSuggestionsFromCookie(cookieName("suggestions"));
+    loadSuggestions(storageKey("suggestions"));
     initializeGameTimer();
 }
 
@@ -339,16 +353,16 @@ function updateOriginalMessageDisplay(letters, keepOrder = false) {
 }
 
 function hintSeen(name) {
-    return getCookie("hint-" + name) === "1";
+    return storeGet(userStoragePrefix() + "hint-" + name) === "1";
 }
 
 function resetHelp() {
-    ["tryit", "draft", "word", "ai"].forEach((name) => setCookie("hint-" + name, "", -1));
+    ["tryit", "draft", "word", "ai"].forEach((name) => storeRemove(userStoragePrefix() + "hint-" + name));
     window.location.reload();
 }
 
 function markHintSeen(name) {
-    setCookie("hint-" + name, "1", 3650);
+    storeSet(userStoragePrefix() + "hint-" + name, "1");
     document.querySelectorAll('[data-hint="' + name + '"]').forEach((element) => element.remove());
 }
 
@@ -558,7 +572,7 @@ function removeDraftByText(text) {
     const label = Array.from(document.querySelectorAll("#drafts .draft label")).find(function (item) { return item.textContent === text; });
     if (label) {
         label.parentElement.remove();
-        SaveDraftsCookie(cookieName("drafts"));
+        saveDrafts(storageKey("drafts"));
         updateDraftsSection();
     }
 }
@@ -733,7 +747,7 @@ function updateAISuggestions() {
         stopAnimation();
         document.getElementById("getAiSuggestions").hidden = false;
         document.getElementById("aiSuggestions").innerHTML = data;
-        SaveAiSuggestionsCookie(cookieName("suggestions"));
+        saveAiSuggestions(storageKey("suggestions"));
         const aiBox = document.getElementById("aiSuggestions");
         if (!hintSeen("ai") && aiBox.querySelector("[onclick]")) {
             aiBox.insertAdjacentHTML("afterbegin", '<div data-hint="ai"><i>click a suggestion to add it to your marquee</i></div>');
@@ -813,13 +827,13 @@ function addDraftItem(draft) {
 
     removeButton.addEventListener("click", function () {
         div.remove();
-        SaveDraftsCookie(cookieName("drafts"));
+        saveDrafts(storageKey("drafts"));
         updateDraftsSection();
     });
 
     updateDraftsSection();
     clearTryItBox();
-    SaveDraftsCookie(cookieName("drafts"));
+    saveDrafts(storageKey("drafts"));
 }
 
 // Countdown warning settings, in seconds remaining.
