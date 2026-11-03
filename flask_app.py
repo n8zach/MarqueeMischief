@@ -32,6 +32,8 @@ from mm_game_db import (
     get_daily_game,
     get_daily_game_dates,
     get_game,
+    get_game_by_code,
+    get_game_with_puzzle_by_code,
     get_game_answer_votes,
     get_game_results_text,
     get_game_submitter_and_voter_counts,
@@ -281,7 +283,7 @@ def create_game():
         return redirect(url_for("create_game", gameId=game.id))
 
     game = get_game_with_puzzle(request.args.get("gameId")) if request.args.get("gameId") else None
-    game_url = url_for("game", gameId=game[0].id, _external=True) if game else None
+    game_url = url_for("game", code=game[0].code, _external=True) if game else None
     puzzle_marquee = message_to_marquee_html(game[1]) if game else None
     return render_template("creategame.html", puzzles=get_all_puzzles(), game=game, game_url=game_url, puzzle_marquee=puzzle_marquee)
 
@@ -294,7 +296,9 @@ def start_created_game(game_id):
         flash("Game already started.", "error")
         return redirect(url_for("create_game", gameId=game_id))
     flash(error or "Game started.", "error" if error else "success")
-    return redirect(url_for("game", gameId=game_id))
+    if game is None:
+        return redirect(url_for("create_game"))
+    return redirect(url_for("game", code=game.code))
 
 
 @app.route("/game-status/<int:game_id>")
@@ -387,6 +391,7 @@ def results():
         "results.html",
         games=None,
         selected=game_record.id,
+        game_code=game_record.code,
         game=game_and_puzzle,
         original_message_html=original_message_html,
         can_view_results=can_view,
@@ -568,21 +573,38 @@ def tryit():
     return render_template("tryit.html", form_data=form_data, puzzles=get_all_puzzles())
 
 
+@app.route("/join_game/", methods=["GET", "POST"])
+@login_required
+def join_game():
+    if request.method == "POST":
+        code = request.form.get("code", "")
+        game_record = get_game_by_code(code)
+        if game_record is None:
+            flash("We couldn't find a game with that code. Check the code and try again.", "error")
+        elif game_has_ended(game_record):
+            flash("That game has already ended.", "error")
+        else:
+            return redirect(url_for("game", code=game_record.code))
+    return render_template("join_game.html")
+
+
 @app.route("/game/", methods=["GET"])
 @login_required
 def game():
-    game_id = request.args.get("gameId")
-    if not game_id:
-        return render_template("error.html", message="No game ID specified."), 400
+    code = request.args.get("code")
+    if not code:
+        return render_template("error.html", message="No game code specified."), 400
 
-    game_and_puzzle = get_game_with_puzzle(game_id)
+    game_and_puzzle = get_game_with_puzzle_by_code(code)
     if game_and_puzzle is None:
         return render_template("error.html", message="Game not found."), 404
     game_record, puzzle_text = game_and_puzzle
+    if game_record.dailyDate is not None:
+        return redirect(url_for("daily_game"))
     if game_record.startTime is None:
         return render_template("game_waiting.html", game=game_record)
     form_data = {"user": current_user.username, "OriginalMessage": puzzle_text, "Best": puzzle_text, "OriginalMessageDisplay": message_to_marquee_html(puzzle_text), "TryItBoxDisplay": message_to_marquee_html(puzzle_text, input_attrs=_try_it_box_attrs(puzzle_text, game_record.id))}
-    game_url = url_for("game", gameId=game_record.id, _external=True)
+    game_url = url_for("game", code=game_record.code, _external=True)
     return render_template("game.html", form_data=form_data, game=game_record, end_time=utc_datetime(game_end_time(game_record)).isoformat(), game_has_ended=game_has_ended(game_record), game_url=game_url)
 
 

@@ -30,6 +30,7 @@
                 </form>
             {% else %}
                 <h1 class="page-title">Game {{ game[0].id }} is ready</h1>
+                <p class="center">Game code: <strong class="game-code">{{ game[0].code }}</strong></p>
                 <div class="marquee-stage">
                     {{ puzzle_marquee | safe }}
                 </div>
