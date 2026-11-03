@@ -21,10 +21,10 @@
                         <label for="puzzleId">Use an existing original message</label>
                         <select id="puzzleId" name="puzzleId"><option value="">Choose an original message</option>{% for puzzle in puzzles %}<option value="{{ puzzle[0] }}">{{ puzzle[1] }}</option>{% endfor %}</select>
                     </div>
-                    <div class="field"><label for="newPuzzle">Or enter a new original message</label><input id="newPuzzle" name="newPuzzle" maxlength="256"></div>
+                    <div class="field"><label for="newPuzzle">Or enter a new original message</label><input id="newPuzzle" name="newPuzzle" maxlength="40"></div>
                     <div class="field">
                         <label for="hours">Game duration</label>
-                        <div class="inline-fields"><input id="hours" name="hours" type="number" min="0" value="0" required aria-label="Hours"><span>hours</span><input id="minutes" name="minutes" type="number" min="0" max="59" value="5" required aria-label="Minutes"><span>minutes</span></div>
+                        <div class="inline-fields" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:0.5rem"><input id="hours" name="hours" type="number" min="0" value="0" required aria-label="Hours" style="flex:1 1 0;min-width:0;width:auto"><span>hours</span><input id="minutes" name="minutes" type="number" min="0" max="59" value="5" required aria-label="Minutes" style="flex:1 1 0;min-width:0;width:auto"><span>minutes</span></div>
                     </div>
                     <button class="gold" type="submit">Create game</button>
                 </form>

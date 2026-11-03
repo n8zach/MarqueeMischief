@@ -24,9 +24,9 @@
 
             <h2 class="page-title daily-calendar-title">Choose a date</h2>
             <nav class="daily-calendar-navigation" aria-label="Calendar month">
-                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=previous_month) }}">Previous month</a>
+                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=previous_month) }}">Previous</a>
                 <strong>{{ calendar_month.strftime("%B %Y") }}</strong>
-                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=next_month) }}">Next month</a>
+                <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=next_month) }}">Next</a>
             </nav>
             <table class="daily-calendar" aria-label="Daily games calendar">
                 <thead><tr>{% for name in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] %}<th scope="col">{{ name }}</th>{% endfor %}</tr></thead>

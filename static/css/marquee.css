@@ -77,8 +77,8 @@ a { color: var(--purple); }
 .notice-list { margin: 0 0 1.2rem; padding: .75rem 1rem .75rem 2rem; border-radius: 12px; background: #fff0ed; color: #8b2641; }
 .notice { color: #8b2641; font-weight: 700; }
 
-.form-stack { display: grid; gap: 1rem; width: min(100%, 36rem); margin: 0 auto; }
-.field { display: grid; gap: .35rem; }
+.form-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; width: min(100%, 36rem); margin: 0 auto; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: .35rem; }
 label { color: var(--purple); font-weight: 700; }
 input:not([type="radio"]), select, textarea {
     width: 100%;
