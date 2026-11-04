@@ -207,16 +207,26 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        authorization_code = (
+            request.args.get("authorization_code", "")
+            if "authorization_code" in request.args
+            else request.form.get("authorization_code", "")
+        )
         result, message = add_user(
             request.form.get("username", ""),
             request.form.get("password", ""),
-            request.form.get("authorization_code", ""),
+            authorization_code,
         )
         if result:
             flash("Registration successful! Please login.", "success")
             return redirect(url_for("login", next=request.form.get("next", "")))
         flash(f"Registration failed. {message}", "error")
-    return render_template("register.html")
+    authorization_code = (
+        request.args.get("authorization_code")
+        if "authorization_code" in request.args
+        else None
+    )
+    return render_template("register.html", authorization_code=authorization_code)
 
 
 @app.route("/scrabbler", methods=["POST"])
