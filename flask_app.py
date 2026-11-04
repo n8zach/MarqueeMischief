@@ -270,7 +270,7 @@ def create_game():
             if puzzle_text:
                 puzzle = get_or_create_puzzle(puzzle_text)
             elif puzzle_id:
-                puzzle = next((p for p in get_all_puzzles() if p[0] == int(puzzle_id)), None)
+                puzzle = next((p for p in get_all_puzzles(limit=15) if p[0] == int(puzzle_id)), None)
                 if puzzle is None:
                     raise ValueError
                 puzzle = get_or_create_puzzle(puzzle[1])
@@ -278,7 +278,7 @@ def create_game():
                 raise ValueError
         except ValueError:
             flash("Choose an original message (or enter a new one) and a duration greater than zero.", "error")
-            return render_template("creategame.html", puzzles=get_all_puzzles(), game=None)
+            return render_template("creategame.html", puzzles=get_all_puzzles(limit=15), game=None)
         game = create_game_record(puzzle.id, duration_seconds)
         return redirect(url_for("create_game", gameId=game.id))
 
