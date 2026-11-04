@@ -587,7 +587,7 @@ def _try_it_box_attrs(message, game_id=None):
 def tryit():
     message = request.args.get("OriginalMessage", "PLEASE WAIT TO BE SEATED").upper()
     form_data = {"user": current_user.username, "OriginalMessage": message, "Best": message, "OriginalMessageDisplay": message_to_marquee_html(message), "TryItBoxDisplay": message_to_marquee_html(message, input_attrs=_try_it_box_attrs(message))}
-    return render_template("tryit.html", form_data=form_data, puzzles=get_all_puzzles())
+    return render_template("tryit.html", form_data=form_data, puzzles=get_all_puzzles(limit=15))
 
 
 @app.route("/join_game/", methods=["GET", "POST"])

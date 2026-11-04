@@ -401,8 +401,11 @@ def save_answer_for_game(answer_text, game_id, user_id):
     return ANSWER_ADDED_MESSAGE
 
 
-def get_all_puzzles():
-    return [(puzzle.id, puzzle.text) for puzzle in Puzzles.query.order_by(Puzzles.id).all()]
+def get_all_puzzles(limit=None):
+    puzzles = Puzzles.query.order_by(Puzzles.id)
+    if limit is not None:
+        puzzles = puzzles.limit(limit)
+    return [(puzzle.id, puzzle.text) for puzzle in puzzles.all()]
 
 
 def get_game_user_votes(game_id):
