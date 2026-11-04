@@ -11,18 +11,6 @@
         {% include '_site_nav.html' %}
         <section class="panel">
             <h1 class="page-title">Daily Mischief Results</h1>
-            <p class="page-lede">{{ selected_day.strftime("%B") }} {{ selected_day.day }}, {{ selected_day.year }}</p>
-            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
-            {% if notice %}
-                <p class="center">{{ notice }}</p>
-                {% if vote_url %}<div class="button-row"><a class="button" href="{{ vote_url }}">Vote now</a></div>{% endif %}
-            {% elif not answers %}
-                <p class="center">No entries were submitted on this date.</p>
-            {% else %}
-                {% if no_votes %}<p class="center">No votes were cast on this date.</p>{% endif %}
-                <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
-            {% endif %}
-
             <h2 class="page-title daily-calendar-title">Choose a date</h2>
             <nav class="daily-calendar-navigation" aria-label="Calendar month">
                 <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=previous_month) }}">Previous</a>
@@ -43,6 +31,17 @@
                 </tbody>
             </table>
             <p class="daily-calendar-key"><strong>Bold dates</strong> have a daily game and can be opened. Other dates have no game.</p>
+            <p class="page-lede">{{ selected_day.strftime("%B") }} {{ selected_day.day }}, {{ selected_day.year }}</p>
+            {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
+            {% if notice %}
+                <p class="center">{{ notice }}</p>
+                {% if vote_url %}<div class="button-row"><a class="button" href="{{ vote_url }}">Vote now</a></div>{% endif %}
+            {% elif not answers %}
+                <p class="center">No entries were submitted on this date.</p>
+            {% else %}
+                {% if no_votes %}<p class="center">No votes were cast on this date.</p>{% endif %}
+                <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
+            {% endif %}
         </section>
     </main>
 </body>
