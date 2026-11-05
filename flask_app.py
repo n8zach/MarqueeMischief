@@ -85,6 +85,20 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 280,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+
+def describe_duration(total_seconds):
+    total_minutes = int(total_seconds) // 60
+    hours, minutes = divmod(total_minutes, 60)
+    parts = []
+    if hours:
+        parts.append(f"{hours} {'hour' if hours == 1 else 'hours'}")
+    if minutes or not parts:
+        parts.append(f"{minutes} {'minute' if minutes == 1 else 'minutes'}")
+    return " and ".join(parts)
+
+
+app.jinja_env.filters["duration_text"] = describe_duration
 app.jinja_env.filters["marquee_row"] = lambda message, original=None: message_to_marquee_html(message, include_assets=False, like=original)
 # Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
 app.config["VOTE_REFRESH_SECONDS"] = int(os.environ.get("VOTE_REFRESH_SECONDS", 30))
