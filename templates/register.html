@@ -18,7 +18,11 @@
             <form class="form-stack" method="post">
                 <div class="field"><label for="username">Username</label><input type="text" id="username" name="username" autocomplete="username" required></div>
                 <div class="field"><label for="password">Password</label><input type="password" id="password" name="password" autocomplete="new-password" required></div>
-                <div class="field"><label for="authorization_code">Authorization code</label><input type="text" id="authorization_code" name="authorization_code" required></div>
+                {% if authorization_code is not none %}
+                    <input type="hidden" name="authorization_code" value="{{ authorization_code }}">
+                {% else %}
+                    <div class="field"><label for="authorization_code">Authorization code</label><input type="text" id="authorization_code" name="authorization_code" required></div>
+                {% endif %}
                 <input type="hidden" name="next" value="{{ request.values.get('next', '') }}">
                 <input class="gold" type="submit" value="Register">
             </form>
