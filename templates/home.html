@@ -9,29 +9,29 @@
 <body>
     <main class="site-shell">
         {% include '_site_nav.html' %}
-       <img class="marquee-banner" src="{{ url_for('static', filename='images/MainBanner.JPG') }}" alt="Marquee Mischief">
+       <img class="marquee-banner" src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/MainBanner.JPG') }}" alt="Marquee Mischief">
         <section class="panel home-panel">
             {% if current_user.is_authenticated %}
                 <nav class="action-list" aria-label="Marquee Mischief activities">
                     <a class="action-card" href="{{ url_for('daily_game') }}">
-                        <img src="{{ url_for('static', filename='images/evil.png') }}" alt="Mischievous character">
+                        <img src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/evil.png') }}" alt="Mischievous character">
                         <span>Today's Mischief</span>
                     </a>
                     <a class="action-card" href="{{ url_for('daily_vote') }}">
-                        <img src="{{ url_for('static', filename='images/laughingcolor.jfif') }}" alt="Laughing face">
+                        <img src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/laughingcolor.jfif') }}" alt="Laughing face">
                         <span>Vote on Yesterday's Mischief</span>
                     </a>
                     <a class="action-card" href="{{ url_for('daily_results') }}">
-                        <img src="{{ url_for('static', filename='images/Laughing.jfif') }}" alt="Laughing face">
+                        <img src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/Laughing.jfif') }}" alt="Laughing face">
                         <span>Check out the Daily Winners</span>
                     </a>
                     <hr class="action-separator">
                     <a class="action-card" href="{{ url_for('tryit') }}">
-                        <img src="{{ url_for('static', filename='images/friendly.jfif') }}" alt="Friendly face">
+                        <img src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/friendly.jfif') }}" alt="Friendly face">
                         <span>Make Your Own Mischief</span>
                     </a>
                     <a class="action-card" href="{{ url_for('create_game') }}">
-                        <img src="{{ url_for('static', filename='images/dancing.jfif') }}" alt="Dancing figure">
+                        <img src="{{ url_for('static', filename='images/' ~ config['IMAGE_DIRECTORY'] ~ '/dancing.jfif') }}" alt="Dancing figure">
                         <span>Start A New Game</span>
                     </a>
                 </nav>
