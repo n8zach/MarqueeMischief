@@ -110,6 +110,8 @@ Migrate(app, db)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 DAILY_TIMEZONE = ZoneInfo("America/Los_Angeles")
+IMAGE_DIRECTORY = "primary"
+app.config["IMAGE_DIRECTORY"] = IMAGE_DIRECTORY
 
 
 @app.errorhandler(404)
