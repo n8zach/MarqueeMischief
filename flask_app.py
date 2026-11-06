@@ -55,7 +55,7 @@ from mm_game_db import (
 )
 from db import db
 from admin_helper import cascade_preview, delete_row, lockout_preview, section_rows
-from original_message_display import message_to_marquee_html
+from original_message_display import message_to_marquee_html, uses_all_letters
 from scrabble import suggest_words
 
 SCREENER_UNAVAILABLE_MESSAGE = "We are having technical difficulties and working to resolve them. Please try back later."
@@ -99,7 +99,12 @@ def describe_duration(total_seconds):
 
 
 app.jinja_env.filters["duration_text"] = describe_duration
-app.jinja_env.filters["marquee_row"] = lambda message, original=None: message_to_marquee_html(message, include_assets=False, like=original)
+app.jinja_env.filters["marquee_row"] = lambda message, original=None: message_to_marquee_html(
+    message,
+    include_assets=False,
+    like=original,
+    all_letters_used=uses_all_letters(message, original or ""),
+)
 # Seconds between vote page refreshes; override with the VOTE_REFRESH_SECONDS environment variable.
 app.config["VOTE_REFRESH_SECONDS"] = int(os.environ.get("VOTE_REFRESH_SECONDS", 30))
 

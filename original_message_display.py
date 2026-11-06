@@ -1,6 +1,13 @@
+from collections import Counter
 from dataclasses import dataclass
 from html import escape
 import textwrap
+
+
+def uses_all_letters(message, original):
+    message_letters = [letter for letter in str(message or "").upper() if "A" <= letter <= "Z"]
+    original_letters = [letter for letter in str(original or "").upper() if "A" <= letter <= "Z"]
+    return bool(original_letters) and Counter(message_letters) == Counter(original_letters)
 
 
 @dataclass(frozen=True)
@@ -47,7 +54,9 @@ def _wrap(text, settings):
     return lines or [""], render_width
 
 
-def message_to_marquee_html(message, settings=None, input_attrs=None, include_assets=True, like=None):
+def message_to_marquee_html(
+    message, settings=None, input_attrs=None, include_assets=True, like=None, all_letters_used=False
+):
     """Return a self-contained, styled HTML block for a marquee-style message.
 
     With input_attrs, the block is sized and styled the same way but holds one
@@ -188,7 +197,13 @@ def message_to_marquee_html(message, settings=None, input_attrs=None, include_as
 })();
 </script>
 """
-    marquee_html = f'<div class="marquee-message" style="{escape(style, quote=True)}">{line_html}</div>'
+    star_html = (
+        '<span class="marquee-full-letter-star" title="Uses all puzzle letters" '
+        'aria-label="Uses all puzzle letters">★</span>'
+        if all_letters_used and input_attrs is None
+        else ""
+    )
+    marquee_html = f'<div class="marquee-message" style="{escape(style, quote=True)}">{star_html}{line_html}</div>'
     if input_attrs is not None:
         rule_script = ""
     if not include_assets:

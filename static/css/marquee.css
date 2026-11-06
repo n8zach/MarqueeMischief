@@ -149,6 +149,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .marquee-input[contenteditable]:focus { outline: none; }
 .marquee-input-message:focus-within { border-color: var(--violet) !important; }
 .marquee-row-rule { user-select: none; }
+.marquee-full-letter-star { position: absolute; top: .15em; right: .15em; z-index: 2; display: grid; width: 1.15em; height: 1.15em; place-items: center; border-radius: 50%; color: #7a5600; background: #ffc94d; font: bold .65em/1 sans-serif; }
+.full-letter-answer::after { content: " ★"; color: #b8860b; font-family: sans-serif; font-size: .8em; vertical-align: super; }
 .unavailable-letter { color: #c00; }
 .composer-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: .55rem; }
 .letter-actions { display: flex; justify-content: center; gap: .55rem; margin-top: .55rem; }

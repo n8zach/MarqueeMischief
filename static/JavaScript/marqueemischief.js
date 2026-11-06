@@ -6,6 +6,26 @@ function originalMessage() {
     return document.getElementById("tryItBox").dataset.originalMessage;
 }
 
+function usesAllPuzzleLetters(answer) {
+    const countLetters = function (text) {
+        const counts = new Map();
+        for (const letter of text.toUpperCase().match(/[A-Z]/g) || []) {
+            counts.set(letter, (counts.get(letter) || 0) + 1);
+        }
+        return counts;
+    };
+    const answerCounts = countLetters(answer);
+    const originalCounts = countLetters(originalMessage());
+    return originalCounts.size > 0 && answerCounts.size === originalCounts.size &&
+        Array.from(originalCounts).every(function ([letter, count]) { return answerCounts.get(letter) === count; });
+}
+
+function addFullLetterStar(element) {
+    element.classList.add("full-letter-answer");
+    element.title = "Uses all puzzle letters";
+    element.setAttribute("aria-label", element.textContent + ". Uses all puzzle letters");
+}
+
 function setTryItOriginalMessage(message) {
     const box = document.getElementById("tryItBox");
     const marquee = document.querySelector(".marquee-stage .marquee-message");
@@ -202,6 +222,11 @@ function myInit() {
     loadDrafts(storageKey("drafts"));
     updateDraftsSection();
     loadSuggestions(storageKey("suggestions"));
+    document.querySelectorAll("#submittedEntries li").forEach(function (entry) {
+        if (usesAllPuzzleLetters(entry.textContent)) {
+            addFullLetterStar(entry);
+        }
+    });
     initializeGameTimer();
 }
 
@@ -645,6 +670,9 @@ function renderEndPanel(notice) {
         const label = document.createElement("label");
         label.htmlFor = input.id;
         label.textContent = draft;
+        if (usesAllPuzzleLetters(draft)) {
+            addFullLetterStar(label);
+        }
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "draftRemove";
@@ -793,6 +821,9 @@ function addDraftItem(draft) {
     const label = document.createElement("label");
     label.textContent = draft;
     label.id = "label";
+    if (usesAllPuzzleLetters(draft)) {
+        addFullLetterStar(label);
+    }
 
     const div = document.createElement("div");
     div.className = "draft";
@@ -812,6 +843,9 @@ function addDraftItem(draft) {
                 if (submittedEntries) {
                     const item = document.createElement("li");
                     item.textContent = draft;
+                    if (usesAllPuzzleLetters(draft)) {
+                        addFullLetterStar(item);
+                    }
                     submittedEntries.appendChild(item);
                     submittedEntries.parentElement.hidden = false;
                 }
