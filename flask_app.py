@@ -511,10 +511,11 @@ def daily_vote():
         if answer[2] is None or int(answer[2]) != int(current_user.id)
     ]
     block_reason = None
+    has_voted = False
     if not answers:
         block_reason = "No entries were submitted yesterday, so there is nothing to vote on."
     elif has_voted_in_game(current_user.id, game.id):
-        block_reason = "You have already voted on yesterday's daily game."
+        has_voted = True
     elif not voteable_answers:
         block_reason = "There are no entries from other players to vote on."
 
@@ -529,6 +530,8 @@ def daily_vote():
         refresh_seconds=app.config["VOTE_REFRESH_SECONDS"],
         daily_mode=True,
         block_reason=block_reason,
+        has_voted=has_voted,
+        text=get_game_results_text(game.id) if has_voted else "",
         original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
         original_message=puzzle_text,
         time_left_end=_daily_window(today)[1].isoformat(),
