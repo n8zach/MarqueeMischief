@@ -197,6 +197,8 @@ input:focus, select:focus, textarea:focus, [contenteditable="true"]:focus { bord
 .daily-calendar td { height: 2.8rem; }
 .daily-calendar td a { color: var(--purple); }
 .daily-calendar .outside-month { color: #a99baa; background: #f7f2f8; }
+.daily-calendar .results-date, .daily-calendar-key .results-date { background: #dceeff; }
+.daily-calendar .voting-date, .daily-calendar-key .voting-date { background: #dcf4dc; }
 .daily-calendar .selected-date { outline: 2px solid var(--gold-deep); outline-offset: -2px; }
 .daily-calendar-key { color: var(--muted); font-size: .9rem; text-align: center; }
 

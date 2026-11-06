@@ -175,6 +175,7 @@ def _daily_calendar(month, today, selected_day):
                 "day": day.day,
                 "in_month": day.month == month.month,
                 "available": day < today - timedelta(days=1) and day in available_dates,
+                "yesterday": day == today - timedelta(days=1),
                 "selected": day == selected_day,
             }
             for day in week
@@ -552,6 +553,8 @@ def daily_results():
     month_value = request.args.get("month", selected_day.strftime("%Y-%m"))
     selected_month = _parse_calendar_month(month_value, selected_day)
     game = get_daily_game(selected_day)
+    yesterday_game = get_daily_game(today - timedelta(days=1))
+    yesterday_voted = yesterday_game is not None and has_voted_in_game(current_user.id, yesterday_game.id)
     if game is not None and not has_voted_in_game(current_user.id, game.id):
         notice = "You must vote on this game before viewing the results."
         vote_url = url_for("daily_vote")
@@ -571,6 +574,7 @@ def daily_results():
         notice=notice,
         vote_url=vote_url,
         no_votes=bool(answers) and not any(row[3] for row in answers),
+        yesterday_voted=yesterday_voted,
         **_daily_calendar_context(selected_day, today, selected_month),
     )
 

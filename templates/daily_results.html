@@ -12,6 +12,7 @@
         <section class="panel">
             <h1 class="page-title">Daily Mischief Results</h1>
             <h2 class="page-title daily-calendar-title">Choose a date</h2>
+            <p class="daily-calendar-key"><span class="results-date">Blue dates</span> have results. <span class="voting-date">Yesterday in green</span> is the day you can vote on.</p>
             <nav class="daily-calendar-navigation" aria-label="Calendar month">
                 <a class="button" href="{{ url_for('daily_results', date=selected_day.isoformat(), month=previous_month) }}">Previous</a>
                 <strong>{{ calendar_month.strftime("%B %Y") }}</strong>
@@ -22,15 +23,15 @@
                 <tbody>
                     {% for week in calendar_weeks %}
                     <tr>{% for cell in week %}
-                        <td class="{{ 'outside-month' if not cell.in_month else '' }} {{ 'selected-date' if cell.selected else '' }}">
-                            {% if cell.available %}<a href="{{ url_for('daily_date', day_text=cell.date) }}"><strong>{{ cell.day }}</strong></a>
+                        <td class="{{ 'outside-month' if not cell.in_month else '' }} {{ 'selected-date' if cell.selected else '' }} {{ 'results-date' if cell.available else '' }} {{ 'voting-date' if cell.yesterday else '' }}">
+                            {% if cell.yesterday %}<a href="{{ url_for('daily_vote') }}">{% if not yesterday_voted %}<strong>{{ cell.day }}</strong>{% else %}{{ cell.day }}{% endif %}</a>
+                            {% elif cell.available %}<a href="{{ url_for('daily_date', day_text=cell.date) }}"><strong>{{ cell.day }}</strong></a>
                             {% else %}<span>{{ cell.day }}</span>{% endif %}
                         </td>
                     {% endfor %}</tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <p class="daily-calendar-key"><strong>Bold dates</strong> have a daily game and can be opened. Other dates have no game.</p>
             <p class="page-lede">{{ selected_day.strftime("%B") }} {{ selected_day.day }}, {{ selected_day.year }}</p>
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
             {% if notice %}
