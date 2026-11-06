@@ -67,6 +67,26 @@ class ResultsVoteGateTests(unittest.TestCase):
         get_answers.assert_not_called()
         get_results.assert_not_called()
 
+    def test_daily_vote_shows_tallies_after_voting(self):
+        game = SimpleNamespace(id=44)
+        with (
+            patch("flask_app.get_user_from_id", return_value=TestUser()),
+            patch("flask_app._daily_today", return_value=date(2026, 11, 3)),
+            patch("flask_app.get_daily_game", return_value=game),
+            patch("flask_app.get_daily_answers", return_value=[object()]),
+            patch("flask_app.get_game_answer_votes", return_value=[]),
+            patch("flask_app.has_voted_in_game", return_value=True),
+            patch("flask_app.get_game_with_puzzle", return_value=(game, "PUZZLE")),
+            patch("flask_app.message_to_marquee_html", return_value=""),
+            patch("flask_app.get_game_results_text", return_value="<p>TALLIES</p>"),
+        ):
+            response = self.client.get("/daily/vote/")
+
+        self.assertIn(b"Thank you for voting on this daily game", response.data)
+        self.assertIn(b"TALLIES", response.data)
+        self.assertIn(b"Refresh", response.data)
+        self.assertNotIn(b'id="vote_button"', response.data)
+
 
 if __name__ == "__main__":
     unittest.main()

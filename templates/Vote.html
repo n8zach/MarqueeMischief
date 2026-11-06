@@ -17,7 +17,13 @@
             {% endwith %}
             {% if original_message_html %}<div class="marquee-stage">{{ original_message_html | safe }}</div>{% endif %}
             {% if daily_mode %}<p id="dailyVoteTimer" class="center" data-end-time="{{ time_left_end }}" aria-live="polite"></p>{% endif %}
-            {% if block_reason %}
+            {% if has_voted %}
+                <h2 class="page-title">Thank you for voting on this daily game</h2>
+                <p class="center">Here are the current tallies.</p>
+                <p class="center">Voting will continue until midnight Pacific time. Refresh to see the latest.</p>
+                <div class="button-row"><a class="button" href="{{ url_for('daily_vote') }}">Refresh</a></div>
+                <div class="center">{% autoescape false %}{{ text }}{% endautoescape %}</div>
+            {% elif block_reason %}
                 <p class="center">{{ block_reason }}</p>
             {% else %}
                 {% if not daily_mode %}
@@ -61,7 +67,7 @@
         setInterval(updateDailyVoteTimer, 1000);
     </script>
     {% endif %}
-    {% if not block_reason %}
+    {% if not block_reason and not has_voted %}
     <script data-refresh-seconds="{{ refresh_seconds }}">
         // Poll periodically, updating only the count and choices so a selection isn't lost.
         async function refreshVotes() {
