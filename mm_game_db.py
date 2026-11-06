@@ -6,7 +6,7 @@ from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 from db import db
 from game_codes import generate_game_code, load_words, normalize_game_code
-from original_message_display import message_to_marquee_html
+from original_message_display import message_to_marquee_html, uses_all_letters
 from flask_login import UserMixin
 
 
@@ -440,7 +440,13 @@ def get_game_results_text(game_id):
         text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{row[2]}</td></tr>"
     text_out += '</tbody></table><table class="results-table answers-table"><thead><tr><th>Player</th><th>Message</th><th>Votes</th></tr></thead><tbody>'
     for row in get_game_user_answer_votes(game_id):
-        text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{message_to_marquee_html(row[2], include_assets=False, like=row[0])}</td><td>{row[3]}</td></tr>"
+        answer_marquee = message_to_marquee_html(
+            row[2],
+            include_assets=False,
+            like=row[0],
+            all_letters_used=uses_all_letters(row[2], row[0]),
+        )
+        text_out += f"<tr><td>{escape(str(row[1]))}</td><td>{answer_marquee}</td><td>{row[3]}</td></tr>"
     return text_out + "</tbody></table>"
 
 
