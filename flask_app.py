@@ -552,24 +552,19 @@ def daily_results():
     month_value = request.args.get("month", selected_day.strftime("%Y-%m"))
     selected_month = _parse_calendar_month(month_value, selected_day)
     game = get_daily_game(selected_day)
-    if game is not None and not has_voted_in_game(current_user.id, game.id):
-        notice = "You must vote on this game before viewing the results."
-        vote_url = url_for("daily_vote")
-    else:
-        notice = None if game else "No daily game was available on this date."
-        vote_url = None
+    notice = None if game else "No daily game was available on this date."
     game_and_puzzle = get_game_with_puzzle(game.id) if game else None
-    answers = get_game_user_answer_votes(game.id) if game and vote_url is None else []
+    answers = get_game_user_answer_votes(game.id) if game else []
     puzzle_text = game_and_puzzle[1] if game_and_puzzle else ""
     return render_template(
         "daily_results.html",
         selected_day=selected_day,
         game=game,
         answers=answers,
-        text=get_game_results_text(game.id) if game and vote_url is None else "",
+        text=get_game_results_text(game.id) if game else "",
         original_message_html=message_to_marquee_html(puzzle_text) if puzzle_text else "",
         notice=notice,
-        vote_url=vote_url,
+        vote_url=None,
         no_votes=bool(answers) and not any(row[3] for row in answers),
         **_daily_calendar_context(selected_day, today, selected_month),
     )
